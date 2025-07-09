@@ -7,24 +7,36 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.protobuf.ProtobufWriter;
 import io.vertx.protobuf.Visitor;
 
+import java.util.Map;
+
 public class StructWriter {
 
   public static Buffer encode(Struct struct) {
     return ProtobufWriter.encode(visitor -> {
       visitor.init(SchemaLiterals.Struct.TYPE);
       emit(struct, visitor);
+      visitor.destroy();
+    });
+  }
+
+  public static byte[] encodeToByteArray(Struct struct) {
+    return ProtobufWriter.encodeToByteArray(visitor -> {
+      visitor.init(SchemaLiterals.Struct.TYPE);
+      emit(struct, visitor);
+      visitor.destroy();
     });
   }
 
   private static void emit(Struct struct, Visitor visitor) {
-    struct.getFieldsMap().forEach((key, value) -> {
+    Map<String, Value> map = struct.getFieldsMap();
+    for (String key : map.keySet()) {
       visitor.enter(SchemaLiterals.Struct.fields);
       visitor.visitString(SchemaLiterals.FieldsEntry.key, key);
       visitor.enter(SchemaLiterals.FieldsEntry.value);
-      emit(value, visitor);
+      emit(map.get(key), visitor);
       visitor.leave(SchemaLiterals.FieldsEntry.value);
       visitor.leave(SchemaLiterals.Struct.fields);
-    });
+    }
   }
 
   private static void emit(ListValue list, Visitor visitor) {

@@ -14,8 +14,9 @@ module io.vertx.protobuf {
   requires com.google.protobuf;
   requires com.google.protobuf.util;
   requires io.netty.codec;
+    requires io.netty.buffer;
 
-  exports io.vertx.protobuf.json;
+    exports io.vertx.protobuf.json;
   exports io.vertx.protobuf;
   exports io.vertx.protobuf.schema;
 }

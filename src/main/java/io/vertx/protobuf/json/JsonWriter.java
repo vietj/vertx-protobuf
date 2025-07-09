@@ -16,4 +16,10 @@ public class JsonWriter {
     return ProtobufWriter.encode(consumer);
   }
 
+  public static byte[] encodeToByteArray(JsonObject json) {
+    Consumer<Visitor> consumer = visitor -> {
+      JsonDriver.visitStruct(json, visitor);
+    };
+    return ProtobufWriter.encodeToByteArray(consumer);
+  }
 }

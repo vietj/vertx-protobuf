@@ -1,6 +1,8 @@
 package io.vertx.protobuf;
 
+import io.netty.buffer.ByteBuf;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.internal.buffer.BufferInternal;
 
 import java.nio.charset.StandardCharsets;
 
@@ -34,9 +36,8 @@ public class ProtobufEncoder {
   }
 
   public ProtobufEncoder writeString(String s) {
-    byte[] bytes = s.getBytes(StandardCharsets.UTF_8);
-    writeRawVarint32(buffer, bytes.length);
-    buffer.appendBytes(bytes);
+    ByteBuf bbuf = ((BufferInternal) buffer).unwrap();
+    bbuf.writeCharSequence(s, StandardCharsets.UTF_8);
     return this;
   }
 
@@ -83,4 +84,5 @@ public class ProtobufEncoder {
       return 4;
     }
     return 5;
-  }}
+  }
+}

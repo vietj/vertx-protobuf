@@ -15,7 +15,8 @@ class JsonDriver {
   }
 
   private static void visitStructInternal(JsonObject json, Visitor visitor) {
-    for (Map.Entry<String, Object> entry : json) {
+    Map<String, Object> map = json.getMap();
+    for (Map.Entry<String, Object> entry : map.entrySet()) {
       visitor.enter(SchemaLiterals.Struct.fields); // fields
       visitor.visitString(SchemaLiterals.FieldsEntry.key, entry.getKey());
       visitor.enter(SchemaLiterals.FieldsEntry.value);
@@ -26,7 +27,7 @@ class JsonDriver {
   }
 
   private static void visitListInternal(JsonArray json, Visitor visitor) {
-    for (Object value : json) {
+    for (Object value : json.getList()) {
       visitor.enter(SchemaLiterals.ListValue.values); // values
       visitValueInternal(value, visitor);
       visitor.leave(SchemaLiterals.ListValue.values);

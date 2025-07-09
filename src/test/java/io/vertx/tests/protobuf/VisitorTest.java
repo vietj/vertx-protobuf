@@ -69,6 +69,16 @@ public class VisitorTest {
     testEncodeJson(new JsonObject().put("null-1", null).put("null-2", null));
     testEncodeJson(new JsonObject().put("true", true).put("false", false));
     testEncodeJson(new JsonObject().put("object", new JsonArray().add(new JsonObject().put("string", "the-string")).add(4)));
+    testEncodeJson(new JsonObject()
+      .put("the-string", "the-string-value")
+      .put("the-number", 4)
+      .put("the-boolean", true)
+      .put("the-null", null)
+      .put("the-object", new JsonObject()
+        .put("the-string", "the-string-value")
+        .put("the-number", 4)
+        .put("the-boolean", true)
+        .put("the-null", null)));
 
     //    **    **               **
     // 0a 0c 0a 05 66616c7365 12 02 08 00       0a 0b 0a066e756c6c2d3212020800

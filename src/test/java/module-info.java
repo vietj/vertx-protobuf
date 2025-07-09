@@ -14,4 +14,6 @@ open module io.vertx.tests {
   requires junit;
   requires com.google.protobuf;
   requires com.google.protobuf.util;
+  requires jmh.core;
+  requires io.netty.codec.http;
 }
