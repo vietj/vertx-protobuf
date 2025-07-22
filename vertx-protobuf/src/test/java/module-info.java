@@ -9,6 +9,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR Apache-2.0
  */
 open module io.vertx.tests {
+  requires static io.vertx.codegen.api;
   requires io.vertx.core;
   requires io.vertx.protobuf;
   requires junit;

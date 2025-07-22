@@ -46,6 +46,11 @@
 
     <!-- Test deps -->
     <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-codegen-api</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <scope>test</scope>
@@ -96,6 +101,87 @@
       </plugins>
     </pluginManagement>
     <plugins>
+      <plugin>
+        <groupId>io.github.ascopes</groupId>
+        <artifactId>protobuf-maven-plugin</artifactId>
+        <version>3.6.1</version>
+
+        <configuration>
+          <protocVersion>${protoc.version}</protocVersion>
+          <javaEnabled>false</javaEnabled>
+
+          <!-- Vanilla protoc plugins - these are platform specific executables
+               just like protoc is. -->
+<!--
+          <binaryMavenPlugins>
+            <binaryMavenPlugin>
+              <groupId>io.grpc</groupId>
+              <artifactId>protoc-gen-grpc-java</artifactId>
+              <version>1.70.0</version>
+              <options>@generated=omit</options>
+            </binaryMavenPlugin>
+          </binaryMavenPlugins>
+-->
+
+          <!-- JVM plugins are distributed as JARs rather than native system
+               executables. The protobuf-maven-plugin will automatically bootstrap
+               them for you. -->
+          <jvmMavenPlugins>
+            <jvmMavenPlugin>
+              <groupId>io.vertx</groupId>
+              <artifactId>vertx-protobuf-protoc-plugin</artifactId>
+              <version>${project.version}</version>
+            </jvmMavenPlugin>
+          </jvmMavenPlugins>
+        </configuration>
+
+        <executions>
+          <execution>
+            <goals>
+              <goal>generate-test</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <!--
+      <plugin>
+        <groupId>org.xolstice.maven.plugins</groupId>
+        <artifactId>protobuf-maven-plugin</artifactId>
+        <configuration>
+          <pluginId>grpc-java</pluginId>
+          <javaTestOutputDirectory>${project.build.directory}/garbage</javaTestOutputDirectory>
+          <protocPlugins>
+            <protocPlugin>
+              <id>vertx-protobuf-protoc-plugin</id>
+              <groupId>io.vertx</groupId>
+              <artifactId>vertx-protobuf-protoc-plugin</artifactId>
+              <version>${project.version}</version>
+              <mainClass>io.vertx.grpc.plugin.VertxGrpcGenerator</mainClass>
+              <args>
+                <arg>&#45;&#45;grpc-client</arg>
+                <arg>&#45;&#45;grpc-service</arg>
+                <arg>&#45;&#45;grpc-io</arg>
+              </args>
+            </protocPlugin>
+          </protocPlugins>
+        </configuration>
+        <executions>
+          <execution>
+            <id>test-compile</id>
+            <goals>
+              <goal>test-compile</goal>
+            </goals>
+          </execution>
+        </executions>
+        <dependencies>
+          <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-protobuf-protoc-plugin</artifactId>
+            <version>${project.version}</version>
+          </dependency>
+        </dependencies>
+      </plugin>
+-->
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
         <executions>

@@ -1,0 +1,259 @@
+{{#javaPackageFqn}}
+package {{javaPackageFqn}};
+{{/javaPackageFqn}}
+
+import io.vertx.core.Future;
+import io.vertx.core.Promise;
+import io.vertx.core.Handler;
+import io.vertx.core.http.HttpMethod;
+import io.vertx.core.streams.ReadStream;
+import io.vertx.core.streams.WriteStream;
+import io.vertx.grpc.common.GrpcStatus;
+import io.vertx.grpc.common.ServiceName;
+import io.vertx.grpc.common.ServiceMethod;
+import io.vertx.grpc.common.GrpcMessageDecoder;
+import io.vertx.grpc.common.GrpcMessageEncoder;
+import io.vertx.grpc.server.GrpcServerRequest;
+import io.vertx.grpc.server.GrpcServer;
+import io.vertx.grpc.server.Service;
+import io.vertx.grpc.server.ServiceBuilder;
+import io.vertx.grpc.server.StatusException;
+
+import com.google.protobuf.Descriptors;
+
+import java.util.LinkedList;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * <p>Provides support for RPC methods implementations of the {{serviceName}} gRPC service.</p>
+ *
+ * <p>The following methods of this class should be overridden to provide an implementation of the service:</p>
+ * <ul>
+{{#allMethods}}
+ *   <li>{{methodName}}</li>
+{{/allMethods}}
+ * </ul>
+ */
+public class {{grpcServiceFqn}} extends {{serviceFqn}} implements Service {
+
+  /**
+   * {{serviceName}} service name.
+   */
+  public static final ServiceName SERVICE_NAME = ServiceName.create("{{packageName}}", "{{serviceName}}");
+
+  /**
+   * {{serviceName}} service descriptor.
+   */
+  public static final Descriptors.ServiceDescriptor SERVICE_DESCRIPTOR = {{outerFqn}}.getDescriptor().findServiceByName("{{serviceName}}");
+
+  @Override
+  public ServiceName name() {
+    return SERVICE_NAME;
+  }
+
+  @Override
+  public Descriptors.ServiceDescriptor descriptor() {
+    return SERVICE_DESCRIPTOR;
+  }
+
+  @Override
+  public void bind(GrpcServer server) {
+    builder(this).bind(all()).build().bind(server);
+  }
+
+  /**
+   * @return a service binding all methods of the given {@code service}
+   */
+  public static Service of({{serviceFqn}} service) {
+    return builder(service).bind(all()).build();
+  }
+{{#serviceMethods}}
+
+  /**
+   * {{methodName}} protobuf RPC server service method.
+   */
+  public static final ServiceMethod<{{inputType}}, {{outputType}}> {{methodName}} = ServiceMethod.server(
+    SERVICE_NAME,
+    "{{methodName}}",
+    GrpcMessageEncoder.encoder(),
+    GrpcMessageDecoder.decoder({{inputType}}.newBuilder()));
+{{/serviceMethods}}
+
+  /**
+   * @return a mutable list of the known protobuf RPC server service methods.
+   */
+  public static java.util.List<ServiceMethod<?, ?>> all() {
+    java.util.List<ServiceMethod<?, ?>> all = new java.util.ArrayList<>();
+{{#allMethods}}
+    all.add({{methodName}});
+{{/allMethods}}
+    return all;
+  }
+
+{{#transcodingMethods}}
+
+  private static final io.vertx.grpc.transcoding.MethodTranscodingOptions {{methodName}}_OPTIONS = new io.vertx.grpc.transcoding.MethodTranscodingOptions()
+    .setSelector("{{transcodingContext.selector}}")
+    .setHttpMethod(HttpMethod.valueOf("{{transcodingContext.method}}"))
+    .setPath("{{{transcodingContext.path}}}")
+    .setBody("{{{transcodingContext.body}}}")
+    .setResponseBody("{{{transcodingContext.responseBody}}}")
+    {{#transcodingContext.additionalBindings}}
+    .addAdditionalBinding(new io.vertx.grpc.transcoding.MethodTranscodingOptions()
+      .setSelector("{{selector}}")
+      .setHttpMethod(HttpMethod.valueOf("{{method}}"))
+      .setPath("{{{path}}}")
+      .setBody("{{{body}}}")
+      .setResponseBody("{{{responseBody}}}"))
+    {{/transcodingContext.additionalBindings}}
+  ;
+{{/transcodingMethods}}
+{{#transcodingMethods}}
+
+  /**
+   * {{methodName}} transcoded RPC server service method.
+   */
+  public static final io.vertx.grpc.transcoding.TranscodingServiceMethod<{{inputType}}, {{outputType}}> {{methodName}} = io.vertx.grpc.transcoding.TranscodingServiceMethod.server(
+    SERVICE_NAME,
+    "{{methodName}}",
+    GrpcMessageEncoder.encoder(),
+    GrpcMessageDecoder.decoder({{inputType}}.newBuilder()),
+    {{methodName}}_OPTIONS
+  );
+{{/transcodingMethods}}
+
+  /**
+   * @return a free form builder that gives the opportunity to bind only certain methods of a service
+   */
+  public static Builder builder({{serviceFqn}} service) {
+    return new Builder(service);
+  }
+
+  /**
+   * Service builder.
+   */
+  public static class Builder implements ServiceBuilder {
+
+    private final List<ServiceMethod<?, ?>> serviceMethods = new ArrayList<>();
+    private final {{serviceFqn}} instance;
+
+    private Builder({{serviceFqn}} instance) {
+      this.instance = instance;
+    }
+
+//    private void validate() {
+//      for (ServiceMethod<?, ?> serviceMethod : serviceMethods) {
+//        if (resolveHandler(serviceMethod) == null) {
+//          throw new IllegalArgumentException("Invalid service method:" + serviceMethod);
+//        }
+//      }
+//    }
+
+    /**
+     * Throws {@code UnsupportedOperationException}.
+     */
+    public <Req, Resp> ServiceBuilder bind(ServiceMethod<Req, Resp> serviceMethod, Handler<GrpcServerRequest<Req, Resp>> handler) {
+      throw new UnsupportedOperationException();
+    }
+
+    /**
+     * @return this builder
+     */
+    public Builder bind(List<ServiceMethod<?, ?>> methods) {
+      serviceMethods.addAll(methods);
+      return this;
+    }
+
+    /**
+     * @return this builder
+     */
+    public Builder bind(ServiceMethod<?, ?>... methods) {
+      return bind(java.util.Arrays.asList(methods));
+    }
+
+    public Service build() {
+      return new Invoker();
+    }
+
+    private class Invoker implements Service {
+
+      // Defensive copy
+      private final List<ServiceMethod<?, ?>> serviceMethods = new ArrayList<>(Builder.this.serviceMethods);
+
+      public ServiceName name() {
+        return SERVICE_NAME;
+      }
+
+      public Descriptors.ServiceDescriptor descriptor() {
+        return SERVICE_DESCRIPTOR;
+      }
+
+      /**
+       * Bind the contained service methods to the {@code server}.
+       */
+      public void bind(GrpcServer server) {
+        for (ServiceMethod<?, ?> serviceMethod : serviceMethods) {
+          bindHandler(serviceMethod, server);
+        }
+      }
+
+      private <Req, Resp> void bindHandler(ServiceMethod<Req, Resp> serviceMethod, GrpcServer server) {
+        Handler<io.vertx.grpc.server.GrpcServerRequest<Req, Resp>> handler = resolveHandler(serviceMethod);
+        server.callHandler(serviceMethod, handler);
+      }
+
+      private <Req, Resp> Handler<io.vertx.grpc.server.GrpcServerRequest<Req, Resp>> resolveHandler(ServiceMethod<Req, Resp> serviceMethod) {
+{{#methods}}
+        if ({{methodName}} == serviceMethod) {
+          Handler<io.vertx.grpc.server.GrpcServerRequest<{{inputType}}, {{outputType}}>> handler = this::handle_{{vertxMethodName}};
+          Handler<?> handler2 = handler;
+          return (Handler<io.vertx.grpc.server.GrpcServerRequest<Req, Resp>>) handler2;
+        }
+{{/methods}}
+        return null;
+      }
+
+{{#unaryUnaryMethods}}
+
+  private void handle_{{vertxMethodName}}(io.vertx.grpc.server.GrpcServerRequest<{{inputType}}, {{outputType}}> request) {
+    request.handler(msg -> {
+      instance.{{vertxMethodName}}(msg, (res, err) -> {
+        if (err == null) {
+          request.response().end(res);
+        } else {
+          request.response().fail(err);
+        }
+      });
+    });
+  }
+{{/unaryUnaryMethods}}
+{{#unaryManyMethods}}
+
+  private void handle_{{vertxMethodName}}(io.vertx.grpc.server.GrpcServerRequest<{{inputType}}, {{outputType}}> request) {
+    request.handler(msg -> {
+      instance.{{vertxMethodName}}(msg, request.response());
+    });
+  }
+{{/unaryManyMethods}}
+{{#manyUnaryMethods}}
+
+  private void handle_{{vertxMethodName}}(io.vertx.grpc.server.GrpcServerRequest<{{inputType}}, {{outputType}}> request) {
+    instance.{{vertxMethodName}}(request, (res, err) -> {
+      if (err == null) {
+        request.response().end(res);
+      } else {
+        request.response().fail(err);
+      }
+    });
+  }
+{{/manyUnaryMethods}}
+{{#manyManyMethods}}
+
+  private void handle_{{vertxMethodName}}(io.vertx.grpc.server.GrpcServerRequest<{{inputType}}, {{outputType}}> request) {
+    instance.{{vertxMethodName}}(request, request.response());
+  }
+{{/manyManyMethods}}
+    }
+  }
+}

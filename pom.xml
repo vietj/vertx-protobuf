@@ -36,8 +36,10 @@
   </scm>
 
   <properties>
+    <protoc.version>4.29.3</protoc.version>
     <protobuf.version>4.29.3</protobuf.version>
     <jmh.version>1.37</jmh.version>
+    <jprotoc.version>1.2.2</jprotoc.version>
   </properties>
 
   <dependencyManagement>
@@ -75,7 +77,18 @@
   </dependencyManagement>
 
   <modules>
+    <module>vertx-protobuf-protoc-plugin</module>
     <module>vertx-protobuf</module>
   </modules>
+
+  <build>
+    <extensions>
+      <extension>
+        <groupId>kr.motd.maven</groupId>
+        <artifactId>os-maven-plugin</artifactId>
+        <version>1.7.1</version>
+      </extension>
+    </extensions>
+  </build>
 
 </project>
