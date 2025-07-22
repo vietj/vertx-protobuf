@@ -22,7 +22,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -80,7 +82,7 @@ public class VertxGrpcGeneratorImpl extends Generator {
       });
 
       files.addAll(generateDataObjectsFiles(messageTypeList));
-      files.add(generateSchemaFile(javaPkgFqn, fileDescProto.getMessageTypeList()));
+      files.add(generateSchemaFile(javaPkgFqn, fileDesc.getMessageTypes()));
       files.add(generateProtoReaderFile(javaPkgFqn, fileDesc));
     }
 
@@ -90,6 +92,10 @@ public class VertxGrpcGeneratorImpl extends Generator {
 
   private static String setterOf(String name) {
     return "set" + Character.toUpperCase(name.charAt(0)) + name.substring(1);
+  }
+
+  private static String getterOf(String name) {
+    return "get" + Character.toUpperCase(name.charAt(0)) + name.substring(1);
   }
 
   private static PluginProtos.CodeGeneratorResponse.File generateProtoReaderFile(
@@ -127,15 +133,18 @@ public class VertxGrpcGeneratorImpl extends Generator {
     content.append("      stack.push(d);\r\n");
     content.append("  }\r\n");
 
+    Map<String, Descriptors.Descriptor> all = transitiveClosure(fileDesc.getMessageTypes());
+
     content.append("  public void enter(Field field) {\r\n");
-    for (Descriptors.Descriptor messageType : fileDesc.getMessageTypes()) {
+    for (Descriptors.Descriptor messageType : all.values()) {
       for (Descriptors.FieldDescriptor field : messageType.getFields()) {
         if (field.getJavaType() != Descriptors.FieldDescriptor.JavaType.MESSAGE) {
           continue;
         }
         content.append("    if (field == SchemaLiterals.").append(messageType.getName().toUpperCase()).append("_").append(field.getName().toUpperCase()).append(") {\r\n");
         if (field.isMapField()) {
-          content.append("      stack.push(new java.util.HashMap());\r\n");
+          content.append("      ").append(field.getContainingType().getName()).append(" container = (").append(field.getContainingType().getName()).append(")stack.peek();").append("\r\n");
+          content.append("      stack.push(container." + getterOf(field.getName()) + "());\r\n");
         } else {
           content.append("      ").append(field.getMessageType().getName()).append(" v = new ").append(field.getMessageType().getName()).append("();\r\n");
           content.append("      stack.push(v);\r\n");
@@ -174,8 +183,15 @@ public class VertxGrpcGeneratorImpl extends Generator {
             continue;
         }
         content.append("    if (field == SchemaLiterals.").append(messageType.getName().toUpperCase()).append("_").append(field.getName().toUpperCase()).append(") {\r\n");
-        content.append("      ").append(typeDecl).append(" v = (").append(typeDecl).append(")stack.pop();\r\n");
-        content.append("      ((").append(messageType.getName()).append(")stack.peek()).").append(setterOf(mixedLower(field.getName()))).append("(v);\n");
+        if (field.isMapField()) {
+          content.append("     Object key = stack.pop();\r\n");
+          content.append("     Object value = stack.pop();\r\n");
+          content.append("     java.util.Map entries = (java.util.Map)stack.pop();\r\n");
+          content.append("     entries.put(key, value);\r\n");
+        } else {
+          content.append("      ").append(typeDecl).append(" v = (").append(typeDecl).append(")stack.pop();\r\n");
+          content.append("      ((").append(messageType.getName()).append(")stack.peek()).").append(setterOf(mixedLower(field.getName()))).append("(v);\n");
+        }
         content.append("    }\r\n");
       }
     }
@@ -201,9 +217,22 @@ public class VertxGrpcGeneratorImpl extends Generator {
     }
   }
 
+  private static Map<String, Descriptors.Descriptor> transitiveClosure(List<Descriptors.Descriptor> descriptors) {
+    Map<String, Descriptors.Descriptor> all = new LinkedHashMap<>();
+    descriptors.forEach(messageType -> {
+      transitiveClosure(messageType, all);
+    });
+    return all;
+  }
+
+  private static void transitiveClosure(Descriptors.Descriptor descriptor, Map<String, Descriptors.Descriptor> result) {
+    result.put(descriptor.getName(), descriptor);
+    descriptor.getNestedTypes().forEach(nested -> transitiveClosure(nested, result));
+  }
+
   private static PluginProtos.CodeGeneratorResponse.File generateSchemaFile(
           String javaPkgFqn,
-          List<DescriptorProtos.DescriptorProto> messageTypeList) {
+          List<Descriptors.Descriptor> messageTypeList) {
 
     StringBuilder content = new StringBuilder();
 
@@ -217,25 +246,27 @@ public class VertxGrpcGeneratorImpl extends Generator {
 
     content.append("  public static final Schema SCHEMA = new Schema();\r\n");
 
-    messageTypeList.forEach(messageType -> {
+    Map<String, Descriptors.Descriptor> all = transitiveClosure(messageTypeList);
+
+    all.values().forEach(messageType -> {
 
       content.append("  public static final MessageType ").append(messageType.getName().toUpperCase()).append(" = SCHEMA.of(\"").append(messageType.getName()).append("\");\r\n");
-      messageType.getFieldList().forEach(field -> {
-        switch (field.getType()) {
-          case TYPE_DOUBLE:
+      messageType.getFields().forEach(field -> {
+        switch (field.getJavaType()) {
+          case DOUBLE:
             content.append("  public static final Field ").append(messageType.getName().toUpperCase()).append("_").append(field.getName().toUpperCase()).append(" = ").append(messageType.getName().toUpperCase()).append(".addField(").append(field.getNumber()).append(", ScalarType.DOUBLE);\r\n");
             break;
-          case TYPE_BOOL:
+          case BOOLEAN:
             content.append("  public static final Field ").append(messageType.getName().toUpperCase()).append("_").append(field.getName().toUpperCase()).append(" = ").append(messageType.getName().toUpperCase()).append(".addField(").append(field.getNumber()).append(", ScalarType.BOOL);\r\n");
             break;
-          case TYPE_STRING:
+          case STRING:
             content.append("  public static final Field ").append(messageType.getName().toUpperCase()).append("_").append(field.getName().toUpperCase()).append(" = ").append(messageType.getName().toUpperCase()).append(".addField(").append(field.getNumber()).append(", ScalarType.STRING);\r\n");
             break;
-          case TYPE_ENUM:
+          case ENUM:
             content.append("  public static final Field ").append(messageType.getName().toUpperCase()).append("_").append(field.getName().toUpperCase()).append(" = ").append(messageType.getName().toUpperCase()).append(".addField(").append(field.getNumber()).append(", new EnumType());\r\n");
             break;
-          case TYPE_MESSAGE:
-            content.append("  public static final Field ").append(messageType.getName().toUpperCase()).append("_").append(field.getName().toUpperCase()).append(" = ").append(messageType.getName().toUpperCase()).append(".addField(").append(field.getNumber()).append(", SCHEMA.of(\"").append(blah(field.getTypeName())).append("\"));\r\n");
+          case MESSAGE:
+            content.append("  public static final Field ").append(messageType.getName().toUpperCase()).append("_").append(field.getName().toUpperCase()).append(" = ").append(messageType.getName().toUpperCase()).append(".addField(").append(field.getNumber()).append(", SCHEMA.of(\"").append(field.getMessageType().getName()).append("\"));\r\n");
             break;
         }
       });
@@ -432,7 +463,12 @@ public class VertxGrpcGeneratorImpl extends Generator {
     content.append("@io.vertx.codegen.annotations.DataObject\r\n");
     content.append("public class ").append(messageType.name).append(" {\r\n");
     messageType.fields.forEach(fd -> {
-      content.append("  private ").append(fd.javaType).append(" ").append(fd.name).append(";\r\n");
+      content.append("  private ").append(fd.javaType).append(" ").append(fd.name);
+      boolean isMap = fd.javaType.equals("java.util.Map");
+      if (isMap) {
+        content.append(" = new java.util.HashMap()");
+      }
+      content.append(";\r\n");
     });
     messageType.fields.forEach(fd -> {
       String getter = "get" + Character.toUpperCase(fd.name.charAt(0)) + fd.name.substring(1);

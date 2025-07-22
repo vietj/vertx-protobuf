@@ -34,10 +34,15 @@ public class DataObjectTest {
 
   @Test
   public void testStructValue() {
-    byte[] bytes = StructProto.Value.newBuilder().setStructValue(StructProto.Struct.newBuilder().putFields("foo", StructProto.Value.newBuilder().setStringValue("bar").build()).build()).build().toByteArray();
+    byte[] bytes = StructProto.Value.newBuilder().setStructValue(StructProto.Struct.newBuilder()
+      .putFields("foo", StructProto.Value.newBuilder().setStringValue("bar").build())
+      .putFields("juu", StructProto.Value.newBuilder().setStringValue("daa").build())
+      .build()).build().toByteArray();
     ProtoReader reader = new ProtoReader();
-    ProtobufReader.parse(SchemaLiterals.VALUE, reader, Buffer.buffer(bytes));
+    Buffer buffer = Buffer.buffer(bytes);
+    ProtobufReader.parse(SchemaLiterals.VALUE, reader, buffer);
     Value msg = (Value) reader.stack.pop();
+
 //    assertEquals("hello", msg.getStringValue());
   }
 }
