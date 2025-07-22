@@ -17,7 +17,6 @@ import com.google.protobuf.DescriptorProtos;
 import com.google.protobuf.compiler.PluginProtos;
 import com.salesforce.jprotoc.Generator;
 import com.salesforce.jprotoc.GeneratorException;
-import com.salesforce.jprotoc.ProtoTypeMap;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -58,14 +57,114 @@ public class VertxGrpcGeneratorImpl extends Generator {
   @Override
   public List<PluginProtos.CodeGeneratorResponse.File> generateFiles(PluginProtos.CodeGeneratorRequest request) throws GeneratorException {
 
-    ProtoTypeMap typeMap = ProtoTypeMap.of(request.getProtoFileList());
-
     List<DescriptorProtos.FileDescriptorProto> protosToGenerate = request.getProtoFileList().stream()
       .filter(protoFile -> request.getFileToGenerateList().contains(protoFile.getName()))
       .collect(Collectors.toList());
 
-    List<MessageType> services = findMessages(protosToGenerate, typeMap);
-    return generateFiles(services);
+    List<PluginProtos.CodeGeneratorResponse.File> files = new ArrayList<>();
+
+    protosToGenerate.forEach(fileProto -> {
+      String javaPkgFqn = extractJavaPkgFqn(fileProto);
+      List<MessageType> messageTypeList = new ArrayList<>();
+      fileProto.getMessageTypeList().forEach(messageType -> {
+        messageTypeList.add(new MessageType(javaPkgFqn, messageType));
+      });
+
+      files.addAll(generateDataObjectsFiles(messageTypeList));
+      files.add(generateSchemaFile(javaPkgFqn, fileProto.getMessageTypeList()));
+      files.add(generateProtoReaderFile(javaPkgFqn, fileProto.getMessageTypeList()));
+    });
+
+    return files;
+  }
+
+  private static PluginProtos.CodeGeneratorResponse.File generateProtoReaderFile(
+          String javaPkgFqn,
+          List<DescriptorProtos.DescriptorProto> messageTypeList) {
+    StringBuilder content = new StringBuilder();
+
+    content.append("package ").append(javaPkgFqn).append(";\r\n");
+    content.append("import io.vertx.protobuf.Visitor;\r\n");
+    content.append("import io.vertx.protobuf.schema.MessageType;\r\n");
+    content.append("import io.vertx.protobuf.schema.Field;\r\n");
+    content.append("import java.util.Deque;\r\n");
+    content.append("import java.util.ArrayDeque;\r\n");
+    content.append("public class ProtoReader implements Visitor {\r\n");
+
+    content.append("  private final Deque<Object> stack = new ArrayDeque<>();\r\n");
+
+    content.append("  public void init(MessageType type) {\r\n");
+    content.append("  }\r\n");
+
+    content.append("  public void visitVarInt32(Field field, int v) {\r\n");
+    content.append("  }\r\n");
+
+    content.append("  public void visitString(Field field, String s) {\r\n");
+    content.append("  }\r\n");
+
+    content.append("  public void visitDouble(Field field, double d) {\r\n");
+    content.append("  }\r\n");
+
+    content.append("  public void enter(Field field) {\r\n");
+    content.append("  }\r\n");
+
+    content.append("  public void leave(Field field) {\r\n");
+    content.append("  }\r\n");
+
+    content.append("  public void destroy() {\r\n");
+    content.append("  }\r\n");
+
+    content.append("}\r\n");
+
+    return PluginProtos.CodeGeneratorResponse.File
+            .newBuilder()
+            .setName(absoluteFileName(javaPkgFqn, "ProtoReader"))
+            .setContent(content.toString())
+            .build();
+  }
+
+  private static PluginProtos.CodeGeneratorResponse.File generateSchemaFile(
+          String javaPkgFqn,
+          List<DescriptorProtos.DescriptorProto> messageTypeList) {
+
+    StringBuilder content = new StringBuilder();
+
+    content.append("package ").append(javaPkgFqn).append(";\r\n");
+    content.append("import io.vertx.protobuf.schema.Schema;\r\n");
+    content.append("import io.vertx.protobuf.schema.MessageType;\r\n");
+    content.append("import io.vertx.protobuf.schema.ScalarType;\r\n");
+    content.append("public class SchemaLiterals {\r\n");
+
+    content.append("  public static final Schema SCHEMA;\r\n");
+
+    content.append("  static {\r\n");
+
+    content.append("    Schema schema = new Schema();\n");
+
+    messageTypeList.forEach(messageType -> {
+
+      content.append("    MessageType ").append(messageType.getName()).append(" = schema.of(\"").append(messageType.getName()).append("\");\r\n");
+      messageType.getFieldList().forEach(field -> {
+        switch (field.getType()) {
+          case TYPE_STRING:
+            content.append("    ").append(messageType.getName()).append(".addField(").append(field.getNumber()).append(", ScalarType.STRING);\r\n");
+            break;
+        }
+      });
+
+    });
+
+    content.append("    SCHEMA = schema;\r\n");
+
+    content.append("  }\r\n");
+
+    content.append("}\r\n");
+
+    return PluginProtos.CodeGeneratorResponse.File
+      .newBuilder()
+      .setName(absoluteFileName(javaPkgFqn, "SchemaLiterals"))
+      .setContent(content.toString())
+      .build();
   }
 
   private static class MessageType {
@@ -99,18 +198,6 @@ public class VertxGrpcGeneratorImpl extends Generator {
         this.javaType = javaType;
       }
     }
-  }
-
-  private List<MessageType> findMessages(List<DescriptorProtos.FileDescriptorProto> protos, ProtoTypeMap typeMap) {
-    List<MessageType> contexts = new ArrayList<>();
-
-    protos.forEach(fileProto -> {
-      fileProto.getMessageTypeList().forEach(messageType -> {
-        contexts.add(new MessageType(extractJavaPkgFqn(fileProto), messageType));
-      });
-    });
-
-    return contexts;
   }
 
   private String extractJavaPkgFqn(DescriptorProtos.FileDescriptorProto proto) {
@@ -346,8 +433,7 @@ public class VertxGrpcGeneratorImpl extends Generator {
     return w.toString();
   }
 
-  private List<PluginProtos.CodeGeneratorResponse.File> generateFiles(List<MessageType> messageTypeList) {
-    List<PluginProtos.CodeGeneratorResponse.File> files = new ArrayList<>();
+  private List<PluginProtos.CodeGeneratorResponse.File> generateDataObjectsFiles(List<MessageType> messageTypeList) {
     return messageTypeList.stream()
       .map(this::buildFiles)
       .flatMap(Collection::stream)
@@ -452,12 +538,16 @@ public class VertxGrpcGeneratorImpl extends Generator {
       .build();
   }
 
-  private String absoluteFileName(MessageType messageType) {
-    String dir = messageType.javaPkgFqn.replace('.', '/');
+  private static String absoluteFileName(MessageType messageType) {
+    return absoluteFileName(messageType.javaPkgFqn, messageType.name);
+  }
+
+  private static String absoluteFileName(String javaPkgFqn, String simpleName) {
+    String dir = javaPkgFqn.replace('.', '/');
     if (dir.isEmpty()) {
-      return messageType.name + ".java";
+      return simpleName + ".java";
     } else {
-      return dir + "/" + messageType.name + ".java";
+      return dir + "/" + simpleName + ".java";
     }
   }
 
