@@ -72,12 +72,12 @@ public class VertxGrpcGeneratorImpl extends Generator {
     return files;
   }
 
-  private static String setterOf(String name) {
-    return "set" + Character.toUpperCase(name.charAt(0)) + name.substring(1);
+  private static String setterOf(Descriptors.FieldDescriptor field) {
+    return "set" + Character.toUpperCase(field.getJsonName().charAt(0)) + field.getJsonName().substring(1);
   }
 
-  private static String getterOf(String name) {
-    return "get" + Character.toUpperCase(name.charAt(0)) + name.substring(1);
+  private static String getterOf(Descriptors.FieldDescriptor field) {
+    return "get" + Character.toUpperCase(field.getJsonName().charAt(0)) + field.getJsonName().substring(1);
   }
 
   private static PluginProtos.CodeGeneratorResponse.File generateProtoReaderFile(
@@ -126,7 +126,7 @@ public class VertxGrpcGeneratorImpl extends Generator {
         content.append("    if (field == SchemaLiterals.").append(messageType.getName().toUpperCase()).append("_").append(field.getName().toUpperCase()).append(") {\r\n");
         if (field.isMapField()) {
           content.append("      ").append(field.getContainingType().getName()).append(" container = (").append(field.getContainingType().getName()).append(")stack.peek();").append("\r\n");
-          content.append("      stack.push(container." + getterOf(field.getName()) + "());\r\n");
+          content.append("      stack.push(container.").append(getterOf(field)).append("());\r\n");
         } else {
           content.append("      ").append(field.getMessageType().getName()).append(" v = new ").append(field.getMessageType().getName()).append("();\r\n");
           content.append("      stack.push(v);\r\n");
@@ -172,7 +172,7 @@ public class VertxGrpcGeneratorImpl extends Generator {
           content.append("     entries.put(key, value);\r\n");
         } else {
           content.append("      ").append(typeDecl).append(" v = (").append(typeDecl).append(")stack.pop();\r\n");
-          content.append("      ((").append(messageType.getName()).append(")stack.peek()).").append(setterOf(mixedLower(field.getName()))).append("(v);\n");
+          content.append("      ((").append(messageType.getName()).append(")stack.peek()).").append(setterOf(field)).append("(v);\n");
         }
         content.append("    }\r\n");
       }
@@ -478,17 +478,17 @@ public class VertxGrpcGeneratorImpl extends Generator {
         content.append(";\r\n");
       }
     });
-    messageType.getFields().forEach(fd -> {
-      String javaType = javaTypeOf(fd);
+    messageType.getFields().forEach(field -> {
+      String javaType = javaTypeOf(field);
       if (javaType != null) {
-        String getter = getterOf(fd.getJsonName());
-        String setter = setterOf(fd.getJsonName());
+        String getter = getterOf(field);
+        String setter = setterOf(field);
         content.append("  public ")
                 .append(javaType)
                 .append(" ")
                 .append(getter)
                 .append("() { \r\n");
-        content.append("    return ").append(fd.getJsonName()).append(";\r\n");
+        content.append("    return ").append(field.getJsonName()).append(";\r\n");
         content.append("  };\r\n");
         content.append("  public ")
                 .append(messageType.getName())
@@ -497,9 +497,9 @@ public class VertxGrpcGeneratorImpl extends Generator {
                 .append("(")
                 .append(javaType)
                 .append(" ")
-                .append(fd.getJsonName())
+                .append(field.getJsonName())
                 .append(") { \r\n");
-        content.append("    this.").append(fd.getJsonName()).append(" = ").append(fd.getJsonName()).append(";\n");
+        content.append("    this.").append(field.getJsonName()).append(" = ").append(field.getJsonName()).append(";\n");
         content.append("    return this;\r\n");
         content.append("  };\r\n");
       }
