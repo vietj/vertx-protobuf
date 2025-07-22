@@ -12,6 +12,7 @@ package io.vertx.grpc.plugin;
 
 import com.google.common.base.Strings;
 import com.google.protobuf.DescriptorProtos;
+import com.google.protobuf.Descriptors;
 import com.google.protobuf.compiler.PluginProtos;
 import com.salesforce.jprotoc.Generator;
 import com.salesforce.jprotoc.GeneratorException;
@@ -63,17 +64,26 @@ public class VertxGrpcGeneratorImpl extends Generator {
 
     List<PluginProtos.CodeGeneratorResponse.File> files = new ArrayList<>();
 
-    protosToGenerate.forEach(fileProto -> {
-      String javaPkgFqn = extractJavaPkgFqn(fileProto);
+    for (DescriptorProtos.FileDescriptorProto fileDescProto : protosToGenerate) {
+      Descriptors.FileDescriptor fileDesc;
+      try {
+        fileDesc = Descriptors.FileDescriptor.buildFrom(fileDescProto, new Descriptors.FileDescriptor[0]);
+      } catch (Descriptors.DescriptorValidationException e) {
+        GeneratorException ex = new GeneratorException(e.getMessage());
+        ex.initCause(e);
+        throw ex;
+      }
+      String javaPkgFqn = extractJavaPkgFqn(fileDescProto);
       List<MessageType> messageTypeList = new ArrayList<>();
-      fileProto.getMessageTypeList().forEach(messageType -> {
+      fileDescProto.getMessageTypeList().forEach(messageType -> {
         messageTypeList.add(new MessageType(javaPkgFqn, messageType));
       });
 
       files.addAll(generateDataObjectsFiles(messageTypeList));
-      files.add(generateSchemaFile(javaPkgFqn, fileProto.getMessageTypeList()));
-      files.add(generateProtoReaderFile(javaPkgFqn, fileProto.getMessageTypeList()));
-    });
+      files.add(generateSchemaFile(javaPkgFqn, fileDescProto.getMessageTypeList()));
+      files.add(generateProtoReaderFile(javaPkgFqn, fileDesc));
+    }
+
 
     return files;
   }
@@ -84,7 +94,7 @@ public class VertxGrpcGeneratorImpl extends Generator {
 
   private static PluginProtos.CodeGeneratorResponse.File generateProtoReaderFile(
           String javaPkgFqn,
-          List<DescriptorProtos.DescriptorProto> messageTypeList) {
+          Descriptors.FileDescriptor fileDesc) {
     StringBuilder content = new StringBuilder();
 
     content.append("package ").append(javaPkgFqn).append(";\r\n");
@@ -98,7 +108,7 @@ public class VertxGrpcGeneratorImpl extends Generator {
     content.append("  public final Deque<Object> stack = new ArrayDeque<>();\r\n");
 
     content.append("  public void init(MessageType type) {\r\n");
-    for (DescriptorProtos.DescriptorProto messageType : messageTypeList) {
+    for (Descriptors.Descriptor messageType : fileDesc.getMessageTypes()) {
       content.append("    if (type == SchemaLiterals.").append(messageType.getName().toUpperCase()).append(") {\r\n");
       content.append("      stack.push(new ").append(messageType.getName()).append("());\r\n");
       content.append("    }\r\n");
@@ -106,6 +116,7 @@ public class VertxGrpcGeneratorImpl extends Generator {
     content.append("  }\r\n");
 
     content.append("  public void visitVarInt32(Field field, int v) {\r\n");
+    content.append("      stack.push(v);\r\n");
     content.append("  }\r\n");
 
     content.append("  public void visitString(Field field, String s) {\r\n");
@@ -113,16 +124,57 @@ public class VertxGrpcGeneratorImpl extends Generator {
     content.append("  }\r\n");
 
     content.append("  public void visitDouble(Field field, double d) {\r\n");
+    content.append("      stack.push(d);\r\n");
     content.append("  }\r\n");
 
     content.append("  public void enter(Field field) {\r\n");
+    for (Descriptors.Descriptor messageType : fileDesc.getMessageTypes()) {
+      for (Descriptors.FieldDescriptor field : messageType.getFields()) {
+        if (field.getJavaType() != Descriptors.FieldDescriptor.JavaType.MESSAGE) {
+          continue;
+        }
+        content.append("    if (field == SchemaLiterals.").append(messageType.getName().toUpperCase()).append("_").append(field.getName().toUpperCase()).append(") {\r\n");
+        if (field.isMapField()) {
+          content.append("      stack.push(new java.util.HashMap());\r\n");
+        } else {
+          content.append("      ").append(field.getMessageType().getName()).append(" v = new ").append(field.getMessageType().getName()).append("();\r\n");
+          content.append("      stack.push(v);\r\n");
+        }
+        content.append("    }\r\n");
+      }
+    }
     content.append("  }\r\n");
 
     content.append("  public void leave(Field field) {\r\n");
-    for (DescriptorProtos.DescriptorProto messageType : messageTypeList) {
-      for (DescriptorProtos.FieldDescriptorProto field : messageType.getFieldList()) {
+    for (Descriptors.Descriptor messageType : fileDesc.getMessageTypes()) {
+      for (Descriptors.FieldDescriptor field : messageType.getFields()) {
+        String typeDecl;
+        switch (field.getJavaType()) {
+          case ENUM:
+            typeDecl  = "Integer";
+            break;
+          case DOUBLE:
+            typeDecl  = "Double";
+            break;
+          case BOOLEAN:
+            typeDecl  = "Boolean";
+            break;
+          case STRING:
+            typeDecl  = "String";
+            break;
+          case MESSAGE:
+            if (field.isMapField()) {
+              typeDecl = "java.util.Map";
+            } else {
+              typeDecl = field.getMessageType().getName();
+            }
+            break;
+          default:
+            content.append("    // Todo: ").append(field.getJavaType()).append("\r\n");
+            continue;
+        }
         content.append("    if (field == SchemaLiterals.").append(messageType.getName().toUpperCase()).append("_").append(field.getName().toUpperCase()).append(") {\r\n");
-        content.append("      ").append("String").append(" v = (").append("String").append(")stack.pop();\r\n");
+        content.append("      ").append(typeDecl).append(" v = (").append(typeDecl).append(")stack.pop();\r\n");
         content.append("      ((").append(messageType.getName()).append(")stack.peek()).").append(setterOf(mixedLower(field.getName()))).append("(v);\n");
         content.append("    }\r\n");
       }
