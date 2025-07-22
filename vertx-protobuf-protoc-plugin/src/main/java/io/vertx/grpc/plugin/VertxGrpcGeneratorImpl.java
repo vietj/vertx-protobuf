@@ -76,16 +76,11 @@ public class VertxGrpcGeneratorImpl extends Generator {
         throw ex;
       }
       String javaPkgFqn = extractJavaPkgFqn(fileDescProto);
-      List<MessageType> messageTypeList = new ArrayList<>();
-      fileDescProto.getMessageTypeList().forEach(messageType -> {
-        messageTypeList.add(new MessageType(javaPkgFqn, messageType));
-      });
 
-      files.addAll(generateDataObjectsFiles(messageTypeList));
+      files.addAll(generateDataObjectsFiles(javaPkgFqn, fileDesc));
       files.add(generateSchemaFile(javaPkgFqn, fileDesc.getMessageTypes()));
       files.add(generateProtoReaderFile(javaPkgFqn, fileDesc));
     }
-
 
     return files;
   }
@@ -299,6 +294,7 @@ public class VertxGrpcGeneratorImpl extends Generator {
     }
   }
 
+/*
   private static class MessageType {
     final String javaPkgFqn;
     final String name;
@@ -342,6 +338,7 @@ public class VertxGrpcGeneratorImpl extends Generator {
       }
     }
   }
+*/
 
   private String extractJavaPkgFqn(DescriptorProtos.FileDescriptorProto proto) {
     DescriptorProtos.FileOptions options = proto.getOptions();
@@ -449,52 +446,79 @@ public class VertxGrpcGeneratorImpl extends Generator {
     return w.toString();
   }
 
-  private List<PluginProtos.CodeGeneratorResponse.File> generateDataObjectsFiles(List<MessageType> messageTypeList) {
-    return messageTypeList.stream()
-      .map(this::buildFiles)
-      .flatMap(Collection::stream)
-      .collect(Collectors.toList());
+  private List<PluginProtos.CodeGeneratorResponse.File> generateDataObjectsFiles(String javaPkgFqn, Descriptors.FileDescriptor fileDesc) {
+    return fileDesc.getMessageTypes()
+            .stream()
+            .map(mt -> buildFiles(javaPkgFqn, mt))
+            .flatMap(Collection::stream)
+            .collect(Collectors.toList());
   }
 
-  private List<PluginProtos.CodeGeneratorResponse.File> buildFiles(MessageType messageType) {
+  private String javaTypeOf(Descriptors.FieldDescriptor field) {
+    switch (field.getJavaType()) {
+      case BOOLEAN:
+        return "java.lang.Boolean";
+      case STRING:
+        return "java.lang.String";
+      case DOUBLE:
+        return "java.lang.Double";
+      case ENUM:
+        return "java.lang.Integer";
+      case MESSAGE:
+        if (field.isMapField()) {
+          return "java.util.Map";
+        } else {
+          return field.getMessageType().getName();
+        }
+      default:
+        return null;
+    }
+  }
+
+  private List<PluginProtos.CodeGeneratorResponse.File> buildFiles(String javaPkgFqn, Descriptors.Descriptor messageType) {
     List<PluginProtos.CodeGeneratorResponse.File> files = new ArrayList<>();
     StringBuilder content = new StringBuilder();
-    content.append("package ").append(messageType.javaPkgFqn).append(";\r\n");
+    content.append("package ").append(javaPkgFqn).append(";\r\n");
     content.append("@io.vertx.codegen.annotations.DataObject\r\n");
-    content.append("public class ").append(messageType.name).append(" {\r\n");
-    messageType.fields.forEach(fd -> {
-      content.append("  private ").append(fd.javaType).append(" ").append(fd.name);
-      boolean isMap = fd.javaType.equals("java.util.Map");
-      if (isMap) {
-        content.append(" = new java.util.HashMap()");
+    content.append("public class ").append(messageType.getName()).append(" {\r\n");
+    messageType.getFields().forEach(fd -> {
+      String javaType = javaTypeOf(fd);
+      if (javaType != null) {
+        content.append("  private ").append(javaType).append(" ").append(fd.getJsonName());
+        if (fd.isMapField()) {
+          content.append(" = new java.util.HashMap()");
+        }
+        content.append(";\r\n");
       }
-      content.append(";\r\n");
     });
-    messageType.fields.forEach(fd -> {
-      String getter = "get" + Character.toUpperCase(fd.name.charAt(0)) + fd.name.substring(1);
-      String setter = setterOf(fd.name);
-      content.append("  public ")
-        .append(fd.javaType)
-        .append(" ")
-        .append(getter)
-        .append("() { \r\n");
-      content.append("    return ").append(fd.name).append(";\r\n");
-      content.append("  };\r\n");
-      content.append("  public ")
-        .append(messageType.name)
-        .append(" ")
-        .append(setter)
-        .append("(")
-        .append(fd.javaType)
-        .append(" ")
-        .append(fd.name)
-        .append(") { \r\n");
-      content.append("    this.").append(fd.name).append(" = ").append(fd.name).append(";\n");
-      content.append("    return this;\r\n");
-      content.append("  };\r\n");
+    messageType.getFields().forEach(fd -> {
+      String javaType = javaTypeOf(fd);
+      if (javaType != null) {
+        String getter = getterOf(fd.getJsonName());
+        String setter = setterOf(fd.getJsonName());
+        content.append("  public ")
+                .append(javaType)
+                .append(" ")
+                .append(getter)
+                .append("() { \r\n");
+        content.append("    return ").append(fd.getJsonName()).append(";\r\n");
+        content.append("  };\r\n");
+        content.append("  public ")
+                .append(messageType.getName())
+                .append(" ")
+                .append(setter)
+                .append("(")
+                .append(javaType)
+                .append(" ")
+                .append(fd.getJsonName())
+                .append(") { \r\n");
+        content.append("    this.").append(fd.getJsonName()).append(" = ").append(fd.getJsonName()).append(";\n");
+        content.append("    return this;\r\n");
+        content.append("  };\r\n");
+      }
     });
     content.append("}\r\n");
-    files.add(buildFile(messageType, content.toString()));
+    files.add(buildFile(javaPkgFqn, messageType, content.toString()));
     return files;
   }
 
@@ -551,16 +575,16 @@ public class VertxGrpcGeneratorImpl extends Generator {
   }
 */
 
-  private PluginProtos.CodeGeneratorResponse.File buildFile(MessageType messageType, String content) {
+  private PluginProtos.CodeGeneratorResponse.File buildFile(String javaPkgFqn, Descriptors.Descriptor messageType, String content) {
     return PluginProtos.CodeGeneratorResponse.File
       .newBuilder()
-      .setName(absoluteFileName(messageType))
+      .setName(absoluteFileName(javaPkgFqn, messageType))
       .setContent(content)
       .build();
   }
 
-  private static String absoluteFileName(MessageType messageType) {
-    return absoluteFileName(messageType.javaPkgFqn, messageType.name);
+  private static String absoluteFileName(String javaPkgFqn, Descriptors.Descriptor messageType) {
+    return absoluteFileName(javaPkgFqn, messageType.getName());
   }
 
   private static String absoluteFileName(String javaPkgFqn, String simpleName) {
