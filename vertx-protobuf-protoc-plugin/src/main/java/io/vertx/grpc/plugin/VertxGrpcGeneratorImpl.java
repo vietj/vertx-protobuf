@@ -10,9 +10,7 @@
  */
 package io.vertx.grpc.plugin;
 
-import com.google.api.HttpRule;
 import com.google.common.base.Strings;
-import com.google.common.html.HtmlEscapers;
 import com.google.protobuf.DescriptorProtos;
 import com.google.protobuf.compiler.PluginProtos;
 import com.salesforce.jprotoc.Generator;
@@ -22,7 +20,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class VertxGrpcGeneratorImpl extends Generator {
@@ -141,6 +141,14 @@ public class VertxGrpcGeneratorImpl extends Generator {
             .build();
   }
 
+  private static String blah(String s) {
+    if (s.startsWith(".")) {
+      return s.substring(s.lastIndexOf(".") + 1);
+    } else {
+      return s;
+    }
+  }
+
   private static PluginProtos.CodeGeneratorResponse.File generateSchemaFile(
           String javaPkgFqn,
           List<DescriptorProtos.DescriptorProto> messageTypeList) {
@@ -151,6 +159,7 @@ public class VertxGrpcGeneratorImpl extends Generator {
     content.append("import io.vertx.protobuf.schema.Schema;\r\n");
     content.append("import io.vertx.protobuf.schema.MessageType;\r\n");
     content.append("import io.vertx.protobuf.schema.ScalarType;\r\n");
+    content.append("import io.vertx.protobuf.schema.EnumType;\r\n");
     content.append("import io.vertx.protobuf.schema.Field;\r\n");
     content.append("public class SchemaLiterals {\r\n");
 
@@ -161,8 +170,20 @@ public class VertxGrpcGeneratorImpl extends Generator {
       content.append("  public static final MessageType ").append(messageType.getName().toUpperCase()).append(" = SCHEMA.of(\"").append(messageType.getName()).append("\");\r\n");
       messageType.getFieldList().forEach(field -> {
         switch (field.getType()) {
+          case TYPE_DOUBLE:
+            content.append("  public static final Field ").append(messageType.getName().toUpperCase()).append("_").append(field.getName().toUpperCase()).append(" = ").append(messageType.getName().toUpperCase()).append(".addField(").append(field.getNumber()).append(", ScalarType.DOUBLE);\r\n");
+            break;
+          case TYPE_BOOL:
+            content.append("  public static final Field ").append(messageType.getName().toUpperCase()).append("_").append(field.getName().toUpperCase()).append(" = ").append(messageType.getName().toUpperCase()).append(".addField(").append(field.getNumber()).append(", ScalarType.BOOL);\r\n");
+            break;
           case TYPE_STRING:
             content.append("  public static final Field ").append(messageType.getName().toUpperCase()).append("_").append(field.getName().toUpperCase()).append(" = ").append(messageType.getName().toUpperCase()).append(".addField(").append(field.getNumber()).append(", ScalarType.STRING);\r\n");
+            break;
+          case TYPE_ENUM:
+            content.append("  public static final Field ").append(messageType.getName().toUpperCase()).append("_").append(field.getName().toUpperCase()).append(" = ").append(messageType.getName().toUpperCase()).append(".addField(").append(field.getNumber()).append(", new EnumType());\r\n");
+            break;
+          case TYPE_MESSAGE:
+            content.append("  public static final Field ").append(messageType.getName().toUpperCase()).append("_").append(field.getName().toUpperCase()).append(" = ").append(messageType.getName().toUpperCase()).append(".addField(").append(field.getNumber()).append(", SCHEMA.of(\"").append(blah(field.getTypeName())).append("\"));\r\n");
             break;
         }
       });
@@ -178,6 +199,23 @@ public class VertxGrpcGeneratorImpl extends Generator {
       .build();
   }
 
+  private static String getJavaTypeFqn(DescriptorProtos.FieldDescriptorProto field) {
+    switch (field.getType()) {
+      case TYPE_MESSAGE:
+        return blah(field.getTypeName());
+      case TYPE_STRING:
+        return "java.lang.String";
+      case TYPE_ENUM:
+        return "java.lang.Integer";
+      case TYPE_DOUBLE:
+        return "java.lang.Double";
+      case TYPE_BOOL:
+        return "java.lang.Boolean";
+      default:
+        return null;
+    }
+  }
+
   private static class MessageType {
     final String javaPkgFqn;
     final String name;
@@ -185,16 +223,27 @@ public class VertxGrpcGeneratorImpl extends Generator {
     MessageType(String javaPkgFqn,
                 DescriptorProtos.DescriptorProto desc) {
 
-      desc.getFieldList().forEach(fieldDesc -> {
-        String javaTypeFqn;
-        switch (fieldDesc.getType()) {
-          case TYPE_STRING:
-            javaTypeFqn = "java.lang.String";
-            break;
-          default:
-            return;
+      // Find nested map entries ...
+      Set<String> mapEntries = new HashSet<>();
+      for (DescriptorProtos.DescriptorProto nested : desc.getNestedTypeList()) {
+        if (nested.getOptions().getMapEntry()) {
+          mapEntries.add(nested.getName());
+        } else {
+          throw new UnsupportedOperationException();
         }
-        fields.add(new FieldDesc(mixedLower(fieldDesc.getName()), javaTypeFqn));
+      }
+
+      desc.getFieldList().forEach(fieldDesc -> {
+        // Special handling
+        if (fieldDesc.getType() == DescriptorProtos.FieldDescriptorProto.Type.TYPE_MESSAGE &&
+            mapEntries.contains(blah(fieldDesc.getTypeName()))) {
+          fields.add(new FieldDesc(mixedLower(fieldDesc.getName()), "java.util.Map"));
+        } else {
+          String javaTypeFqn = getJavaTypeFqn(fieldDesc);
+          if (javaTypeFqn != null) {
+            fields.add(new FieldDesc(mixedLower(fieldDesc.getName()), javaTypeFqn));
+          }
+        }
       });
 
       this.javaPkgFqn = javaPkgFqn;
@@ -218,133 +267,6 @@ public class VertxGrpcGeneratorImpl extends Generator {
       return javaPackage;
     }
     return Strings.nullToEmpty(proto.getPackage());
-  }
-
-/*
-  private ServiceContext buildServiceContext(DescriptorProtos.ServiceDescriptorProto serviceProto, ProtoTypeMap typeMap, List<DescriptorProtos.SourceCodeInfo.Location> locations,
-    int serviceNumber) {
-    ServiceContext serviceContext = new ServiceContext(serviceProto, options.servicePrefix);
-    // Set Later
-    //serviceContext.fileName = CLASS_PREFIX + serviceProto.getName() + "Grpc.java";
-    //serviceContext.className = CLASS_PREFIX + serviceProto.getName() + "Grpc";
-
-    List<DescriptorProtos.SourceCodeInfo.Location> allLocationsForService = locations.stream()
-      .filter(location ->
-        location.getPathCount() >= 2 &&
-          location.getPath(0) == DescriptorProtos.FileDescriptorProto.SERVICE_FIELD_NUMBER &&
-          location.getPath(1) == serviceNumber
-      )
-      .collect(Collectors.toList());
-
-    DescriptorProtos.SourceCodeInfo.Location serviceLocation = allLocationsForService.stream()
-      .filter(location -> location.getPathCount() == SERVICE_NUMBER_OF_PATHS)
-      .findFirst()
-      .orElseGet(DescriptorProtos.SourceCodeInfo.Location::getDefaultInstance);
-    serviceContext.javaDoc = getJavaDoc(getComments(serviceLocation), getServiceJavaDocPrefix());
-
-    for (int methodNumber = 0; methodNumber < serviceProto.getMethodCount(); methodNumber++) {
-      MethodContext methodContext = buildMethodContext(
-        serviceProto.getMethod(methodNumber),
-        typeMap,
-        locations,
-        methodNumber
-      );
-
-      serviceContext.methods.add(methodContext);
-    }
-    return serviceContext;
-  }
-*/
-
-/*
-  private MethodContext buildMethodContext(DescriptorProtos.MethodDescriptorProto methodProto, ProtoTypeMap typeMap, List<DescriptorProtos.SourceCodeInfo.Location> locations,
-    int methodNumber) {
-    MethodContext methodContext = new MethodContext();
-    methodContext.transcodingContext = new TranscodingContext();
-
-    methodContext.methodName = methodProto.getName();
-    methodContext.vertxMethodName = mixedLower(methodProto.getName());
-    methodContext.inputType = typeMap.toJavaTypeName(methodProto.getInputType());
-    methodContext.outputType = typeMap.toJavaTypeName(methodProto.getOutputType());
-    methodContext.deprecated = methodProto.getOptions() != null && methodProto.getOptions().getDeprecated();
-    methodContext.isManyInput = methodProto.getClientStreaming();
-    methodContext.isManyOutput = methodProto.getServerStreaming();
-    methodContext.methodNumber = methodNumber;
-
-    DescriptorProtos.SourceCodeInfo.Location methodLocation = locations.stream()
-      .filter(location ->
-        location.getPathCount() == METHOD_NUMBER_OF_PATHS &&
-          location.getPath(METHOD_NUMBER_OF_PATHS - 1) == methodNumber
-      )
-      .findFirst()
-      .orElseGet(DescriptorProtos.SourceCodeInfo.Location::getDefaultInstance);
-    methodContext.javaDoc = getJavaDoc(getComments(methodLocation), getMethodJavaDocPrefix());
-
-    if (!methodProto.getClientStreaming() && !methodProto.getServerStreaming()) {
-      methodContext.vertxCallsMethodName = "oneToOne";
-      methodContext.grpcCallsMethodName = "asyncUnaryCall";
-    }
-    if (!methodProto.getClientStreaming() && methodProto.getServerStreaming()) {
-      methodContext.vertxCallsMethodName = "oneToMany";
-      methodContext.grpcCallsMethodName = "asyncServerStreamingCall";
-    }
-    if (methodProto.getClientStreaming() && !methodProto.getServerStreaming()) {
-      methodContext.vertxCallsMethodName = "manyToOne";
-      methodContext.grpcCallsMethodName = "asyncClientStreamingCall";
-    }
-    if (methodProto.getClientStreaming() && methodProto.getServerStreaming()) {
-      methodContext.vertxCallsMethodName = "manyToMany";
-      methodContext.grpcCallsMethodName = "asyncBidiStreamingCall";
-    }
-
-    if (options.generateTranscoding && methodProto.getOptions().hasExtension(AnnotationsProto.http)) {
-      HttpRule httpRule = methodProto.getOptions().getExtension(AnnotationsProto.http);
-      methodContext.transcodingContext = buildTranscodingContext(httpRule);
-    }
-
-    return methodContext;
-  }
-*/
-
-  private TranscodingContext buildTranscodingContext(HttpRule rule) {
-    TranscodingContext transcodingContext = new TranscodingContext();
-    switch (rule.getPatternCase()) {
-      case GET:
-        transcodingContext.path = rule.getGet();
-        transcodingContext.method = "GET";
-        break;
-      case POST:
-        transcodingContext.path = rule.getPost();
-        transcodingContext.method = "POST";
-        break;
-      case PUT:
-        transcodingContext.path = rule.getPut();
-        transcodingContext.method = "PUT";
-        break;
-      case DELETE:
-        transcodingContext.path = rule.getDelete();
-        transcodingContext.method = "DELETE";
-        break;
-      case PATCH:
-        transcodingContext.path = rule.getPatch();
-        transcodingContext.method = "PATCH";
-        break;
-      case CUSTOM:
-        transcodingContext.path = rule.getCustom().getPath();
-        transcodingContext.method = rule.getCustom().getKind();
-        break;
-    }
-
-    transcodingContext.option = true;
-    transcodingContext.selector = rule.getSelector();
-    transcodingContext.body = rule.getBody();
-    transcodingContext.responseBody = rule.getResponseBody();
-
-    transcodingContext.additionalBindings = rule.getAdditionalBindingsList().stream()
-      .map(this::buildTranscodingContext)
-      .collect(Collectors.toList());
-
-    return transcodingContext;
   }
 
   // java keywords from: https://docs.oracle.com/javase/specs/jls/se8/html/jls-3.html#jls-3.9
@@ -560,156 +482,5 @@ public class VertxGrpcGeneratorImpl extends Generator {
     } else {
       return dir + "/" + simpleName + ".java";
     }
-  }
-
-  private String getComments(DescriptorProtos.SourceCodeInfo.Location location) {
-    return location.getLeadingComments().isEmpty() ? location.getTrailingComments() : location.getLeadingComments();
-  }
-
-  private String getJavaDoc(String comments, String prefix) {
-    if (!comments.isEmpty()) {
-      StringBuilder builder = new StringBuilder("/**\n")
-        .append(prefix).append(" * <pre>\n");
-      Arrays.stream(HtmlEscapers.htmlEscaper().escape(comments).split("\n"))
-        .map(line -> line.replace("*/", "&#42;&#47;").replace("*", "&#42;"))
-        .forEach(line -> builder.append(prefix).append(" * ").append(line).append("\n"));
-      builder
-        .append(prefix).append(" * </pre>\n")
-        .append(prefix).append(" */");
-      return builder.toString();
-    }
-    return null;
-  }
-
-  /**
-   * Template class for proto Service objects.
-   */
-  private static class ServiceContext {
-    // CHECKSTYLE DISABLE VisibilityModifier FOR 9 LINES
-    public String fileName;
-    public String protoName;
-    public String packageName;
-    public String javaPackageFqn;
-    public String contractFqn;
-    public String serviceFqn;
-    public String clientFqn;
-    public String grpcClientFqn;
-    public String grpcServiceFqn;
-    public String grpcIoFqn;
-    public String serviceName;
-    public String outerFqn;
-    public String classPrefix;
-    public boolean codegenEnabled;
-    public boolean deprecated;
-    public String javaDoc;
-    public final List<MethodContext> methods = new ArrayList<>();
-
-    public ServiceContext(DescriptorProtos.ServiceDescriptorProto proto, String classPrefix) {
-      this.serviceName = proto.getName();
-      this.deprecated = proto.getOptions() != null && proto.getOptions().getDeprecated();
-      this.contractFqn = classPrefix + serviceName;
-      this.clientFqn = classPrefix + serviceName + "Client";
-      this.serviceFqn = classPrefix + serviceName + "Service";
-      this.grpcClientFqn = classPrefix + serviceName + "GrpcClient";
-      this.grpcServiceFqn = classPrefix + serviceName + "GrpcService";
-      this.grpcIoFqn = classPrefix + serviceName + "GrpcIo";
-    }
-
-    public String prefixedServiceName() {
-      return classPrefix + serviceName;
-    }
-
-    public List<MethodContext> allMethods() {
-      return methods;
-    }
-
-    public List<MethodContext> streamMethods() {
-      return methods.stream().filter(m -> m.isManyInput || m.isManyOutput).collect(Collectors.toList());
-    }
-
-    public List<MethodContext> unaryUnaryMethods() {
-      return methods.stream().filter(m -> !m.isManyInput && !m.isManyOutput).collect(Collectors.toList());
-    }
-
-    public List<MethodContext> unaryManyMethods() {
-      return methods.stream().filter(m -> !m.isManyInput && m.isManyOutput).collect(Collectors.toList());
-    }
-
-    public List<MethodContext> manyUnaryMethods() {
-      return methods.stream().filter(m -> m.isManyInput && !m.isManyOutput).collect(Collectors.toList());
-    }
-
-    public List<MethodContext> manyManyMethods() {
-      return methods.stream().filter(m -> m.isManyInput && m.isManyOutput).collect(Collectors.toList());
-    }
-
-    public List<MethodContext> serviceMethods() {
-      return methods.stream().filter(m -> m.transcodingContext == null || !m.transcodingContext.option).collect(Collectors.toList());
-    }
-
-    public List<MethodContext> transcodingMethods() {
-      return methods.stream().filter(t -> t.transcodingContext != null && t.transcodingContext.option).collect(Collectors.toList());
-    }
-  }
-
-  /**
-   * Template class for proto RPC objects.
-   */
-  private static class MethodContext {
-    // CHECKSTYLE DISABLE VisibilityModifier FOR 10 LINES
-    public String methodName;
-    public String vertxMethodName;
-    public String inputType;
-    public String outputType;
-    public boolean deprecated;
-    public boolean isManyInput;
-    public boolean isManyOutput;
-    public String vertxCallsMethodName;
-    public String grpcCallsMethodName;
-    public int methodNumber;
-    public String javaDoc;
-
-    public TranscodingContext transcodingContext;
-
-    // This method mimics the upper-casing method ogf gRPC to ensure compatibility
-    // See https://github.com/grpc/grpc-java/blob/v1.8.0/compiler/src/java_plugin/cpp/java_generator.cpp#L58
-    public String methodNameUpperUnderscore() {
-      StringBuilder s = new StringBuilder();
-      for (int i = 0; i < methodName.length(); i++) {
-        char c = methodName.charAt(i);
-        s.append(Character.toUpperCase(c));
-        if ((i < methodName.length() - 1) && Character.isLowerCase(c) && Character.isUpperCase(methodName.charAt(i + 1))) {
-          s.append('_');
-        }
-      }
-      return s.toString();
-    }
-
-    public String methodNameGetter() {
-      return VertxGrpcGeneratorImpl.mixedLower("get_" + methodName + "_method");
-    }
-
-    public String methodHeader() {
-      String mh = "";
-      if (!Strings.isNullOrEmpty(javaDoc)) {
-        mh = javaDoc;
-      }
-
-      if (deprecated) {
-        mh += "\n        @Deprecated";
-      }
-
-      return mh;
-    }
-  }
-
-  private static class TranscodingContext {
-    public String path;
-    public String method;
-    public String selector;
-    public String body;
-    public boolean option;
-    public String responseBody;
-    public List<TranscodingContext> additionalBindings = new ArrayList<>();
   }
 }
