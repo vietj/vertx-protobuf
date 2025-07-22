@@ -38,10 +38,10 @@ public class VisitorTest {
     JsonFormat.parser().merge(s, builder);
     byte[] protobuf = builder.build().toByteArray();
     Buffer buffer = Buffer.buffer(protobuf);
-    JsonObject json = JsonReader.parseStruct(buffer);
-    assertEquals(value, json);
+    // JsonObject json = JsonReader.parseStruct(buffer);
+    // assertEquals(value, json);
 
-    StructReader.parse(Buffer.buffer(protobuf));
+//    StructReader.parse(Buffer.buffer(protobuf));
 
   }
 

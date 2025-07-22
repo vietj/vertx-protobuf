@@ -51,7 +51,9 @@ public class ProtobufReader {
       switch (builtInType.id()) {
         case STRING:
           String s = decoder.readString(len);
+          visitor.enter(field);
           visitor.visitString(field, s);
+          visitor.leave(field);
           break;
         default:
           throw new UnsupportedOperationException("" + field.type);

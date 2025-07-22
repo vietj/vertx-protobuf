@@ -108,7 +108,7 @@
 
         <configuration>
           <protocVersion>${protoc.version}</protocVersion>
-          <javaEnabled>false</javaEnabled>
+          <javaEnabled>true</javaEnabled>
 
           <!-- Vanilla protoc plugins - these are platform specific executables
                just like protoc is. -->

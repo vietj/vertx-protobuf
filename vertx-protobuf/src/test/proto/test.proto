@@ -4,7 +4,7 @@ syntax = "proto3";
 //
 //option java_multiple_files = true;
 option java_package = "io.vertx.tests.protobuf";
-//option java_outer_classname = "EventBusBridgeProto";
+option java_outer_classname = "TestProto";
 
 // Message used for publishing to an address
 message SimpleMessage {

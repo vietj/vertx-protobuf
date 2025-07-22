@@ -78,6 +78,10 @@ public class VertxGrpcGeneratorImpl extends Generator {
     return files;
   }
 
+  private static String setterOf(String name) {
+    return "set" + Character.toUpperCase(name.charAt(0)) + name.substring(1);
+  }
+
   private static PluginProtos.CodeGeneratorResponse.File generateProtoReaderFile(
           String javaPkgFqn,
           List<DescriptorProtos.DescriptorProto> messageTypeList) {
@@ -91,15 +95,21 @@ public class VertxGrpcGeneratorImpl extends Generator {
     content.append("import java.util.ArrayDeque;\r\n");
     content.append("public class ProtoReader implements Visitor {\r\n");
 
-    content.append("  private final Deque<Object> stack = new ArrayDeque<>();\r\n");
+    content.append("  public final Deque<Object> stack = new ArrayDeque<>();\r\n");
 
     content.append("  public void init(MessageType type) {\r\n");
+    for (DescriptorProtos.DescriptorProto messageType : messageTypeList) {
+      content.append("    if (type == SchemaLiterals.").append(messageType.getName().toUpperCase()).append(") {\r\n");
+      content.append("      stack.push(new ").append(messageType.getName()).append("());\r\n");
+      content.append("    }\r\n");
+    }
     content.append("  }\r\n");
 
     content.append("  public void visitVarInt32(Field field, int v) {\r\n");
     content.append("  }\r\n");
 
     content.append("  public void visitString(Field field, String s) {\r\n");
+    content.append("      stack.push(s);\r\n");
     content.append("  }\r\n");
 
     content.append("  public void visitDouble(Field field, double d) {\r\n");
@@ -109,6 +119,14 @@ public class VertxGrpcGeneratorImpl extends Generator {
     content.append("  }\r\n");
 
     content.append("  public void leave(Field field) {\r\n");
+    for (DescriptorProtos.DescriptorProto messageType : messageTypeList) {
+      for (DescriptorProtos.FieldDescriptorProto field : messageType.getFieldList()) {
+        content.append("    if (field == SchemaLiterals.").append(messageType.getName().toUpperCase()).append("_").append(field.getName().toUpperCase()).append(") {\r\n");
+        content.append("      ").append("String").append(" v = (").append("String").append(")stack.pop();\r\n");
+        content.append("      ((").append(messageType.getName()).append(")stack.peek()).").append(setterOf(mixedLower(field.getName()))).append("(v);\n");
+        content.append("    }\r\n");
+      }
+    }
     content.append("  }\r\n");
 
     content.append("  public void destroy() {\r\n");
@@ -133,30 +151,23 @@ public class VertxGrpcGeneratorImpl extends Generator {
     content.append("import io.vertx.protobuf.schema.Schema;\r\n");
     content.append("import io.vertx.protobuf.schema.MessageType;\r\n");
     content.append("import io.vertx.protobuf.schema.ScalarType;\r\n");
+    content.append("import io.vertx.protobuf.schema.Field;\r\n");
     content.append("public class SchemaLiterals {\r\n");
 
-    content.append("  public static final Schema SCHEMA;\r\n");
-
-    content.append("  static {\r\n");
-
-    content.append("    Schema schema = new Schema();\n");
+    content.append("  public static final Schema SCHEMA = new Schema();\r\n");
 
     messageTypeList.forEach(messageType -> {
 
-      content.append("    MessageType ").append(messageType.getName()).append(" = schema.of(\"").append(messageType.getName()).append("\");\r\n");
+      content.append("  public static final MessageType ").append(messageType.getName().toUpperCase()).append(" = SCHEMA.of(\"").append(messageType.getName()).append("\");\r\n");
       messageType.getFieldList().forEach(field -> {
         switch (field.getType()) {
           case TYPE_STRING:
-            content.append("    ").append(messageType.getName()).append(".addField(").append(field.getNumber()).append(", ScalarType.STRING);\r\n");
+            content.append("  public static final Field ").append(messageType.getName().toUpperCase()).append("_").append(field.getName().toUpperCase()).append(" = ").append(messageType.getName().toUpperCase()).append(".addField(").append(field.getNumber()).append(", ScalarType.STRING);\r\n");
             break;
         }
       });
 
     });
-
-    content.append("    SCHEMA = schema;\r\n");
-
-    content.append("  }\r\n");
 
     content.append("}\r\n");
 
@@ -451,7 +462,7 @@ public class VertxGrpcGeneratorImpl extends Generator {
     });
     messageType.fields.forEach(fd -> {
       String getter = "get" + Character.toUpperCase(fd.name.charAt(0)) + fd.name.substring(1);
-      String setter = "set" + Character.toUpperCase(fd.name.charAt(0)) + fd.name.substring(1);
+      String setter = setterOf(fd.name);
       content.append("  public ")
         .append(fd.javaType)
         .append(" ")
