@@ -2,6 +2,8 @@ package io.vertx.tests.protobuf;
 
 import io.vertx.core.buffer.Buffer;
 import io.vertx.protobuf.ProtobufReader;
+import io.vertx.tests.importing.Container;
+import io.vertx.tests.importing.ImportingProto;
 import io.vertx.tests.protobuf.struct.StructProto;
 import io.vertx.tests.protobuf.struct.ProtoReader;
 import io.vertx.tests.protobuf.struct.SchemaLiterals;
@@ -42,6 +44,17 @@ public class DataObjectTest {
     Buffer buffer = Buffer.buffer(bytes);
     ProtobufReader.parse(SchemaLiterals.VALUE, reader, buffer);
     Value msg = (Value) reader.stack.pop();
+
+//    assertEquals("hello", msg.getStringValue());
+  }
+
+  @Test
+  public void testImports() {
+    byte[] bytes = ImportingProto.Container.newBuilder().setStringField(TestProto.SimpleMessage.newBuilder().setStringField("the-string").build()).build().toByteArray();
+    io.vertx.tests.importing.ProtoReader reader = new io.vertx.tests.importing.ProtoReader();
+    Buffer buffer = Buffer.buffer(bytes);
+    ProtobufReader.parse(io.vertx.tests.importing.SchemaLiterals.CONTAINER, reader, buffer);
+    Container msg = (Container) reader.stack.pop();
 
 //    assertEquals("hello", msg.getStringValue());
   }

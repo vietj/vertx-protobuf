@@ -13,6 +13,7 @@ package io.vertx.grpc.plugin;
 import com.google.common.base.Strings;
 import com.google.protobuf.DescriptorProtos;
 import com.google.protobuf.Descriptors;
+import com.google.protobuf.ProtocolStringList;
 import com.google.protobuf.compiler.PluginProtos;
 import com.salesforce.jprotoc.Generator;
 import com.salesforce.jprotoc.GeneratorException;
@@ -24,6 +25,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class VertxGrpcGeneratorImpl extends Generator {
@@ -44,6 +46,26 @@ public class VertxGrpcGeneratorImpl extends Generator {
     return Collections.singletonList(PluginProtos.CodeGeneratorResponse.Feature.FEATURE_PROTO3_OPTIONAL);
   }
 
+  private static class Node {
+    final DescriptorProtos.FileDescriptorProto fileDescProto;
+    final List<Node> dependencies;
+    Descriptors.FileDescriptor fileDesc;
+    Node(DescriptorProtos.FileDescriptorProto fileDescProto) {
+      this.fileDescProto = fileDescProto;
+      this.dependencies = new ArrayList<>();
+    }
+    Descriptors.FileDescriptor build() throws Descriptors.DescriptorValidationException {
+      if (fileDesc == null) {
+        List<Descriptors.FileDescriptor> deps = new ArrayList<>();
+        for (Node dep : dependencies) {
+          deps.add(dep.build());
+        }
+        fileDesc = Descriptors.FileDescriptor.buildFrom(fileDescProto, deps.toArray(new Descriptors.FileDescriptor[0]));
+      }
+      return fileDesc;
+    }
+  }
+
   @Override
   public List<PluginProtos.CodeGeneratorResponse.File> generateFiles(PluginProtos.CodeGeneratorRequest request) throws GeneratorException {
 
@@ -51,19 +73,29 @@ public class VertxGrpcGeneratorImpl extends Generator {
       .filter(protoFile -> request.getFileToGenerateList().contains(protoFile.getName()))
       .collect(Collectors.toList());
 
+    Map<String, Node> nodeMap = new LinkedHashMap<>();
+    for (DescriptorProtos.FileDescriptorProto fileDescProto : protosToGenerate) {
+      nodeMap.put(fileDescProto.getName(), new Node(fileDescProto));
+    }
+    nodeMap.values().forEach(node -> {
+      for (String dependency : node.fileDescProto.getDependencyList()) {
+        node.dependencies.add(nodeMap.get(dependency));
+      }
+    });
+
     List<PluginProtos.CodeGeneratorResponse.File> files = new ArrayList<>();
 
-    for (DescriptorProtos.FileDescriptorProto fileDescProto : protosToGenerate) {
+    for (Node fileDescProto : nodeMap.values()) {
+
       Descriptors.FileDescriptor fileDesc;
       try {
-        fileDesc = Descriptors.FileDescriptor.buildFrom(fileDescProto, new Descriptors.FileDescriptor[0]);
+        fileDesc = fileDescProto.build();
       } catch (Descriptors.DescriptorValidationException e) {
         GeneratorException ex = new GeneratorException(e.getMessage());
         ex.initCause(e);
         throw ex;
       }
-      String javaPkgFqn = extractJavaPkgFqn(fileDescProto);
-
+      String javaPkgFqn = extractJavaPkgFqn(fileDescProto.fileDescProto);
       files.addAll(generateDataObjectsFiles(javaPkgFqn, fileDesc));
       files.add(generateSchemaFile(javaPkgFqn, fileDesc.getMessageTypes()));
       files.add(generateProtoReaderFile(javaPkgFqn, fileDesc));
@@ -128,7 +160,7 @@ public class VertxGrpcGeneratorImpl extends Generator {
           content.append("      ").append(field.getContainingType().getName()).append(" container = (").append(field.getContainingType().getName()).append(")stack.peek();").append("\r\n");
           content.append("      stack.push(container.").append(getterOf(field)).append("());\r\n");
         } else {
-          content.append("      ").append(field.getMessageType().getName()).append(" v = new ").append(field.getMessageType().getName()).append("();\r\n");
+          content.append("      ").append(javaTypeOf(field)).append(" v = new ").append(javaTypeOf(field)).append("();\r\n");
           content.append("      stack.push(v);\r\n");
         }
         content.append("    }\r\n");
@@ -139,31 +171,6 @@ public class VertxGrpcGeneratorImpl extends Generator {
     content.append("  public void leave(Field field) {\r\n");
     for (Descriptors.Descriptor messageType : fileDesc.getMessageTypes()) {
       for (Descriptors.FieldDescriptor field : messageType.getFields()) {
-        String typeDecl;
-        switch (field.getJavaType()) {
-          case ENUM:
-            typeDecl  = "Integer";
-            break;
-          case DOUBLE:
-            typeDecl  = "Double";
-            break;
-          case BOOLEAN:
-            typeDecl  = "Boolean";
-            break;
-          case STRING:
-            typeDecl  = "String";
-            break;
-          case MESSAGE:
-            if (field.isMapField()) {
-              typeDecl = "java.util.Map";
-            } else {
-              typeDecl = field.getMessageType().getName();
-            }
-            break;
-          default:
-            content.append("    // Todo: ").append(field.getJavaType()).append("\r\n");
-            continue;
-        }
         content.append("    if (field == SchemaLiterals.").append(messageType.getName().toUpperCase()).append("_").append(field.getName().toUpperCase()).append(") {\r\n");
         if (field.isMapField()) {
           content.append("     Object key = stack.pop();\r\n");
@@ -171,7 +178,7 @@ public class VertxGrpcGeneratorImpl extends Generator {
           content.append("     java.util.Map entries = (java.util.Map)stack.pop();\r\n");
           content.append("     entries.put(key, value);\r\n");
         } else {
-          content.append("      ").append(typeDecl).append(" v = (").append(typeDecl).append(")stack.pop();\r\n");
+          content.append("      ").append(javaTypeOf(field)).append(" v = (").append(javaTypeOf(field)).append(")stack.pop();\r\n");
           content.append("      ((").append(messageType.getName()).append(")stack.peek()).").append(setterOf(field)).append("(v);\n");
         }
         content.append("    }\r\n");
@@ -327,6 +334,15 @@ public class VertxGrpcGeneratorImpl extends Generator {
   }
 */
 
+  private static String extractJavaPkgFqn(Descriptors.FileDescriptor proto) {
+    DescriptorProtos.FileOptions options = proto.getOptions();
+    String javaPackage = options.getJavaPackage();
+    if (!Strings.isNullOrEmpty(javaPackage)) {
+      return javaPackage;
+    }
+    return Strings.nullToEmpty(proto.getPackage());
+  }
+
   private String extractJavaPkgFqn(DescriptorProtos.FileDescriptorProto proto) {
     DescriptorProtos.FileOptions options = proto.getOptions();
     String javaPackage = options.getJavaPackage();
@@ -441,7 +457,7 @@ public class VertxGrpcGeneratorImpl extends Generator {
             .collect(Collectors.toList());
   }
 
-  private String javaTypeOf(Descriptors.FieldDescriptor field) {
+  private static String javaTypeOf(Descriptors.FieldDescriptor field) {
     switch (field.getJavaType()) {
       case BOOLEAN:
         return "java.lang.Boolean";
@@ -455,7 +471,8 @@ public class VertxGrpcGeneratorImpl extends Generator {
         if (field.isMapField()) {
           return "java.util.Map";
         } else {
-          return field.getMessageType().getName();
+          String pkg = extractJavaPkgFqn(field.getMessageType().getFile());
+          return pkg + "." + field.getMessageType().getName();
         }
       default:
         return null;

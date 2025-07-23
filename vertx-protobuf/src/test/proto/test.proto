@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-//package vertx.event.v1alpha;
+package io.vertx.tests.protobuf;
 //
 //option java_multiple_files = true;
 option java_package = "io.vertx.tests.protobuf";
