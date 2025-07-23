@@ -202,6 +202,10 @@ public class VertxGrpcGeneratorImpl extends Generator {
     content.append("    this(new ArrayDeque<>());\r\n");
     content.append("  }\r\n");
 
+    // **************
+    // VISIT STRING
+    // **************
+
     content.append("  public void init(MessageType type) {\r\n");
     boolean first = true;
     for (Descriptors.Descriptor messageType : fileDesc.getMessageTypes()) {
@@ -233,6 +237,10 @@ public class VertxGrpcGeneratorImpl extends Generator {
     content.append("    stack.push(v);\r\n");
     content.append("  }\r\n");
 
+    // **************
+    // VISIT STRING
+    // **************
+
     content.append("  public void visitString(Field field, String s) {\r\n");
     first = true;
     for (Descriptors.Descriptor mt : fileDesc.getMessageTypes()) {
@@ -262,6 +270,10 @@ public class VertxGrpcGeneratorImpl extends Generator {
     content.append("    }\r\n");
     content.append("  }\r\n");
 
+    // **************
+    // VISIT DOUBLE
+    // **************
+
     content.append("  public void visitDouble(Field field, double d) {\r\n");
     content.append("    if (next != null) {\r\n");
     content.append("      next.visitDouble(field, d);\r\n");
@@ -271,6 +283,10 @@ public class VertxGrpcGeneratorImpl extends Generator {
     content.append("  }\r\n");
 
     Map<String, Descriptors.Descriptor> all = transitiveClosure(fileDesc.getMessageTypes());
+
+    // **************
+    // ENTER
+    // **************
 
     content.append("  public void enter(Field field) {\r\n");
     first = true;
@@ -312,6 +328,10 @@ public class VertxGrpcGeneratorImpl extends Generator {
     content.append("    }\r\n");
     content.append("  }\r\n");
 
+    // **************
+    // VISIT LEAVE
+    // **************
+
     content.append("  public void leave(Field field) {\r\n");
     first = true;
     for (Descriptors.Descriptor messageType : fileDesc.getMessageTypes()) {
@@ -352,6 +372,10 @@ public class VertxGrpcGeneratorImpl extends Generator {
     content.append("    }\r\n");
     content.append("  }\r\n");
 
+    // **************
+    // DESTROY
+    // **************
+
     content.append("  public void destroy() {\r\n");
     content.append("    if (next != null) {\r\n");
     content.append("      next.destroy();\r\n");
@@ -365,14 +389,6 @@ public class VertxGrpcGeneratorImpl extends Generator {
             .setName(absoluteFileName(javaPkgFqn, "ProtoReader"))
             .setContent(content.toString())
             .build();
-  }
-
-  private static String blah(String s) {
-    if (s.startsWith(".")) {
-      return s.substring(s.lastIndexOf(".") + 1);
-    } else {
-      return s;
-    }
   }
 
   private static Map<String, Descriptors.Descriptor> transitiveClosure(List<Descriptors.Descriptor> descriptors) {
@@ -444,23 +460,6 @@ public class VertxGrpcGeneratorImpl extends Generator {
       .setName(absoluteFileName(javaPkgFqn, "SchemaLiterals"))
       .setContent(content.toString())
       .build();
-  }
-
-  private static String getJavaTypeFqn(DescriptorProtos.FieldDescriptorProto field) {
-    switch (field.getType()) {
-      case TYPE_MESSAGE:
-        return blah(field.getTypeName());
-      case TYPE_STRING:
-        return "java.lang.String";
-      case TYPE_ENUM:
-        return "java.lang.Integer";
-      case TYPE_DOUBLE:
-        return "java.lang.Double";
-      case TYPE_BOOL:
-        return "java.lang.Boolean";
-      default:
-        return null;
-    }
   }
 
   private static String extractJavaPkgFqn(Descriptors.FileDescriptor proto) {
