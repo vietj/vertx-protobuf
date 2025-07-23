@@ -42,6 +42,12 @@ public class ProtobufDecoder {
     return str;
   }
 
+  public byte[] readBytes(int lengthInBytes) {
+    byte[] str = buffer.getBytes(idx, idx + lengthInBytes);
+    idx += lengthInBytes;
+    return str;
+  }
+
   public boolean readTag() {
     int c = idx;
     int e = readRawVarint32();

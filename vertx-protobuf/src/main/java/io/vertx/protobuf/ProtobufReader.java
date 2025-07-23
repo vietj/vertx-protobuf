@@ -53,6 +53,10 @@ public class ProtobufReader {
           String s = decoder.readString(len);
           visitor.visitString(field, s);
           break;
+        case BYTES:
+          byte[] bytes = decoder.readBytes(len);
+          visitor.visitBytes(field, bytes);
+          break;
         default:
           throw new UnsupportedOperationException("" + field.type);
       }

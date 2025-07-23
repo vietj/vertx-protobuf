@@ -165,6 +165,9 @@ public class VertxGrpcGeneratorImpl extends Generator {
               content.append("      visitor.leave(SchemaLiterals.").append(schemaLiteralOf(field)).append(");\r\n");
             }
             break;
+          case BYTES:
+            content.append("      visitor.visitBytes(SchemaLiterals.").append(schemaLiteralOf(field)).append(", v.getBytes());\r\n");
+            break;
           case STRING:
             content.append("      visitor.visitString(SchemaLiterals.").append(schemaLiteralOf(field)).append(", v);\r\n");
             break;
@@ -259,6 +262,7 @@ public class VertxGrpcGeneratorImpl extends Generator {
     }
 
     Foo[] foos = {
+      new Foo("visitBytes(Field field, byte[] value)", "visitBytes(field, value)", Descriptors.FieldDescriptor.Type.BYTES),
       new Foo("visitString(Field field, String value)", "visitString(field, value)", Descriptors.FieldDescriptor.Type.STRING),
       new Foo("visitDouble(Field field, double value)", "visitDouble(field, value)", Descriptors.FieldDescriptor.Type.DOUBLE),
       new Foo("visitVarInt32(Field field, int value)", "visitVarInt32(field, value)", Descriptors.FieldDescriptor.Type.BOOL, Descriptors.FieldDescriptor.Type.ENUM)
@@ -284,6 +288,10 @@ public class VertxGrpcGeneratorImpl extends Generator {
                 break;
               case ENUM:
                 converter = s -> javaTypeOf(fd) + ".valueOf(" + s + ")";
+                break;
+              case BYTES:
+                converter = s -> "io.vertx.core.buffer.Buffer.buffer(" + s + ")";
+                break;
             }
             content.append("      ((").append(javaTypeOf(fd.getContainingType())).append(")stack.peek()).").append(setterOf(fd)).append("(").append(converter.apply("value")).append(");\t\n");
             content.append("    }");
@@ -460,6 +468,9 @@ public class VertxGrpcGeneratorImpl extends Generator {
           case ENUM:
             content.append("  public static final Field ").append(schemaLiteralOf(field)).append(" = ").append(schemaLiteralOf(messageType)).append(".addField(").append(field.getNumber()).append(", new EnumType());\r\n");
             break;
+          case BYTE_STRING:
+            content.append("  public static final Field ").append(schemaLiteralOf(field)).append(" = ").append(schemaLiteralOf(messageType)).append(".addField(").append(field.getNumber()).append(", ScalarType.BYTES);\r\n");
+            break;
           case MESSAGE:
             String prefix;
             if (field.getMessageType().getFile() != file) {
@@ -523,6 +534,8 @@ public class VertxGrpcGeneratorImpl extends Generator {
   private static String javaTypeOf(Descriptors.FieldDescriptor field) {
     String pkg;
     switch (field.getJavaType()) {
+      case BYTE_STRING:
+        return "io.vertx.core.buffer.Buffer";
       case BOOLEAN:
         return "java.lang.Boolean";
       case STRING:

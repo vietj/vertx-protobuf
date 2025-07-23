@@ -55,6 +55,12 @@ public class ProtobufWriter {
     }
 
     @Override
+    public void visitBytes(Field field, byte[] bytes) {
+      int length = bytes.length;
+      lengths[depth] += 1 + ProtobufEncoder.computeRawVarint32Size(length) + length;
+    }
+
+    @Override
     public void visitString(Field field, String s) {
       int length = 0;
       int a = s.length();
@@ -129,6 +135,14 @@ public class ProtobufWriter {
     public void visitDouble(Field field, double d) {
       encoder.writeTag(field.number, WireType.I64.id);
       encoder.writeDouble(d);
+    }
+
+    @Override
+    public void visitBytes(Field field, byte[] bytes) {
+      int length = bytes.length;
+      encoder.writeTag(field.number, WireType.LEN.id);
+      encoder.writeVarInt32(length);
+      encoder.writeBytes(bytes);
     }
 
     @Override

@@ -9,4 +9,5 @@ option java_outer_classname = "TestProto";
 // Message used for publishing to an address
 message SimpleMessage {
   string string_field = 1;
+  bytes bytes_field = 2;
 }

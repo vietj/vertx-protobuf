@@ -1,5 +1,6 @@
 package io.vertx.tests.protobuf;
 
+import com.google.protobuf.ByteString;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.protobuf.ProtobufReader;
 import io.vertx.protobuf.ProtobufWriter;
@@ -19,21 +20,28 @@ public class DataObjectTest {
 
   @Test
   public void testReadSimple() {
-    byte[] bytes = TestProto.SimpleMessage.newBuilder().setStringField("hello").build().toByteArray();
+    byte[] bytes = TestProto.SimpleMessage.newBuilder()
+      .setStringField("hello")
+      .setBytesField(ByteString.copyFromUtf8("hello"))
+      .build().toByteArray();
     io.vertx.tests.protobuf.ProtoReader reader = new io.vertx.tests.protobuf.ProtoReader();
     ProtobufReader.parse(io.vertx.tests.protobuf.SchemaLiterals.SIMPLEMESSAGE, reader, Buffer.buffer(bytes));
     SimpleMessage msg = (SimpleMessage) reader.stack.pop();
     assertEquals("hello", msg.getStringField());
+    assertEquals("hello", msg.getBytesField().toString());
   }
 
   @Test
   public void testWriteSimple() throws Exception {
-    SimpleMessage value = new SimpleMessage().setStringField("the-string");
+    SimpleMessage value = new SimpleMessage()
+      .setStringField("the-string")
+      .setBytesField(Buffer.buffer("the-bytes"));
     Buffer result = ProtobufWriter.encode(visitor -> {
       io.vertx.tests.protobuf.ProtoWriter.emit(value, visitor);
     });
     TestProto.SimpleMessage res = TestProto.SimpleMessage.parseFrom(result.getBytes());
     assertEquals("the-string", res.getStringField());
+    assertEquals("the-bytes", res.getBytesField().toStringUtf8());
   }
 
   @Test
