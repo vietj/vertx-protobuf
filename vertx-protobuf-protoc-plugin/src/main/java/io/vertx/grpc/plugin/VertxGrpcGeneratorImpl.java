@@ -26,6 +26,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class VertxGrpcGeneratorImpl extends Generator {
@@ -250,7 +251,7 @@ public class VertxGrpcGeneratorImpl extends Generator {
     Foo[] foos = {
       new Foo("visitString(Field field, String value)", "visitString(field, value)", Descriptors.FieldDescriptor.Type.STRING),
       new Foo("visitDouble(Field field, double value)", "visitDouble(field, value)", Descriptors.FieldDescriptor.Type.DOUBLE),
-      new Foo("visitVarInt32(Field field, int value)", "visitVarInt32(field, value)")
+      new Foo("visitVarInt32(Field field, int value)", "visitVarInt32(field, value)", Descriptors.FieldDescriptor.Type.BOOL, Descriptors.FieldDescriptor.Type.ENUM)
     };
 
     for (Foo foo : foos) {
@@ -266,7 +267,13 @@ public class VertxGrpcGeneratorImpl extends Generator {
               content.append(" else ");
             }
             content.append("if (field == SchemaLiterals.").append(schemaLiteralOf(fd)).append(") {\r\n");
-            content.append("      ((").append(javaTypeOf(fd.getContainingType())).append(")stack.peek()).").append(setterOf(fd)).append("(value);\t\n");
+            Function<String, String> converter = Function.identity();
+            switch (fd.getType()) {
+              case BOOL:
+                converter = s -> "value == 1";
+                break;
+            }
+            content.append("      ((").append(javaTypeOf(fd.getContainingType())).append(")stack.peek()).").append(setterOf(fd)).append("(").append(converter.apply("value")).append(");\t\n");
             content.append("    }");
           }
         }

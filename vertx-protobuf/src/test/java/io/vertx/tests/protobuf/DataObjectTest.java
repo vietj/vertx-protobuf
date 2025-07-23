@@ -12,8 +12,7 @@ import io.vertx.tests.protobuf.struct.SchemaLiterals;
 import io.vertx.tests.protobuf.struct.Value;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 public class DataObjectTest {
 
@@ -48,29 +47,35 @@ public class DataObjectTest {
   @Test
   public void testReadStructValue() {
     byte[] bytes = StructProto.Value.newBuilder().setStructValue(StructProto.Struct.newBuilder()
-      .putFields("foo", StructProto.Value.newBuilder().setStringValue("bar").build())
-      .putFields("juu", StructProto.Value.newBuilder().setStringValue("daa").build())
+      .putFields("foo", StructProto.Value.newBuilder().setStringValue("string").build())
+      .putFields("bar", StructProto.Value.newBuilder().setBoolValue(true).build())
+      .putFields("juu", StructProto.Value.newBuilder().setNumberValue(5.1).build())
+      .putFields("daa", StructProto.Value.newBuilder().setNullValue(StructProto.NullValue.NULL_VALUE).build())
+      .putFields("bii", StructProto.Value.newBuilder().setStructValue(StructProto.Struct.newBuilder()).build())
       .build()).build().toByteArray();
     ProtoReader reader = new ProtoReader();
     Buffer buffer = Buffer.buffer(bytes);
     ProtobufReader.parse(SchemaLiterals.VALUE, reader, buffer);
     Value msg = (Value) reader.stack.pop();
     assertNotNull(msg.getStructValue());
-    assertEquals("bar", msg.getStructValue().getFields().get("foo").getStringValue());
-    assertEquals("daa", msg.getStructValue().getFields().get("juu").getStringValue());
+    assertEquals("string", msg.getStructValue().getFields().get("foo").getStringValue());
+    assertEquals(true, msg.getStructValue().getFields().get("bar").getBoolValue());
+    assertEquals(5.1, msg.getStructValue().getFields().get("juu").getNumberValue(), 0.001);
+    assertEquals(0, (int)msg.getStructValue().getFields().get("daa").getNullValue());
+    assertNotNull(msg.getStructValue().getFields().get("bii").getStructValue());
   }
 
   @Test
   public void testWriteStructValue() throws Exception {
     Struct struct = new Struct();
-    struct.getFields().put("foo", new Value().setStringValue("bar"));
-    struct.getFields().put("juu", new Value().setStringValue("daa"));
+    struct.getFields().put("foo", new Value().setStringValue("string"));
+    struct.getFields().put("bar", new Value().setBoolValue(true));
     Buffer result = ProtobufWriter.encode(visitor -> {
       io.vertx.tests.protobuf.struct.ProtoWriter.emit(struct, visitor);
     });
     StructProto.Struct res = StructProto.Struct.parseFrom(result.getBytes());
-    assertEquals("bar", res.getFieldsMap().get("foo").getStringValue());
-    assertEquals("daa", res.getFieldsMap().get("juu").getStringValue());
+    assertEquals("string", res.getFieldsMap().get("foo").getStringValue());
+    assertTrue(res.getFieldsMap().get("bar").getBoolValue());
   }
 
   @Test
