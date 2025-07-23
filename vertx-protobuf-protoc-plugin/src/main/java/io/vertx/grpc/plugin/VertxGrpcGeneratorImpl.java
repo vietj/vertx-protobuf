@@ -234,11 +234,32 @@ public class VertxGrpcGeneratorImpl extends Generator {
     content.append("  }\r\n");
 
     content.append("  public void visitString(Field field, String s) {\r\n");
-    content.append("    if (next != null) {\r\n");
+    first = true;
+    for (Descriptors.Descriptor mt : fileDesc.getMessageTypes()) {
+      for (Descriptors.FieldDescriptor fd : mt.getFields()) {
+        if (fd.getType() == Descriptors.FieldDescriptor.Type.STRING) {
+          if (first) {
+            content.append("    ");
+            first = false;
+          } else {
+            content.append(" else ");
+          }
+          content.append("if (field == SchemaLiterals.").append(schemaLiteralOf(fd)).append(") {\r\n");
+          content.append("      ((").append(javaTypeOf(fd.getContainingType())).append(")stack.peek()).").append(setterOf(fd)).append("(s);\t\n");
+          content.append("    }");
+        }
+      }
+    }
+    if (first) {
+      content.append("    ");
+    } else {
+      content.append(" else ");
+    }
+    content.append("if (next != null) {\r\n");
     content.append("      next.visitString(field, s);\r\n");
-    content.append("      return;\r\n");
+    content.append("    } else {\r\n");
+    content.append("      stack.push(s);\r\n");
     content.append("    }\r\n");
-    content.append("    stack.push(s);\r\n");
     content.append("  }\r\n");
 
     content.append("  public void visitDouble(Field field, double d) {\r\n");
@@ -295,6 +316,9 @@ public class VertxGrpcGeneratorImpl extends Generator {
     first = true;
     for (Descriptors.Descriptor messageType : fileDesc.getMessageTypes()) {
       for (Descriptors.FieldDescriptor field : messageType.getFields()) {
+        if (field.getType() != Descriptors.FieldDescriptor.Type.MESSAGE) {
+          continue;
+        }
         if (first) {
           content.append("    ");
           first = false;
@@ -308,7 +332,7 @@ public class VertxGrpcGeneratorImpl extends Generator {
           content.append("      java.util.Map entries = (java.util.Map)stack.pop();\r\n");
           content.append("      entries.put(key, value);\r\n");
         } else {
-          if (field.getType() == Descriptors.FieldDescriptor.Type.MESSAGE && field.getMessageType().getFile() != fileDesc) {
+          if (field.getMessageType().getFile() != fileDesc) {
             content.append("      next.destroy();\r\n");
             content.append("      next = null;\r\n");
           }
@@ -463,6 +487,11 @@ public class VertxGrpcGeneratorImpl extends Generator {
             .map(mt -> buildFiles(javaPkgFqn, mt))
             .flatMap(Collection::stream)
             .collect(Collectors.toList());
+  }
+
+  private static String javaTypeOf(Descriptors.Descriptor mt) {
+    String pkg = extractJavaPkgFqn(mt.getFile());
+    return pkg + "." + mt.getName();
   }
 
   private static String javaTypeOf(Descriptors.FieldDescriptor field) {
