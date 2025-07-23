@@ -9,5 +9,5 @@ option java_outer_classname = "ImportingProto";
 
 // Message used for publishing to an address
 message Container {
-  io.vertx.tests.protobuf.SimpleMessage string_field = 1;
+  io.vertx.tests.protobuf.SimpleMessage simple_message = 1;
 }

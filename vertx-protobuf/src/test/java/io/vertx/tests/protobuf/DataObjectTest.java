@@ -11,6 +11,7 @@ import io.vertx.tests.protobuf.struct.Value;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class DataObjectTest {
 
@@ -44,18 +45,18 @@ public class DataObjectTest {
     Buffer buffer = Buffer.buffer(bytes);
     ProtobufReader.parse(SchemaLiterals.VALUE, reader, buffer);
     Value msg = (Value) reader.stack.pop();
-
-//    assertEquals("hello", msg.getStringValue());
+    assertNotNull(msg.getStructValue());
+//    assertEquals("bar", msg.getStructValue().getFields().get("foo"));
+//    assertEquals("daa", msg.getStructValue().getFields().get("juu"));
   }
 
   @Test
   public void testImports() {
-    byte[] bytes = ImportingProto.Container.newBuilder().setStringField(TestProto.SimpleMessage.newBuilder().setStringField("the-string").build()).build().toByteArray();
+    byte[] bytes = ImportingProto.Container.newBuilder().setSimpleMessage(TestProto.SimpleMessage.newBuilder().setStringField("the-string").build()).build().toByteArray();
     io.vertx.tests.importing.ProtoReader reader = new io.vertx.tests.importing.ProtoReader();
     Buffer buffer = Buffer.buffer(bytes);
     ProtobufReader.parse(io.vertx.tests.importing.SchemaLiterals.CONTAINER, reader, buffer);
     Container msg = (Container) reader.stack.pop();
-
-//    assertEquals("hello", msg.getStringValue());
+    assertEquals("the-string", msg.getSimpleMessage().getStringField());
   }
 }

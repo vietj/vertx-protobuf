@@ -125,68 +125,146 @@ public class VertxGrpcGeneratorImpl extends Generator {
     content.append("import java.util.ArrayDeque;\r\n");
     content.append("public class ProtoReader implements Visitor {\r\n");
 
-    content.append("  public final Deque<Object> stack = new ArrayDeque<>();\r\n");
+    content.append("  public final Deque<Object> stack;\r\n");
+    content.append("  private Visitor next;");
+    content.append("  public ProtoReader(Deque<Object> stack) {\r\n");
+    content.append("    this.stack = stack;\r\n");
+    content.append("  }\r\n");
+    content.append("  public ProtoReader() {\r\n");
+    content.append("    this(new ArrayDeque<>());\r\n");
+    content.append("  }\r\n");
 
     content.append("  public void init(MessageType type) {\r\n");
+    boolean first = true;
     for (Descriptors.Descriptor messageType : fileDesc.getMessageTypes()) {
-      content.append("    if (type == SchemaLiterals.").append(messageType.getName().toUpperCase()).append(") {\r\n");
+      if (first) {
+        content.append("    ");
+        first = false;
+      } else {
+        content.append(" else ");
+      }
+      content.append("if (type == SchemaLiterals.").append(messageType.getName().toUpperCase()).append(") {\r\n");
       content.append("      stack.push(new ").append(messageType.getName()).append("());\r\n");
-      content.append("    }\r\n");
+      content.append("    }");
     }
+    if (first) {
+      content.append("    ");
+    } else {
+      content.append(" else ");
+    }
+    content.append("if (next != null) {\r\n");
+    content.append("      next.init(type);\r\n");
+    content.append("    }\r\n");
     content.append("  }\r\n");
 
     content.append("  public void visitVarInt32(Field field, int v) {\r\n");
-    content.append("      stack.push(v);\r\n");
+    content.append("    if (next != null) {\r\n");
+    content.append("      next.visitVarInt32(field, v);\r\n");
+    content.append("      return;\r\n");
+    content.append("    }\r\n");
+    content.append("    stack.push(v);\r\n");
     content.append("  }\r\n");
 
     content.append("  public void visitString(Field field, String s) {\r\n");
-    content.append("      stack.push(s);\r\n");
+    content.append("    if (next != null) {\r\n");
+    content.append("      next.visitString(field, s);\r\n");
+    content.append("      return;\r\n");
+    content.append("    }\r\n");
+    content.append("    stack.push(s);\r\n");
     content.append("  }\r\n");
 
     content.append("  public void visitDouble(Field field, double d) {\r\n");
-    content.append("      stack.push(d);\r\n");
+    content.append("    if (next != null) {\r\n");
+    content.append("      next.visitDouble(field, d);\r\n");
+    content.append("      return;\r\n");
+    content.append("    }\r\n");
+    content.append("    stack.push(d);\r\n");
     content.append("  }\r\n");
 
     Map<String, Descriptors.Descriptor> all = transitiveClosure(fileDesc.getMessageTypes());
 
     content.append("  public void enter(Field field) {\r\n");
+    first = true;
     for (Descriptors.Descriptor messageType : all.values()) {
       for (Descriptors.FieldDescriptor field : messageType.getFields()) {
         if (field.getJavaType() != Descriptors.FieldDescriptor.JavaType.MESSAGE) {
           continue;
         }
-        content.append("    if (field == SchemaLiterals.").append(messageType.getName().toUpperCase()).append("_").append(field.getName().toUpperCase()).append(") {\r\n");
+        if (first) {
+          content.append("    ");
+          first = false;
+        } else {
+          content.append(" else ");
+        }
+        content.append("if (field == SchemaLiterals.").append(messageType.getName().toUpperCase()).append("_").append(field.getName().toUpperCase()).append(") {\r\n");
         if (field.isMapField()) {
           content.append("      ").append(field.getContainingType().getName()).append(" container = (").append(field.getContainingType().getName()).append(")stack.peek();").append("\r\n");
           content.append("      stack.push(container.").append(getterOf(field)).append("());\r\n");
         } else {
-          content.append("      ").append(javaTypeOf(field)).append(" v = new ").append(javaTypeOf(field)).append("();\r\n");
-          content.append("      stack.push(v);\r\n");
+          if (field.getType() != Descriptors.FieldDescriptor.Type.MESSAGE || field.getMessageType().getFile() == fileDesc) {
+            content.append("      ").append(javaTypeOf(field)).append(" v = new ").append(javaTypeOf(field)).append("();\r\n");
+            content.append("      stack.push(v);\r\n");
+          } else {
+            content.append("      Visitor v = new ").append(field.getMessageType().getFile().getOptions().getJavaPackage()).append(".ProtoReader(stack);\r\n");
+            content.append("      v.init((MessageType)field.type);\r\n");
+            content.append("      next = v;\r\n");
+          }
         }
-        content.append("    }\r\n");
+        content.append("    }");
       }
     }
+    if (first) {
+      content.append("    ");
+    } else {
+      content.append(" else ");
+    }
+    content.append("if (next != null) {\r\n");
+    content.append("      next.enter(field);\r\n");
+    content.append("    }\r\n");
     content.append("  }\r\n");
 
     content.append("  public void leave(Field field) {\r\n");
+    first = true;
     for (Descriptors.Descriptor messageType : fileDesc.getMessageTypes()) {
       for (Descriptors.FieldDescriptor field : messageType.getFields()) {
-        content.append("    if (field == SchemaLiterals.").append(messageType.getName().toUpperCase()).append("_").append(field.getName().toUpperCase()).append(") {\r\n");
-        if (field.isMapField()) {
-          content.append("     Object key = stack.pop();\r\n");
-          content.append("     Object value = stack.pop();\r\n");
-          content.append("     java.util.Map entries = (java.util.Map)stack.pop();\r\n");
-          content.append("     entries.put(key, value);\r\n");
+        if (first) {
+          content.append("    ");
+          first = false;
         } else {
+          content.append(" else ");
+        }
+        content.append("if (field == SchemaLiterals.").append(messageType.getName().toUpperCase()).append("_").append(field.getName().toUpperCase()).append(") {\r\n");
+        if (field.isMapField()) {
+          content.append("      Object key = stack.pop();\r\n");
+          content.append("      Object value = stack.pop();\r\n");
+          content.append("      java.util.Map entries = (java.util.Map)stack.pop();\r\n");
+          content.append("      entries.put(key, value);\r\n");
+        } else {
+          if (field.getType() == Descriptors.FieldDescriptor.Type.MESSAGE && field.getMessageType().getFile() != fileDesc) {
+            content.append("      next.destroy();\r\n");
+            content.append("      next = null;\r\n");
+          }
           content.append("      ").append(javaTypeOf(field)).append(" v = (").append(javaTypeOf(field)).append(")stack.pop();\r\n");
           content.append("      ((").append(messageType.getName()).append(")stack.peek()).").append(setterOf(field)).append("(v);\n");
         }
-        content.append("    }\r\n");
+        content.append("    }");
       }
     }
+    if (first) {
+      content.append("    ");
+    } else {
+      content.append(" else ");
+    }
+    content.append("if (next != null) {\r\n");
+    content.append("      next.leave(field);\r\n");
+    content.append("      return;\r\n");
+    content.append("    }\r\n");
     content.append("  }\r\n");
 
     content.append("  public void destroy() {\r\n");
+    content.append("    if (next != null) {\r\n");
+    content.append("      next.destroy();\r\n");
+    content.append("    }\r\n");
     content.append("  }\r\n");
 
     content.append("}\r\n");
