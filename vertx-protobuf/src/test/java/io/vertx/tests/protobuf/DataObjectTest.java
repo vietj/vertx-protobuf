@@ -46,8 +46,8 @@ public class DataObjectTest {
     ProtobufReader.parse(SchemaLiterals.VALUE, reader, buffer);
     Value msg = (Value) reader.stack.pop();
     assertNotNull(msg.getStructValue());
-//    assertEquals("bar", msg.getStructValue().getFields().get("foo"));
-//    assertEquals("daa", msg.getStructValue().getFields().get("juu"));
+    assertEquals("bar", msg.getStructValue().getFields().get("foo").getStringValue());
+    assertEquals("daa", msg.getStructValue().getFields().get("juu").getStringValue());
   }
 
   @Test

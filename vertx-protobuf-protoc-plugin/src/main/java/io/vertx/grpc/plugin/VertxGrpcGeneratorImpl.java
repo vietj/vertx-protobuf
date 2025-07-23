@@ -235,8 +235,8 @@ public class VertxGrpcGeneratorImpl extends Generator {
         }
         content.append("if (field == SchemaLiterals.").append(messageType.getName().toUpperCase()).append("_").append(field.getName().toUpperCase()).append(") {\r\n");
         if (field.isMapField()) {
-          content.append("      Object key = stack.pop();\r\n");
           content.append("      Object value = stack.pop();\r\n");
+          content.append("      Object key = stack.pop();\r\n");
           content.append("      java.util.Map entries = (java.util.Map)stack.pop();\r\n");
           content.append("      entries.put(key, value);\r\n");
         } else {
@@ -257,7 +257,6 @@ public class VertxGrpcGeneratorImpl extends Generator {
     }
     content.append("if (next != null) {\r\n");
     content.append("      next.leave(field);\r\n");
-    content.append("      return;\r\n");
     content.append("    }\r\n");
     content.append("  }\r\n");
 
@@ -553,7 +552,9 @@ public class VertxGrpcGeneratorImpl extends Generator {
         return "java.lang.Integer";
       case MESSAGE:
         if (field.isMapField()) {
-          return "java.util.Map";
+          String keyType = javaTypeOf(field.getMessageType().getFields().get(0));
+          String valueType = javaTypeOf(field.getMessageType().getFields().get(1));
+          return "java.util.Map<" + keyType + ", " + valueType + ">";
         } else {
           String pkg = extractJavaPkgFqn(field.getMessageType().getFile());
           return pkg + "." + field.getMessageType().getName();
