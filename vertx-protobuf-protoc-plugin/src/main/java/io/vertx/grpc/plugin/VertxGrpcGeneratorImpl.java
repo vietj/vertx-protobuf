@@ -90,6 +90,7 @@ public class VertxGrpcGeneratorImpl extends Generator {
       }
       String javaPkgFqn = extractJavaPkgFqn(fileDescProto.fileDescProto);
       files.addAll(generateDataObjectsFiles(javaPkgFqn, fileDesc));
+      files.addAll(generateEnumFiles(javaPkgFqn, fileDesc));
       files.add(generateSchemaFile(javaPkgFqn, fileDesc));
       files.add(generateProtoReaderFile(javaPkgFqn, fileDesc));
       files.add(generateProtoWriterFile(javaPkgFqn, fileDesc));
@@ -174,7 +175,7 @@ public class VertxGrpcGeneratorImpl extends Generator {
             content.append("      visitor.visitVarInt32(SchemaLiterals.").append(schemaLiteralOf(field)).append(", v ? 1 : 0);\r\n");
             break;
           case ENUM:
-            content.append("      visitor.visitVarInt32(SchemaLiterals.").append(schemaLiteralOf(field)).append(", v);\r\n");
+            content.append("      visitor.visitVarInt32(SchemaLiterals.").append(schemaLiteralOf(field)).append(", v.index());\r\n");
             break;
           default:
             content.append("      // Handle field name=").append(field.getName()).append(" type=").append(field.getType()).append("\r\n");
@@ -281,6 +282,8 @@ public class VertxGrpcGeneratorImpl extends Generator {
               case BOOL:
                 converter = s -> "value == 1";
                 break;
+              case ENUM:
+                converter = s -> javaTypeOf(fd) + ".valueOf(" + s + ")";
             }
             content.append("      ((").append(javaTypeOf(fd.getContainingType())).append(")stack.peek()).").append(setterOf(fd)).append("(").append(converter.apply("value")).append(");\t\n");
             content.append("    }");
@@ -502,7 +505,13 @@ public class VertxGrpcGeneratorImpl extends Generator {
     return fileDesc.getMessageTypes()
             .stream()
             .map(mt -> buildFiles(javaPkgFqn, mt))
-            .flatMap(Collection::stream)
+            .collect(Collectors.toList());
+  }
+
+  private List<PluginProtos.CodeGeneratorResponse.File> generateEnumFiles(String javaPkgFqn, Descriptors.FileDescriptor fileDesc) {
+    return fileDesc.getEnumTypes()
+            .stream()
+            .map(mt -> buildFiles(javaPkgFqn, mt))
             .collect(Collectors.toList());
   }
 
@@ -512,6 +521,7 @@ public class VertxGrpcGeneratorImpl extends Generator {
   }
 
   private static String javaTypeOf(Descriptors.FieldDescriptor field) {
+    String pkg;
     switch (field.getJavaType()) {
       case BOOLEAN:
         return "java.lang.Boolean";
@@ -520,14 +530,15 @@ public class VertxGrpcGeneratorImpl extends Generator {
       case DOUBLE:
         return "java.lang.Double";
       case ENUM:
-        return "java.lang.Integer";
+        pkg = extractJavaPkgFqn(field.getEnumType().getFile());
+        return pkg + "." + field.getEnumType().getName();
       case MESSAGE:
         if (field.isMapField()) {
           String keyType = javaTypeOf(field.getMessageType().getFields().get(0));
           String valueType = javaTypeOf(field.getMessageType().getFields().get(1));
           return "java.util.Map<" + keyType + ", " + valueType + ">";
         } else {
-          String pkg = extractJavaPkgFqn(field.getMessageType().getFile());
+          pkg = extractJavaPkgFqn(field.getMessageType().getFile());
           return pkg + "." + field.getMessageType().getName();
         }
       default:
@@ -535,8 +546,43 @@ public class VertxGrpcGeneratorImpl extends Generator {
     }
   }
 
-  private List<PluginProtos.CodeGeneratorResponse.File> buildFiles(String javaPkgFqn, Descriptors.Descriptor messageType) {
-    List<PluginProtos.CodeGeneratorResponse.File> files = new ArrayList<>();
+  private PluginProtos.CodeGeneratorResponse.File buildFiles(String javaPkgFqn, Descriptors.EnumDescriptor enumType) {
+    StringBuilder content = new StringBuilder();
+    content.append("package ").append(javaPkgFqn).append(";\r\n");
+    content.append("public enum ").append(enumType.getName()).append(" {\r\n");
+    boolean first = true;
+    for (Descriptors.EnumValueDescriptor enumValue : enumType.getValues()) {
+      if (first) {
+        first = false;
+      } else {
+        content.append(",\r\n");
+      }
+      content.append("  ").append(enumValue.getName()).append("(").append(enumValue.getIndex()).append(")");
+    }
+    if (!first) {
+      content.append(";\r\n");
+    }
+    content.append("  private static final java.util.Map<Integer, ").append(enumType.getName()).append("> BY_INDEX = new java.util.HashMap<>();\r\n");
+    content.append("  public static ").append(enumType.getName()).append(" valueOf(int index) {\r\n");
+    content.append("    return BY_INDEX.get(index);\r\n");
+    content.append("  }\r\n");
+    content.append("  static {\r\n");
+    for (Descriptors.EnumValueDescriptor enumValue : enumType.getValues()) {
+      content.append("    BY_INDEX.put(").append(enumValue.getIndex()).append(",").append(enumValue.getName()).append(");\r\n");
+    }
+    content.append("  }\r\n");
+    content.append("  private final int index;\r\n");
+    content.append("  ").append(enumType.getName()).append("(int index) {\r\n");
+    content.append("    this.index = index;\r\n");
+    content.append("  }\r\n");
+    content.append("  public int index() {\r\n");
+    content.append("    return index;\r\n");
+    content.append("  }\r\n");
+    content.append("}\r\n");
+    return buildFile(javaPkgFqn, enumType, content.toString());
+  }
+
+  private PluginProtos.CodeGeneratorResponse.File buildFiles(String javaPkgFqn, Descriptors.Descriptor messageType) {
     StringBuilder content = new StringBuilder();
     content.append("package ").append(javaPkgFqn).append(";\r\n");
     content.append("@io.vertx.codegen.annotations.DataObject\r\n");
@@ -578,11 +624,10 @@ public class VertxGrpcGeneratorImpl extends Generator {
       }
     });
     content.append("}\r\n");
-    files.add(buildFile(javaPkgFqn, messageType, content.toString()));
-    return files;
+    return buildFile(javaPkgFqn, messageType, content.toString());
   }
 
-  private PluginProtos.CodeGeneratorResponse.File buildFile(String javaPkgFqn, Descriptors.Descriptor messageType, String content) {
+  private PluginProtos.CodeGeneratorResponse.File buildFile(String javaPkgFqn, Descriptors.GenericDescriptor messageType, String content) {
     return PluginProtos.CodeGeneratorResponse.File
       .newBuilder()
       .setName(absoluteFileName(javaPkgFqn, messageType))
@@ -590,7 +635,7 @@ public class VertxGrpcGeneratorImpl extends Generator {
       .build();
   }
 
-  private static String absoluteFileName(String javaPkgFqn, Descriptors.Descriptor messageType) {
+  private static String absoluteFileName(String javaPkgFqn, Descriptors.GenericDescriptor messageType) {
     return absoluteFileName(javaPkgFqn, messageType.getName());
   }
 

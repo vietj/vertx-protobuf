@@ -5,6 +5,7 @@ import io.vertx.protobuf.ProtobufReader;
 import io.vertx.protobuf.ProtobufWriter;
 import io.vertx.tests.importing.Container;
 import io.vertx.tests.importing.ImportingProto;
+import io.vertx.tests.protobuf.struct.NullValue;
 import io.vertx.tests.protobuf.struct.Struct;
 import io.vertx.tests.protobuf.struct.StructProto;
 import io.vertx.tests.protobuf.struct.ProtoReader;
@@ -61,7 +62,7 @@ public class DataObjectTest {
     assertEquals("string", msg.getStructValue().getFields().get("foo").getStringValue());
     assertEquals(true, msg.getStructValue().getFields().get("bar").getBoolValue());
     assertEquals(5.1, msg.getStructValue().getFields().get("juu").getNumberValue(), 0.001);
-    assertEquals(0, (int)msg.getStructValue().getFields().get("daa").getNullValue());
+    assertEquals(NullValue.NULL_VALUE, msg.getStructValue().getFields().get("daa").getNullValue());
     assertNotNull(msg.getStructValue().getFields().get("bii").getStructValue());
   }
 
@@ -71,7 +72,7 @@ public class DataObjectTest {
     struct.getFields().put("foo", new Value().setStringValue("string"));
     struct.getFields().put("bar", new Value().setBoolValue(true));
     struct.getFields().put("juu", new Value().setNumberValue(5.1));
-    struct.getFields().put("daa", new Value().setNullValue(0));
+    struct.getFields().put("daa", new Value().setNullValue(NullValue.NULL_VALUE));
     Buffer result = ProtobufWriter.encode(visitor -> {
       io.vertx.tests.protobuf.struct.ProtoWriter.emit(struct, visitor);
     });
