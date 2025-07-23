@@ -102,6 +102,14 @@ public class VertxGrpcGeneratorImpl extends Generator {
     return "get" + Character.toUpperCase(field.getJsonName().charAt(0)) + field.getJsonName().substring(1);
   }
 
+  private static String schemaLiteralOf(Descriptors.FieldDescriptor field) {
+    return schemaLiteralOf(field.getContainingType()) + "_" + field.getName().toUpperCase();
+  }
+
+  private static String schemaLiteralOf(Descriptors.Descriptor field) {
+    return field.getName().toUpperCase();
+  }
+
   private static PluginProtos.CodeGeneratorResponse.File generateProtoWriterFile(
           String javaPkgFqn,
           Descriptors.FileDescriptor fileDesc) {
@@ -111,28 +119,58 @@ public class VertxGrpcGeneratorImpl extends Generator {
     content.append("import io.vertx.protobuf.Visitor;\r\n");
     content.append("import io.vertx.protobuf.schema.MessageType;\r\n");
     content.append("import io.vertx.protobuf.schema.Field;\r\n");
-    content.append("public class ProtoWriter implements Visitor {\r\n");
+    content.append("public class ProtoWriter {\r\n");
 
-    content.append("  public void init(MessageType type) {\r\n");
-    content.append("  }\r\n");
+    for (Descriptors.Descriptor d : fileDesc.getMessageTypes()) {
+      content.append("  public static void emit(").append(d.getName()).append(" value, Visitor visitor) {\r\n");
+      content.append("    visitor.init(SchemaLiterals.").append(schemaLiteralOf(d)).append(");\r\n");
+      content.append("    visit(value, visitor);\r\n");
+      content.append("    visitor.destroy();\r\n");
+      content.append("  }\r\n");
+    }
 
-    content.append("  public void visitVarInt32(Field field, int v) {\r\n");
-    content.append("  }\r\n");
-
-    content.append("  public void visitString(Field field, String s) {\r\n");
-    content.append("  }\r\n");
-
-    content.append("  public void visitDouble(Field field, double d) {\r\n");
-    content.append("  }\r\n");
-
-    content.append("  public void enter(Field field) {\r\n");
-    content.append("  }\r\n");
-
-    content.append("  public void leave(Field field) {\r\n");
-    content.append("  }\r\n");
-
-    content.append("  public void destroy() {\r\n");
-    content.append("  }\r\n");
+    for (Descriptors.Descriptor d : fileDesc.getMessageTypes()) {
+      content.append("  public static void visit(").append(d.getName()).append(" value, Visitor visitor) {\r\n");
+      for (Descriptors.FieldDescriptor field : d.getFields()) {
+        content.append("    if (value.").append(getterOf(field)).append("() != null) {\r\n");
+        content.append("      ").append(javaTypeOf(field)).append(" v = value.").append(getterOf(field)).append("();\r\n");
+        switch (field.getType()) {
+          case MESSAGE:
+            if (field.isMapField()) {
+              content.append("      for (java.util.Map.Entry<").append(javaTypeOf(field.getMessageType().getFields().get(0))).append(", ").append(javaTypeOf(field.getMessageType().getFields().get(1))).append("> entry : v.entrySet()) {\r\n");
+              content.append("        visitor.enter(SchemaLiterals.").append(schemaLiteralOf(field)).append(");\r\n");
+              switch (field.getMessageType().getFields().get(0).getType()) {
+                case STRING:
+                  content.append("        visitor.visitString(SchemaLiterals.").append(schemaLiteralOf(field.getMessageType().getFields().get(0))).append(", entry.getKey());\r\n");
+                  break;
+                default:
+                  throw new UnsupportedOperationException("Handle me");
+              }
+              if (field.getMessageType().getFields().get(1).getType() != Descriptors.FieldDescriptor.Type.MESSAGE) {
+                throw new UnsupportedOperationException("Handle me");
+              }
+              content.append("        visitor.enter(SchemaLiterals.").append(schemaLiteralOf(field.getMessageType().getFields().get(1))).append(");\r\n");
+              content.append("        visit(entry.getValue(), visitor);\r\n");
+              content.append("        visitor.leave(SchemaLiterals.").append(schemaLiteralOf(field.getMessageType().getFields().get(1))).append(");\r\n");
+              content.append("        visitor.leave(SchemaLiterals.").append(schemaLiteralOf(field)).append(");\r\n");
+              content.append("      }\r\n");
+            } else {
+              content.append("      visitor.enter(SchemaLiterals.").append(schemaLiteralOf(field)).append(");\r\n");
+              content.append("      ").append(field.getMessageType().getFile().getOptions().getJavaPackage()).append(".ProtoWriter.emit(v, visitor);\r\n");
+              content.append("      visitor.leave(SchemaLiterals.").append(schemaLiteralOf(field)).append(");\r\n");
+            }
+            break;
+          case STRING:
+            content.append("      visitor.visitString(SchemaLiterals.").append(schemaLiteralOf(field)).append(", v);\r\n");
+            break;
+          default:
+            content.append("      // Handle field name=").append(field.getName()).append(" type=").append(field.getType()).append("\r\n");
+            break;
+        }
+        content.append("    }\r\n");
+      }
+      content.append("  }\r\n");
+    }
 
     content.append("}\r\n");
     return PluginProtos.CodeGeneratorResponse.File
@@ -173,7 +211,7 @@ public class VertxGrpcGeneratorImpl extends Generator {
       } else {
         content.append(" else ");
       }
-      content.append("if (type == SchemaLiterals.").append(messageType.getName().toUpperCase()).append(") {\r\n");
+      content.append("if (type == SchemaLiterals.").append(schemaLiteralOf(messageType)).append(") {\r\n");
       content.append("      stack.push(new ").append(messageType.getName()).append("());\r\n");
       content.append("    }");
     }
@@ -226,7 +264,7 @@ public class VertxGrpcGeneratorImpl extends Generator {
         } else {
           content.append(" else ");
         }
-        content.append("if (field == SchemaLiterals.").append(messageType.getName().toUpperCase()).append("_").append(field.getName().toUpperCase()).append(") {\r\n");
+        content.append("if (field == SchemaLiterals.").append(schemaLiteralOf(field)).append(") {\r\n");
         if (field.isMapField()) {
           content.append("      ").append(field.getContainingType().getName()).append(" container = (").append(field.getContainingType().getName()).append(")stack.peek();").append("\r\n");
           content.append("      stack.push(container.").append(getterOf(field)).append("());\r\n");
@@ -263,7 +301,7 @@ public class VertxGrpcGeneratorImpl extends Generator {
         } else {
           content.append(" else ");
         }
-        content.append("if (field == SchemaLiterals.").append(messageType.getName().toUpperCase()).append("_").append(field.getName().toUpperCase()).append(") {\r\n");
+        content.append("if (field == SchemaLiterals.").append(schemaLiteralOf(field)).append(") {\r\n");
         if (field.isMapField()) {
           content.append("      Object value = stack.pop();\r\n");
           content.append("      Object key = stack.pop();\r\n");
@@ -346,20 +384,20 @@ public class VertxGrpcGeneratorImpl extends Generator {
 
     all.values().forEach(messageType -> {
 
-      content.append("  public static final MessageType ").append(messageType.getName().toUpperCase()).append(" = SCHEMA.of(\"").append(messageType.getName()).append("\");\r\n");
+      content.append("  public static final MessageType ").append(schemaLiteralOf(messageType)).append(" = SCHEMA.of(\"").append(messageType.getName()).append("\");\r\n");
       messageType.getFields().forEach(field -> {
         switch (field.getJavaType()) {
           case DOUBLE:
-            content.append("  public static final Field ").append(messageType.getName().toUpperCase()).append("_").append(field.getName().toUpperCase()).append(" = ").append(messageType.getName().toUpperCase()).append(".addField(").append(field.getNumber()).append(", ScalarType.DOUBLE);\r\n");
+            content.append("  public static final Field ").append(schemaLiteralOf(field)).append(" = ").append(schemaLiteralOf(messageType)).append(".addField(").append(field.getNumber()).append(", ScalarType.DOUBLE);\r\n");
             break;
           case BOOLEAN:
-            content.append("  public static final Field ").append(messageType.getName().toUpperCase()).append("_").append(field.getName().toUpperCase()).append(" = ").append(messageType.getName().toUpperCase()).append(".addField(").append(field.getNumber()).append(", ScalarType.BOOL);\r\n");
+            content.append("  public static final Field ").append(schemaLiteralOf(field)).append(" = ").append(schemaLiteralOf(messageType)).append(".addField(").append(field.getNumber()).append(", ScalarType.BOOL);\r\n");
             break;
           case STRING:
-            content.append("  public static final Field ").append(messageType.getName().toUpperCase()).append("_").append(field.getName().toUpperCase()).append(" = ").append(messageType.getName().toUpperCase()).append(".addField(").append(field.getNumber()).append(", ScalarType.STRING);\r\n");
+            content.append("  public static final Field ").append(schemaLiteralOf(field)).append(" = ").append(schemaLiteralOf(messageType)).append(".addField(").append(field.getNumber()).append(", ScalarType.STRING);\r\n");
             break;
           case ENUM:
-            content.append("  public static final Field ").append(messageType.getName().toUpperCase()).append("_").append(field.getName().toUpperCase()).append(" = ").append(messageType.getName().toUpperCase()).append(".addField(").append(field.getNumber()).append(", new EnumType());\r\n");
+            content.append("  public static final Field ").append(schemaLiteralOf(field)).append(" = ").append(schemaLiteralOf(messageType)).append(".addField(").append(field.getNumber()).append(", new EnumType());\r\n");
             break;
           case MESSAGE:
             String prefix;
@@ -368,7 +406,7 @@ public class VertxGrpcGeneratorImpl extends Generator {
             } else {
               prefix = "";
             }
-            content.append("  public static final Field ").append(messageType.getName().toUpperCase()).append("_").append(field.getName().toUpperCase()).append(" = ").append(messageType.getName().toUpperCase()).append(".addField(").append(field.getNumber()).append(", ").append(prefix).append("SCHEMA.of(\"").append(field.getMessageType().getName()).append("\"));\r\n");
+            content.append("  public static final Field ").append(schemaLiteralOf(field)).append(" = ").append(schemaLiteralOf(messageType)).append(".addField(").append(field.getNumber()).append(", ").append(prefix).append("SCHEMA.of(\"").append(field.getMessageType().getName()).append("\"));\r\n");
             break;
         }
       });
