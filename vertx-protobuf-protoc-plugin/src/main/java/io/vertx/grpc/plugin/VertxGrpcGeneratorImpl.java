@@ -88,6 +88,7 @@ public class VertxGrpcGeneratorImpl extends Generator {
       files.addAll(generateDataObjectsFiles(javaPkgFqn, fileDesc));
       files.add(generateSchemaFile(javaPkgFqn, fileDesc));
       files.add(generateProtoReaderFile(javaPkgFqn, fileDesc));
+      files.add(generateProtoWriterFile(javaPkgFqn, fileDesc));
     }
 
     return files;
@@ -99,6 +100,46 @@ public class VertxGrpcGeneratorImpl extends Generator {
 
   private static String getterOf(Descriptors.FieldDescriptor field) {
     return "get" + Character.toUpperCase(field.getJsonName().charAt(0)) + field.getJsonName().substring(1);
+  }
+
+  private static PluginProtos.CodeGeneratorResponse.File generateProtoWriterFile(
+          String javaPkgFqn,
+          Descriptors.FileDescriptor fileDesc) {
+    StringBuilder content = new StringBuilder();
+
+    content.append("package ").append(javaPkgFqn).append(";\r\n");
+    content.append("import io.vertx.protobuf.Visitor;\r\n");
+    content.append("import io.vertx.protobuf.schema.MessageType;\r\n");
+    content.append("import io.vertx.protobuf.schema.Field;\r\n");
+    content.append("public class ProtoWriter implements Visitor {\r\n");
+
+    content.append("  public void init(MessageType type) {\r\n");
+    content.append("  }\r\n");
+
+    content.append("  public void visitVarInt32(Field field, int v) {\r\n");
+    content.append("  }\r\n");
+
+    content.append("  public void visitString(Field field, String s) {\r\n");
+    content.append("  }\r\n");
+
+    content.append("  public void visitDouble(Field field, double d) {\r\n");
+    content.append("  }\r\n");
+
+    content.append("  public void enter(Field field) {\r\n");
+    content.append("  }\r\n");
+
+    content.append("  public void leave(Field field) {\r\n");
+    content.append("  }\r\n");
+
+    content.append("  public void destroy() {\r\n");
+    content.append("  }\r\n");
+
+    content.append("}\r\n");
+    return PluginProtos.CodeGeneratorResponse.File
+            .newBuilder()
+            .setName(absoluteFileName(javaPkgFqn, "ProtoWriter"))
+            .setContent(content.toString())
+            .build();
   }
 
   private static PluginProtos.CodeGeneratorResponse.File generateProtoReaderFile(
