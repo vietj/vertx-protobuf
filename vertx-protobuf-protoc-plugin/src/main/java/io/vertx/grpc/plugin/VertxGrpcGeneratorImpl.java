@@ -97,7 +97,7 @@ public class VertxGrpcGeneratorImpl extends Generator {
       }
       String javaPkgFqn = extractJavaPkgFqn(fileDescProto.fileDescProto);
       files.addAll(generateDataObjectsFiles(javaPkgFqn, fileDesc));
-      files.add(generateSchemaFile(javaPkgFqn, fileDesc.getMessageTypes()));
+      files.add(generateSchemaFile(javaPkgFqn, fileDesc));
       files.add(generateProtoReaderFile(javaPkgFqn, fileDesc));
     }
 
@@ -221,7 +221,7 @@ public class VertxGrpcGeneratorImpl extends Generator {
 
   private static PluginProtos.CodeGeneratorResponse.File generateSchemaFile(
           String javaPkgFqn,
-          List<Descriptors.Descriptor> messageTypeList) {
+          Descriptors.FileDescriptor file) {
 
     StringBuilder content = new StringBuilder();
 
@@ -235,7 +235,7 @@ public class VertxGrpcGeneratorImpl extends Generator {
 
     content.append("  public static final Schema SCHEMA = new Schema();\r\n");
 
-    Map<String, Descriptors.Descriptor> all = transitiveClosure(messageTypeList);
+    Map<String, Descriptors.Descriptor> all = transitiveClosure(file.getMessageTypes());
 
     all.values().forEach(messageType -> {
 
@@ -255,7 +255,13 @@ public class VertxGrpcGeneratorImpl extends Generator {
             content.append("  public static final Field ").append(messageType.getName().toUpperCase()).append("_").append(field.getName().toUpperCase()).append(" = ").append(messageType.getName().toUpperCase()).append(".addField(").append(field.getNumber()).append(", new EnumType());\r\n");
             break;
           case MESSAGE:
-            content.append("  public static final Field ").append(messageType.getName().toUpperCase()).append("_").append(field.getName().toUpperCase()).append(" = ").append(messageType.getName().toUpperCase()).append(".addField(").append(field.getNumber()).append(", SCHEMA.of(\"").append(field.getMessageType().getName()).append("\"));\r\n");
+            String prefix;
+            if (field.getMessageType().getFile() != file) {
+              prefix = field.getMessageType().getFile().getOptions().getJavaPackage() + ".SchemaLiterals.";
+            } else {
+              prefix = "";
+            }
+            content.append("  public static final Field ").append(messageType.getName().toUpperCase()).append("_").append(field.getName().toUpperCase()).append(" = ").append(messageType.getName().toUpperCase()).append(".addField(").append(field.getNumber()).append(", ").append(prefix).append("SCHEMA.of(\"").append(field.getMessageType().getName()).append("\"));\r\n");
             break;
         }
       });
