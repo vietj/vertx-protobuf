@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -115,6 +116,29 @@ public class VertxGrpcGeneratorImpl extends Generator {
     return field.getName().toUpperCase();
   }
 
+  static class Bilto {
+    final String visitMethod;
+    final Function<String, String> fn;
+    Bilto(String visitMethod, Function<String, String> fn) {
+      this.visitMethod = visitMethod;
+      this.fn = fn;
+    }
+    Bilto(String visitMethod) {
+      this.visitMethod = visitMethod;
+      this.fn = Function.identity();
+    }
+  }
+
+  private static final Map<Descriptors.FieldDescriptor.Type, Bilto> TYPE_TO = new HashMap<>();
+
+  static {
+    TYPE_TO.put(Descriptors.FieldDescriptor.Type.BYTES, new Bilto("visitBytes", s -> s + ".getBytes()"));
+    TYPE_TO.put(Descriptors.FieldDescriptor.Type.DOUBLE, new Bilto("visitDouble"));
+    TYPE_TO.put(Descriptors.FieldDescriptor.Type.STRING, new Bilto("visitString"));
+    TYPE_TO.put(Descriptors.FieldDescriptor.Type.BOOL, new Bilto("visitVarInt32", s -> s + "? 1 : 0"));
+    TYPE_TO.put(Descriptors.FieldDescriptor.Type.ENUM, new Bilto("visitVarInt32", s -> s + ".index()"));
+  }
+
   private static PluginProtos.CodeGeneratorResponse.File generateProtoWriterFile(
           String javaPkgFqn,
           Descriptors.FileDescriptor fileDesc) {
@@ -145,18 +169,27 @@ public class VertxGrpcGeneratorImpl extends Generator {
               content.append("      for (java.util.Map.Entry<").append(javaTypeOf(field.getMessageType().getFields().get(0))).append(", ").append(javaTypeOf(field.getMessageType().getFields().get(1))).append("> entry : v.entrySet()) {\r\n");
               content.append("        visitor.enter(SchemaLiterals.").append(schemaLiteralOf(field)).append(");\r\n");
               switch (field.getMessageType().getFields().get(0).getType()) {
-                case STRING:
-                  content.append("        visitor.visitString(SchemaLiterals.").append(schemaLiteralOf(field.getMessageType().getFields().get(0))).append(", entry.getKey());\r\n");
+                default:
+                  Bilto res = TYPE_TO.get(field.getMessageType().getFields().get(0).getType());
+                  if (res == null) {
+                    throw new UnsupportedOperationException("Handle me");
+                  }
+                  content.append("        visitor.").append(res.visitMethod).append("(SchemaLiterals.").append(schemaLiteralOf(field.getMessageType().getFields().get(0))).append(", ").append(res.fn.apply("entry.getKey()")).append(");\r\n");
+              }
+              switch (field.getMessageType().getFields().get(1).getType()) {
+                case MESSAGE:
+                  content.append("        visitor.enter(SchemaLiterals.").append(schemaLiteralOf(field.getMessageType().getFields().get(1))).append(");\r\n");
+                  content.append("        visit(entry.getValue(), visitor);\r\n");
+                  content.append("        visitor.leave(SchemaLiterals.").append(schemaLiteralOf(field.getMessageType().getFields().get(1))).append(");\r\n");
                   break;
                 default:
-                  throw new UnsupportedOperationException("Handle me");
+                  Bilto res = TYPE_TO.get(field.getMessageType().getFields().get(0).getType());
+                  if (res == null) {
+                    throw new UnsupportedOperationException();
+                  } else {
+                    content.append("        visitor.").append(res.visitMethod).append("(SchemaLiterals.").append(schemaLiteralOf(field.getMessageType().getFields().get(1))).append(", ").append(res.fn.apply("entry.getValue()")).append(");\r\n");
+                  }
               }
-              if (field.getMessageType().getFields().get(1).getType() != Descriptors.FieldDescriptor.Type.MESSAGE) {
-                throw new UnsupportedOperationException("Handle me");
-              }
-              content.append("        visitor.enter(SchemaLiterals.").append(schemaLiteralOf(field.getMessageType().getFields().get(1))).append(");\r\n");
-              content.append("        visit(entry.getValue(), visitor);\r\n");
-              content.append("        visitor.leave(SchemaLiterals.").append(schemaLiteralOf(field.getMessageType().getFields().get(1))).append(");\r\n");
               content.append("        visitor.leave(SchemaLiterals.").append(schemaLiteralOf(field)).append(");\r\n");
               content.append("      }\r\n");
             } else {
@@ -165,23 +198,13 @@ public class VertxGrpcGeneratorImpl extends Generator {
               content.append("      visitor.leave(SchemaLiterals.").append(schemaLiteralOf(field)).append(");\r\n");
             }
             break;
-          case BYTES:
-            content.append("      visitor.visitBytes(SchemaLiterals.").append(schemaLiteralOf(field)).append(", v.getBytes());\r\n");
-            break;
-          case STRING:
-            content.append("      visitor.visitString(SchemaLiterals.").append(schemaLiteralOf(field)).append(", v);\r\n");
-            break;
-          case DOUBLE:
-            content.append("      visitor.visitDouble(SchemaLiterals.").append(schemaLiteralOf(field)).append(", v);\r\n");
-            break;
-          case BOOL:
-            content.append("      visitor.visitVarInt32(SchemaLiterals.").append(schemaLiteralOf(field)).append(", v ? 1 : 0);\r\n");
-            break;
-          case ENUM:
-            content.append("      visitor.visitVarInt32(SchemaLiterals.").append(schemaLiteralOf(field)).append(", v.index());\r\n");
-            break;
           default:
-            content.append("      // Handle field name=").append(field.getName()).append(" type=").append(field.getType()).append("\r\n");
+            Bilto res = TYPE_TO.get(field.getType());
+            if (res != null) {
+              content.append("      visitor.").append(res.visitMethod).append("(SchemaLiterals.").append(schemaLiteralOf(field)).append(", ").append(res.fn.apply("v")).append(");\r\n");
+            } else {
+              content.append("      // Handle field name=").append(field.getName()).append(" type=").append(field.getType()).append("\r\n");
+            }
             break;
         }
         content.append("    }\r\n");

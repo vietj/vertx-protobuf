@@ -14,6 +14,8 @@ import io.vertx.tests.protobuf.struct.SchemaLiterals;
 import io.vertx.tests.protobuf.struct.Value;
 import org.junit.Test;
 
+import java.util.Map;
+
 import static org.junit.Assert.*;
 
 public class DataObjectTest {
@@ -23,25 +25,29 @@ public class DataObjectTest {
     byte[] bytes = TestProto.SimpleMessage.newBuilder()
       .setStringField("hello")
       .setBytesField(ByteString.copyFromUtf8("hello"))
+      .putMapField("the-key", "the-value")
       .build().toByteArray();
     io.vertx.tests.protobuf.ProtoReader reader = new io.vertx.tests.protobuf.ProtoReader();
     ProtobufReader.parse(io.vertx.tests.protobuf.SchemaLiterals.SIMPLEMESSAGE, reader, Buffer.buffer(bytes));
     SimpleMessage msg = (SimpleMessage) reader.stack.pop();
     assertEquals("hello", msg.getStringField());
     assertEquals("hello", msg.getBytesField().toString());
+    assertEquals(Map.of("the-key", "the-value"), msg.getMapField());
   }
 
   @Test
   public void testWriteSimple() throws Exception {
     SimpleMessage value = new SimpleMessage()
       .setStringField("the-string")
-      .setBytesField(Buffer.buffer("the-bytes"));
+      .setBytesField(Buffer.buffer("the-bytes"))
+      .setMapField(Map.of("the-key", "the-value"));
     Buffer result = ProtobufWriter.encode(visitor -> {
       io.vertx.tests.protobuf.ProtoWriter.emit(value, visitor);
     });
     TestProto.SimpleMessage res = TestProto.SimpleMessage.parseFrom(result.getBytes());
     assertEquals("the-string", res.getStringField());
     assertEquals("the-bytes", res.getBytesField().toStringUtf8());
+    assertEquals(Map.of("the-key", "the-value"), res.getMapFieldMap());
   }
 
   @Test
