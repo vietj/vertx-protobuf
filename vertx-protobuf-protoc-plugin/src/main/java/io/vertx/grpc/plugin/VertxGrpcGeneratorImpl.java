@@ -160,7 +160,7 @@ public class VertxGrpcGeneratorImpl extends Generator {
               content.append("      }\r\n");
             } else {
               content.append("      visitor.enter(SchemaLiterals.").append(schemaLiteralOf(field)).append(");\r\n");
-              content.append("      ").append(field.getMessageType().getFile().getOptions().getJavaPackage()).append(".ProtoWriter.emit(v, visitor);\r\n");
+              content.append("      ").append(field.getMessageType().getFile().getOptions().getJavaPackage()).append(".ProtoWriter.visit(v, visitor);\r\n");
               content.append("      visitor.leave(SchemaLiterals.").append(schemaLiteralOf(field)).append(");\r\n");
             }
             break;

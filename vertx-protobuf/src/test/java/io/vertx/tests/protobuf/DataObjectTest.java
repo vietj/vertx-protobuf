@@ -83,12 +83,23 @@ public class DataObjectTest {
   }
 
   @Test
-  public void testImports() {
+  public void testReadImports() {
     byte[] bytes = ImportingProto.Container.newBuilder().setSimpleMessage(TestProto.SimpleMessage.newBuilder().setStringField("the-string").build()).build().toByteArray();
     io.vertx.tests.importing.ProtoReader reader = new io.vertx.tests.importing.ProtoReader();
     Buffer buffer = Buffer.buffer(bytes);
     ProtobufReader.parse(io.vertx.tests.importing.SchemaLiterals.CONTAINER, reader, buffer);
     Container msg = (Container) reader.stack.pop();
     assertEquals("the-string", msg.getSimpleMessage().getStringField());
+  }
+
+  @Test
+  public void testWriteImports() throws Exception {
+    Container container = new Container();
+    container.setSimpleMessage(new SimpleMessage().setStringField("the-string"));
+    Buffer result = ProtobufWriter.encode(visitor -> {
+      io.vertx.tests.importing.ProtoWriter.emit(container, visitor);
+    });
+    ImportingProto.Container res = ImportingProto.Container.parseFrom(result.getBytes());
+    assertEquals("the-string", res.getSimpleMessage().getStringField());
   }
 }
