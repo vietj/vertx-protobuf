@@ -25,14 +25,18 @@ public class DataObjectTest {
     byte[] bytes = TestProto.SimpleMessage.newBuilder()
       .setStringField("hello")
       .setBytesField(ByteString.copyFromUtf8("hello"))
-      .putMapField("the-key", "the-value")
+      .setInt32Field(5)
+      .putMapStringString("the-key", "the-value")
+      .putMapStringInt32("the-key", 4)
       .build().toByteArray();
     io.vertx.tests.protobuf.ProtoReader reader = new io.vertx.tests.protobuf.ProtoReader();
     ProtobufReader.parse(io.vertx.tests.protobuf.SchemaLiterals.SIMPLEMESSAGE, reader, Buffer.buffer(bytes));
     SimpleMessage msg = (SimpleMessage) reader.stack.pop();
     assertEquals("hello", msg.getStringField());
     assertEquals("hello", msg.getBytesField().toString());
-    assertEquals(Map.of("the-key", "the-value"), msg.getMapField());
+    assertEquals(5, (int)msg.getInt32Field());
+    assertEquals(Map.of("the-key", "the-value"), msg.getMapStringString());
+    assertEquals(Map.of("the-key", 4), msg.getMapStringInt32());
   }
 
   @Test
@@ -40,14 +44,18 @@ public class DataObjectTest {
     SimpleMessage value = new SimpleMessage()
       .setStringField("the-string")
       .setBytesField(Buffer.buffer("the-bytes"))
-      .setMapField(Map.of("the-key", "the-value"));
+      .setInt32Field(5)
+      .setMapStringString(Map.of("the-key", "the-value"))
+      .setMapStringInt32(Map.of("the-key", 4));
     Buffer result = ProtobufWriter.encode(visitor -> {
       io.vertx.tests.protobuf.ProtoWriter.emit(value, visitor);
     });
     TestProto.SimpleMessage res = TestProto.SimpleMessage.parseFrom(result.getBytes());
     assertEquals("the-string", res.getStringField());
     assertEquals("the-bytes", res.getBytesField().toStringUtf8());
-    assertEquals(Map.of("the-key", "the-value"), res.getMapFieldMap());
+    assertEquals(5, res.getInt32Field());
+    assertEquals(Map.of("the-key", "the-value"), res.getMapStringStringMap());
+    assertEquals(Map.of("the-key", 4), res.getMapStringInt32Map());
   }
 
   @Test

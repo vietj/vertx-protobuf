@@ -10,5 +10,7 @@ option java_outer_classname = "TestProto";
 message SimpleMessage {
   string string_field = 1;
   bytes bytes_field = 2;
-  map<string, string> map_field = 3;
+  int32 int32_field = 3;
+  map<string, string> map_string_string = 4;
+  map<string, int32> map_string_int32 = 5;
 }

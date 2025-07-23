@@ -25,10 +25,9 @@ public class ProtobufReader {
     assertTrue(decoder.readVarInt());
     int value = decoder.int32Value();
     switch (field.type.id()) {
-      case ENUM:
-        visitor.visitVarInt32(field, value);
-        break;
       case BOOL:
+      case ENUM:
+      case INT32:
         visitor.visitVarInt32(field, value);
         break;
       default:

@@ -137,6 +137,7 @@ public class VertxGrpcGeneratorImpl extends Generator {
     TYPE_TO.put(Descriptors.FieldDescriptor.Type.STRING, new Bilto("visitString"));
     TYPE_TO.put(Descriptors.FieldDescriptor.Type.BOOL, new Bilto("visitVarInt32", s -> s + "? 1 : 0"));
     TYPE_TO.put(Descriptors.FieldDescriptor.Type.ENUM, new Bilto("visitVarInt32", s -> s + ".index()"));
+    TYPE_TO.put(Descriptors.FieldDescriptor.Type.INT32, new Bilto("visitVarInt32"));
   }
 
   private static PluginProtos.CodeGeneratorResponse.File generateProtoWriterFile(
@@ -183,7 +184,7 @@ public class VertxGrpcGeneratorImpl extends Generator {
                   content.append("        visitor.leave(SchemaLiterals.").append(schemaLiteralOf(field.getMessageType().getFields().get(1))).append(");\r\n");
                   break;
                 default:
-                  Bilto res = TYPE_TO.get(field.getMessageType().getFields().get(0).getType());
+                  Bilto res = TYPE_TO.get(field.getMessageType().getFields().get(1).getType());
                   if (res == null) {
                     throw new UnsupportedOperationException();
                   } else {
@@ -288,7 +289,7 @@ public class VertxGrpcGeneratorImpl extends Generator {
       new Foo("visitBytes(Field field, byte[] value)", "visitBytes(field, value)", Descriptors.FieldDescriptor.Type.BYTES),
       new Foo("visitString(Field field, String value)", "visitString(field, value)", Descriptors.FieldDescriptor.Type.STRING),
       new Foo("visitDouble(Field field, double value)", "visitDouble(field, value)", Descriptors.FieldDescriptor.Type.DOUBLE),
-      new Foo("visitVarInt32(Field field, int value)", "visitVarInt32(field, value)", Descriptors.FieldDescriptor.Type.BOOL, Descriptors.FieldDescriptor.Type.ENUM)
+      new Foo("visitVarInt32(Field field, int value)", "visitVarInt32(field, value)", Descriptors.FieldDescriptor.Type.BOOL, Descriptors.FieldDescriptor.Type.ENUM, Descriptors.FieldDescriptor.Type.INT32)
     };
 
     for (Foo foo : foos) {
@@ -478,11 +479,11 @@ public class VertxGrpcGeneratorImpl extends Generator {
 
       content.append("  public static final MessageType ").append(schemaLiteralOf(messageType)).append(" = SCHEMA.of(\"").append(messageType.getName()).append("\");\r\n");
       messageType.getFields().forEach(field -> {
-        switch (field.getJavaType()) {
+        switch (field.getType()) {
           case DOUBLE:
             content.append("  public static final Field ").append(schemaLiteralOf(field)).append(" = ").append(schemaLiteralOf(messageType)).append(".addField(").append(field.getNumber()).append(", ScalarType.DOUBLE);\r\n");
             break;
-          case BOOLEAN:
+          case BOOL:
             content.append("  public static final Field ").append(schemaLiteralOf(field)).append(" = ").append(schemaLiteralOf(messageType)).append(".addField(").append(field.getNumber()).append(", ScalarType.BOOL);\r\n");
             break;
           case STRING:
@@ -491,8 +492,11 @@ public class VertxGrpcGeneratorImpl extends Generator {
           case ENUM:
             content.append("  public static final Field ").append(schemaLiteralOf(field)).append(" = ").append(schemaLiteralOf(messageType)).append(".addField(").append(field.getNumber()).append(", new EnumType());\r\n");
             break;
-          case BYTE_STRING:
+          case BYTES:
             content.append("  public static final Field ").append(schemaLiteralOf(field)).append(" = ").append(schemaLiteralOf(messageType)).append(".addField(").append(field.getNumber()).append(", ScalarType.BYTES);\r\n");
+            break;
+          case INT32:
+            content.append("  public static final Field ").append(schemaLiteralOf(field)).append(" = ").append(schemaLiteralOf(messageType)).append(".addField(").append(field.getNumber()).append(", ScalarType.INT32);\r\n");
             break;
           case MESSAGE:
             String prefix;
@@ -556,15 +560,17 @@ public class VertxGrpcGeneratorImpl extends Generator {
 
   private static String javaTypeOf(Descriptors.FieldDescriptor field) {
     String pkg;
-    switch (field.getJavaType()) {
-      case BYTE_STRING:
+    switch (field.getType()) {
+      case BYTES:
         return "io.vertx.core.buffer.Buffer";
-      case BOOLEAN:
+      case BOOL:
         return "java.lang.Boolean";
       case STRING:
         return "java.lang.String";
       case DOUBLE:
         return "java.lang.Double";
+      case INT32:
+        return "java.lang.Integer";
       case ENUM:
         pkg = extractJavaPkgFqn(field.getEnumType().getFile());
         return pkg + "." + field.getEnumType().getName();
