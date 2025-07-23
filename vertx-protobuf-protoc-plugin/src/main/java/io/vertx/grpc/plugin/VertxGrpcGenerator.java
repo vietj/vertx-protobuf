@@ -18,7 +18,7 @@ import java.util.concurrent.Callable;
 public class VertxGrpcGenerator implements Callable<Integer> {
   @Override
   public Integer call() {
-    VertxGrpcGeneratorImpl generator = new VertxGrpcGeneratorImpl(this);
+    VertxGrpcGeneratorImpl generator = new VertxGrpcGeneratorImpl();
     ProtocPlugin.generate(List.of(generator), List.of(AnnotationsProto.http));
     return 0;
   }

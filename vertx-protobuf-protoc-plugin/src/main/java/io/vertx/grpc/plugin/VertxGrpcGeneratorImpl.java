@@ -13,32 +13,21 @@ package io.vertx.grpc.plugin;
 import com.google.common.base.Strings;
 import com.google.protobuf.DescriptorProtos;
 import com.google.protobuf.Descriptors;
-import com.google.protobuf.ProtocolStringList;
 import com.google.protobuf.compiler.PluginProtos;
 import com.salesforce.jprotoc.Generator;
 import com.salesforce.jprotoc.GeneratorException;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 public class VertxGrpcGeneratorImpl extends Generator {
 
-  private final VertxGrpcGenerator options;
-
-  /**
-   * Creates a new instance with the specified options.
-   *
-   * @param options the generator options
-   */
-  public VertxGrpcGeneratorImpl(VertxGrpcGenerator options) {
-    this.options = options != null ? options : new VertxGrpcGenerator();
+  public VertxGrpcGeneratorImpl() {
   }
 
   @Override
@@ -371,52 +360,6 @@ public class VertxGrpcGeneratorImpl extends Generator {
     }
   }
 
-/*
-  private static class MessageType {
-    final String javaPkgFqn;
-    final String name;
-    final List<FieldDesc> fields = new ArrayList<>();
-    MessageType(String javaPkgFqn,
-                DescriptorProtos.DescriptorProto desc) {
-
-      // Find nested map entries ...
-      Set<String> mapEntries = new HashSet<>();
-      for (DescriptorProtos.DescriptorProto nested : desc.getNestedTypeList()) {
-        if (nested.getOptions().getMapEntry()) {
-          mapEntries.add(nested.getName());
-        } else {
-          throw new UnsupportedOperationException();
-        }
-      }
-
-      desc.getFieldList().forEach(fieldDesc -> {
-        // Special handling
-        if (fieldDesc.getType() == DescriptorProtos.FieldDescriptorProto.Type.TYPE_MESSAGE &&
-            mapEntries.contains(blah(fieldDesc.getTypeName()))) {
-          fields.add(new FieldDesc(mixedLower(fieldDesc.getName()), "java.util.Map"));
-        } else {
-          String javaTypeFqn = getJavaTypeFqn(fieldDesc);
-          if (javaTypeFqn != null) {
-            fields.add(new FieldDesc(mixedLower(fieldDesc.getName()), javaTypeFqn));
-          }
-        }
-      });
-
-      this.javaPkgFqn = javaPkgFqn;
-      this.name = desc.getName();
-    }
-
-    static class FieldDesc {
-      final String name;
-      final String javaType;
-      FieldDesc(String name, String javaType) {
-        this.name = name;
-        this.javaType = javaType;
-      }
-    }
-  }
-*/
-
   private static String extractJavaPkgFqn(Descriptors.FileDescriptor proto) {
     DescriptorProtos.FileOptions options = proto.getOptions();
     String javaPackage = options.getJavaPackage();
@@ -433,103 +376,6 @@ public class VertxGrpcGeneratorImpl extends Generator {
       return javaPackage;
     }
     return Strings.nullToEmpty(proto.getPackage());
-  }
-
-  // java keywords from: https://docs.oracle.com/javase/specs/jls/se8/html/jls-3.html#jls-3.9
-  private static final List<CharSequence> JAVA_KEYWORDS = Arrays.asList(
-    "abstract",
-    "assert",
-    "boolean",
-    "break",
-    "byte",
-    "case",
-    "catch",
-    "char",
-    "class",
-    "const",
-    "continue",
-    "default",
-    "do",
-    "double",
-    "else",
-    "enum",
-    "extends",
-    "final",
-    "finally",
-    "float",
-    "for",
-    "goto",
-    "if",
-    "implements",
-    "import",
-    "instanceof",
-    "int",
-    "interface",
-    "long",
-    "native",
-    "new",
-    "package",
-    "private",
-    "protected",
-    "public",
-    "return",
-    "short",
-    "static",
-    "strictfp",
-    "super",
-    "switch",
-    "synchronized",
-    "this",
-    "throw",
-    "throws",
-    "transient",
-    "try",
-    "void",
-    "volatile",
-    "while",
-    // additional ones added by us
-    "true",
-    "false"
-  );
-
-  /**
-   * Adjust a method name prefix identifier to follow the JavaBean spec:
-   * <ul>
-   *   <li>decapitalize the first letter</li>
-   *   <li>remove embedded underscores & capitalize the following letter</li>
-   * </ul>
-   *
-   * Finally, if the result is a reserved java keyword, append an underscore.
-   *
-   * @param word method name
-   * @return lower name
-   */
-  private static String mixedLower(String word) {
-    StringBuffer w = new StringBuffer();
-    w.append(Character.toLowerCase(word.charAt(0)));
-
-    boolean afterUnderscore = false;
-
-    for (int i = 1; i < word.length(); ++i) {
-      char c = word.charAt(i);
-
-      if (c == '_') {
-        afterUnderscore = true;
-      } else {
-        if (afterUnderscore) {
-          w.append(Character.toUpperCase(c));
-        } else {
-          w.append(c);
-        }
-        afterUnderscore = false;
-      }
-    }
-
-    if (JAVA_KEYWORDS.contains(w)) {
-      w.append('_');
-    }
-
-    return w.toString();
   }
 
   private List<PluginProtos.CodeGeneratorResponse.File> generateDataObjectsFiles(String javaPkgFqn, Descriptors.FileDescriptor fileDesc) {
