@@ -167,6 +167,15 @@ public class VertxGrpcGeneratorImpl extends Generator {
           case STRING:
             content.append("      visitor.visitString(SchemaLiterals.").append(schemaLiteralOf(field)).append(", v);\r\n");
             break;
+          case DOUBLE:
+            content.append("      visitor.visitDouble(SchemaLiterals.").append(schemaLiteralOf(field)).append(", v);\r\n");
+            break;
+          case BOOL:
+            content.append("      visitor.visitVarInt32(SchemaLiterals.").append(schemaLiteralOf(field)).append(", v ? 1 : 0);\r\n");
+            break;
+          case ENUM:
+            content.append("      visitor.visitVarInt32(SchemaLiterals.").append(schemaLiteralOf(field)).append(", v);\r\n");
+            break;
           default:
             content.append("      // Handle field name=").append(field.getName()).append(" type=").append(field.getType()).append("\r\n");
             break;

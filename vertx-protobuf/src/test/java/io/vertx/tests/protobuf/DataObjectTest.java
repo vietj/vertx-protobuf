@@ -70,12 +70,16 @@ public class DataObjectTest {
     Struct struct = new Struct();
     struct.getFields().put("foo", new Value().setStringValue("string"));
     struct.getFields().put("bar", new Value().setBoolValue(true));
+    struct.getFields().put("juu", new Value().setNumberValue(5.1));
+    struct.getFields().put("daa", new Value().setNullValue(0));
     Buffer result = ProtobufWriter.encode(visitor -> {
       io.vertx.tests.protobuf.struct.ProtoWriter.emit(struct, visitor);
     });
     StructProto.Struct res = StructProto.Struct.parseFrom(result.getBytes());
     assertEquals("string", res.getFieldsMap().get("foo").getStringValue());
     assertTrue(res.getFieldsMap().get("bar").getBoolValue());
+    assertEquals(5.1, res.getFieldsMap().get("juu").getNumberValue(), 0.001);
+    assertTrue(res.getFieldsMap().get("daa").hasNullValue());
   }
 
   @Test
