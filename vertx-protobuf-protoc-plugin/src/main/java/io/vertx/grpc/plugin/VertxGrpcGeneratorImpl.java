@@ -18,11 +18,14 @@ import com.salesforce.jprotoc.Generator;
 import com.salesforce.jprotoc.GeneratorException;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class VertxGrpcGeneratorImpl extends Generator {
@@ -229,58 +232,57 @@ public class VertxGrpcGeneratorImpl extends Generator {
     content.append("    }\r\n");
     content.append("  }\r\n");
 
-    content.append("  public void visitVarInt32(Field field, int v) {\r\n");
-    content.append("    if (next != null) {\r\n");
-    content.append("      next.visitVarInt32(field, v);\r\n");
-    content.append("      return;\r\n");
-    content.append("    }\r\n");
-    content.append("    stack.push(v);\r\n");
-    content.append("  }\r\n");
-
     // **************
     // VISIT STRING
     // **************
 
-    content.append("  public void visitString(Field field, String s) {\r\n");
-    first = true;
-    for (Descriptors.Descriptor mt : fileDesc.getMessageTypes()) {
-      for (Descriptors.FieldDescriptor fd : mt.getFields()) {
-        if (fd.getType() == Descriptors.FieldDescriptor.Type.STRING) {
-          if (first) {
-            content.append("    ");
-            first = false;
-          } else {
-            content.append(" else ");
-          }
-          content.append("if (field == SchemaLiterals.").append(schemaLiteralOf(fd)).append(") {\r\n");
-          content.append("      ((").append(javaTypeOf(fd.getContainingType())).append(")stack.peek()).").append(setterOf(fd)).append("(s);\t\n");
-          content.append("    }");
-        }
+    class Foo {
+      final String methodStart;
+      final Set<Descriptors.FieldDescriptor.Type> types;
+      final String next;
+      Foo(String methodStart, String next, Descriptors.FieldDescriptor.Type... types) {
+        this.methodStart = methodStart;
+        this.types = new HashSet<>(Arrays.asList(types));
+        this.next = next;
       }
     }
-    if (first) {
-      content.append("    ");
-    } else {
-      content.append(" else ");
+
+    Foo[] foos = {
+      new Foo("visitString(Field field, String value)", "visitString(field, value)", Descriptors.FieldDescriptor.Type.STRING),
+      new Foo("visitDouble(Field field, double value)", "visitDouble(field, value)", Descriptors.FieldDescriptor.Type.DOUBLE),
+      new Foo("visitVarInt32(Field field, int value)", "visitVarInt32(field, value)")
+    };
+
+    for (Foo foo : foos) {
+      content.append("  public void ").append(foo.methodStart).append(" {\r\n");
+      first = true;
+      for (Descriptors.Descriptor mt : fileDesc.getMessageTypes()) {
+        for (Descriptors.FieldDescriptor fd : mt.getFields()) {
+          if (foo.types.contains(fd.getType())) {
+            if (first) {
+              content.append("    ");
+              first = false;
+            } else {
+              content.append(" else ");
+            }
+            content.append("if (field == SchemaLiterals.").append(schemaLiteralOf(fd)).append(") {\r\n");
+            content.append("      ((").append(javaTypeOf(fd.getContainingType())).append(")stack.peek()).").append(setterOf(fd)).append("(value);\t\n");
+            content.append("    }");
+          }
+        }
+      }
+      if (first) {
+        content.append("    ");
+      } else {
+        content.append(" else ");
+      }
+      content.append("if (next != null) {\r\n");
+      content.append("      next.").append(foo.next).append(";\r\n");
+      content.append("    } else {\r\n");
+      content.append("      stack.push(value);\r\n");
+      content.append("    }\r\n");
+      content.append("  }\r\n");
     }
-    content.append("if (next != null) {\r\n");
-    content.append("      next.visitString(field, s);\r\n");
-    content.append("    } else {\r\n");
-    content.append("      stack.push(s);\r\n");
-    content.append("    }\r\n");
-    content.append("  }\r\n");
-
-    // **************
-    // VISIT DOUBLE
-    // **************
-
-    content.append("  public void visitDouble(Field field, double d) {\r\n");
-    content.append("    if (next != null) {\r\n");
-    content.append("      next.visitDouble(field, d);\r\n");
-    content.append("      return;\r\n");
-    content.append("    }\r\n");
-    content.append("    stack.push(d);\r\n");
-    content.append("  }\r\n");
 
     Map<String, Descriptors.Descriptor> all = transitiveClosure(fileDesc.getMessageTypes());
 
