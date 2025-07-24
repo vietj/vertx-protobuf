@@ -379,7 +379,12 @@ public class VertxGrpcGeneratorImpl extends Generator {
         content.append("if (field == SchemaLiterals.").append(schemaLiteralOf(field)).append(") {\r\n");
         if (field.isMapField()) {
           content.append("      ").append(field.getContainingType().getName()).append(" container = (").append(field.getContainingType().getName()).append(")stack.peek();").append("\r\n");
-          content.append("      stack.push(container.").append(getterOf(field)).append("());\r\n");
+          content.append("      ").append(javaTypeOf(field)).append(" map = container.").append(getterOf(field)).append("();\r\n");
+          content.append("      if (map == null) {\r\n");
+          content.append("        map = new java.util.HashMap<>();\r\n");
+          content.append("        container.").append(setterOf(field)).append("(map);\r\n");
+          content.append("      }\r\n");
+          content.append("      stack.push(map);\r\n");
         } else {
           if (field.getType() != Descriptors.FieldDescriptor.Type.MESSAGE || field.getMessageType().getFile() == fileDesc) {
             String i_type;
@@ -669,9 +674,6 @@ public class VertxGrpcGeneratorImpl extends Generator {
       String javaType = javaTypeOf(fd);
       if (javaType != null) {
         content.append("  private ").append(javaType).append(" ").append(fd.getJsonName());
-        if (fd.isMapField()) {
-          content.append(" = new java.util.HashMap()");
-        }
         content.append(";\r\n");
       }
     });

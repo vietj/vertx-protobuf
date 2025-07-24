@@ -15,6 +15,7 @@ import io.vertx.tests.protobuf.struct.Value;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.Assert.*;
@@ -28,8 +29,10 @@ public class DataObjectTest {
       .setBytesField(ByteString.copyFromUtf8("hello"))
       .setInt32Field(5)
       .addAllStringListField(Arrays.asList("s-1", "s-2"))
-      .putMapStringString("the-key", "the-value")
-      .putMapStringInt32("the-key", 4)
+      .putMapStringString("the-key-1", "the-value-1")
+      .putMapStringString("the-key-2", "the-value-2")
+      .putMapStringInt32("the-key-1", 4)
+      .putMapStringInt32("the-key-2", 5)
       .build().toByteArray();
     io.vertx.tests.protobuf.ProtoReader reader = new io.vertx.tests.protobuf.ProtoReader();
     ProtobufReader.parse(io.vertx.tests.protobuf.SchemaLiterals.SIMPLEMESSAGE, reader, Buffer.buffer(bytes));
@@ -38,8 +41,8 @@ public class DataObjectTest {
     assertEquals("hello", msg.getBytesField().toString());
     assertEquals(5, (int)msg.getInt32Field());
     assertEquals(Arrays.asList("s-1", "s-2"), msg.getStringListField());
-    assertEquals(Map.of("the-key", "the-value"), msg.getMapStringString());
-    assertEquals(Map.of("the-key", 4), msg.getMapStringInt32());
+    assertEquals(Map.of("the-key-1", "the-value-1", "the-key-2", "the-value-2"), msg.getMapStringString());
+    assertEquals(Map.of("the-key-1", 4, "the-key-2", 5), msg.getMapStringInt32());
   }
 
   @Test
@@ -49,7 +52,7 @@ public class DataObjectTest {
       .setBytesField(Buffer.buffer("the-bytes"))
       .setInt32Field(5)
       .setStringListField(Arrays.asList("s-1", "s-2"))
-      .setMapStringString(Map.of("the-key", "the-value"))
+      .setMapStringString(Map.of("the-key-1", "the-value-1", "the-key-2", "the-value-2"))
       .setMapStringInt32(Map.of("the-key", 4));
     Buffer result = ProtobufWriter.encode(visitor -> {
       io.vertx.tests.protobuf.ProtoWriter.emit(value, visitor);
@@ -59,7 +62,7 @@ public class DataObjectTest {
     assertEquals("the-bytes", res.getBytesField().toStringUtf8());
     assertEquals(5, res.getInt32Field());
     assertEquals(Arrays.asList("s-1", "s-2"), res.getStringListFieldList());
-    assertEquals(Map.of("the-key", "the-value"), res.getMapStringStringMap());
+    assertEquals(Map.of("the-key-1", "the-value-1", "the-key-2", "the-value-2"), res.getMapStringStringMap());
     assertEquals(Map.of("the-key", 4), res.getMapStringInt32Map());
   }
 
@@ -96,6 +99,7 @@ public class DataObjectTest {
   @Test
   public void testWriteStructValue() throws Exception {
     Struct struct = new Struct();
+    struct.setFields(new HashMap<>());
     struct.getFields().put("foo", new Value().setStringValue("string"));
     struct.getFields().put("bar", new Value().setBoolValue(true));
     struct.getFields().put("juu", new Value().setNumberValue(5.1));
