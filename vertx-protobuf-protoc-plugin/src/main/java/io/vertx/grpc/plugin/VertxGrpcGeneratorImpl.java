@@ -194,15 +194,29 @@ public class VertxGrpcGeneratorImpl extends Generator {
               content.append("        visitor.leave(SchemaLiterals.").append(schemaLiteralOf(field)).append(");\r\n");
               content.append("      }\r\n");
             } else {
-              content.append("      visitor.enter(SchemaLiterals.").append(schemaLiteralOf(field)).append(");\r\n");
-              content.append("      ").append(field.getMessageType().getFile().getOptions().getJavaPackage()).append(".ProtoWriter.visit(v, visitor);\r\n");
-              content.append("      visitor.leave(SchemaLiterals.").append(schemaLiteralOf(field)).append(");\r\n");
+              if (field.isRepeated()) {
+                content.append("      for (").append(javaTypeOfInternal(field)).append(" c : v) {\r\n");
+                content.append("        visitor.enter(SchemaLiterals.").append(schemaLiteralOf(field)).append(");\r\n");
+                content.append("        ").append(field.getMessageType().getFile().getOptions().getJavaPackage()).append(".ProtoWriter.visit(c, visitor);\r\n");
+                content.append("        visitor.leave(SchemaLiterals.").append(schemaLiteralOf(field)).append(");\r\n");
+                content.append("      }\r\n");
+              } else {
+                content.append("      visitor.enter(SchemaLiterals.").append(schemaLiteralOf(field)).append(");\r\n");
+                content.append("      ").append(field.getMessageType().getFile().getOptions().getJavaPackage()).append(".ProtoWriter.visit(v, visitor);\r\n");
+                content.append("      visitor.leave(SchemaLiterals.").append(schemaLiteralOf(field)).append(");\r\n");
+              }
             }
             break;
           default:
             Bilto res = TYPE_TO.get(field.getType());
             if (res != null) {
-              content.append("      visitor.").append(res.visitMethod).append("(SchemaLiterals.").append(schemaLiteralOf(field)).append(", ").append(res.fn.apply("v")).append(");\r\n");
+              if (field.isRepeated()) {
+                content.append("      for (").append(javaTypeOfInternal(field)).append(" c : v) {\r\n");
+                content.append("        visitor.").append(res.visitMethod).append("(SchemaLiterals.").append(schemaLiteralOf(field)).append(", ").append(res.fn.apply("c")).append(");\r\n");
+                content.append("      }\r\n");
+              } else {
+                content.append("      visitor.").append(res.visitMethod).append("(SchemaLiterals.").append(schemaLiteralOf(field)).append(", ").append(res.fn.apply("v")).append(");\r\n");
+              }
             } else {
               content.append("      // Handle field name=").append(field.getName()).append(" type=").append(field.getType()).append("\r\n");
             }
@@ -317,7 +331,15 @@ public class VertxGrpcGeneratorImpl extends Generator {
                 converter = s -> "io.vertx.core.buffer.Buffer.buffer(" + s + ")";
                 break;
             }
-            content.append("      ((").append(javaTypeOf(fd.getContainingType())).append(")stack.peek()).").append(setterOf(fd)).append("(").append(converter.apply("value")).append(");\t\n");
+            if (fd.isRepeated()) {
+              content.append("      ").append(javaTypeOf(fd.getContainingType())).append(" blah = (").append(javaTypeOf(fd.getContainingType())).append(")stack.peek()").append(";\t\n");
+              content.append("      if (blah.").append(getterOf(fd)).append("() == null) {\r\n");
+              content.append("        blah.").append(setterOf(fd)).append("(new java.util.ArrayList<>());\r\n");
+              content.append("      }\r\n");
+              content.append("      blah.").append(getterOf(fd)).append("().add(").append(converter.apply("value")).append(");\t\n");
+            } else {
+              content.append("      ((").append(javaTypeOf(fd.getContainingType())).append(")stack.peek()).").append(setterOf(fd)).append("(").append(converter.apply("value")).append(");\t\n");
+            }
             content.append("    }");
           }
         }
@@ -360,7 +382,13 @@ public class VertxGrpcGeneratorImpl extends Generator {
           content.append("      stack.push(container.").append(getterOf(field)).append("());\r\n");
         } else {
           if (field.getType() != Descriptors.FieldDescriptor.Type.MESSAGE || field.getMessageType().getFile() == fileDesc) {
-            content.append("      ").append(javaTypeOf(field)).append(" v = new ").append(javaTypeOf(field)).append("();\r\n");
+            String i_type;
+            if (field.isRepeated()) {
+              i_type = "java.util.ArrayList<" + javaTypeOfInternal(field) + ">";
+            } else {
+              i_type = javaTypeOf(field);
+            }
+            content.append("      ").append(javaTypeOf(field)).append(" v = new ").append(i_type).append("();\r\n");
             content.append("      stack.push(v);\r\n");
           } else {
             content.append("      Visitor v = new ").append(field.getMessageType().getFile().getOptions().getJavaPackage()).append(".ProtoReader(stack);\r\n");
@@ -559,6 +587,20 @@ public class VertxGrpcGeneratorImpl extends Generator {
   }
 
   private static String javaTypeOf(Descriptors.FieldDescriptor field) {
+    if (field.isMapField()) {
+      String keyType = javaTypeOf(field.getMessageType().getFields().get(0));
+      String valueType = javaTypeOf(field.getMessageType().getFields().get(1));
+      return "java.util.Map<" + keyType + ", " + valueType + ">";
+    } else {
+      String javaType = javaTypeOfInternal(field);
+      if (javaType != null && field.isRepeated()) {
+        javaType = "java.util.List<" + javaType + ">";
+      }
+      return javaType;
+    }
+  }
+
+  private static String javaTypeOfInternal(Descriptors.FieldDescriptor field) {
     String pkg;
     switch (field.getType()) {
       case BYTES:
@@ -575,14 +617,8 @@ public class VertxGrpcGeneratorImpl extends Generator {
         pkg = extractJavaPkgFqn(field.getEnumType().getFile());
         return pkg + "." + field.getEnumType().getName();
       case MESSAGE:
-        if (field.isMapField()) {
-          String keyType = javaTypeOf(field.getMessageType().getFields().get(0));
-          String valueType = javaTypeOf(field.getMessageType().getFields().get(1));
-          return "java.util.Map<" + keyType + ", " + valueType + ">";
-        } else {
-          pkg = extractJavaPkgFqn(field.getMessageType().getFile());
-          return pkg + "." + field.getMessageType().getName();
-        }
+        pkg = extractJavaPkgFqn(field.getMessageType().getFile());
+        return pkg + "." + field.getMessageType().getName();
       default:
         return null;
     }

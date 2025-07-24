@@ -14,6 +14,7 @@ import io.vertx.tests.protobuf.struct.SchemaLiterals;
 import io.vertx.tests.protobuf.struct.Value;
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.Map;
 
 import static org.junit.Assert.*;
@@ -26,6 +27,7 @@ public class DataObjectTest {
       .setStringField("hello")
       .setBytesField(ByteString.copyFromUtf8("hello"))
       .setInt32Field(5)
+      .addAllStringListField(Arrays.asList("s-1", "s-2"))
       .putMapStringString("the-key", "the-value")
       .putMapStringInt32("the-key", 4)
       .build().toByteArray();
@@ -35,6 +37,7 @@ public class DataObjectTest {
     assertEquals("hello", msg.getStringField());
     assertEquals("hello", msg.getBytesField().toString());
     assertEquals(5, (int)msg.getInt32Field());
+    assertEquals(Arrays.asList("s-1", "s-2"), msg.getStringListField());
     assertEquals(Map.of("the-key", "the-value"), msg.getMapStringString());
     assertEquals(Map.of("the-key", 4), msg.getMapStringInt32());
   }
@@ -45,6 +48,7 @@ public class DataObjectTest {
       .setStringField("the-string")
       .setBytesField(Buffer.buffer("the-bytes"))
       .setInt32Field(5)
+      .setStringListField(Arrays.asList("s-1", "s-2"))
       .setMapStringString(Map.of("the-key", "the-value"))
       .setMapStringInt32(Map.of("the-key", 4));
     Buffer result = ProtobufWriter.encode(visitor -> {
@@ -54,6 +58,7 @@ public class DataObjectTest {
     assertEquals("the-string", res.getStringField());
     assertEquals("the-bytes", res.getBytesField().toStringUtf8());
     assertEquals(5, res.getInt32Field());
+    assertEquals(Arrays.asList("s-1", "s-2"), res.getStringListFieldList());
     assertEquals(Map.of("the-key", "the-value"), res.getMapStringStringMap());
     assertEquals(Map.of("the-key", 4), res.getMapStringInt32Map());
   }
