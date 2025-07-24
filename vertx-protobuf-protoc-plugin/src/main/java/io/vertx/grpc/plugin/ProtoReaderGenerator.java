@@ -90,10 +90,37 @@ class ProtoReaderGenerator {
       new Foo("visitVarInt32(Field field, int value)", "visitVarInt32(field, value)", Descriptors.FieldDescriptor.Type.BOOL, Descriptors.FieldDescriptor.Type.ENUM, Descriptors.FieldDescriptor.Type.INT32)
     };
 
+    Map<String, Descriptors.Descriptor> all = Utils.transitiveClosure(fileDesc.getMessageTypes());
+
+
+    for (Descriptors.Descriptor mt : fileDesc.getMessageTypes()) {
+      for (Descriptors.FieldDescriptor fd : mt.getFields()) {
+        switch (fd.getType()) {
+          // Bytes
+          case BYTES:
+            break;
+          // VarInt32
+          case BOOL:
+          case ENUM:
+          case INT32:
+            break;
+          // String
+          case STRING:
+            break;
+          // Double
+          case DOUBLE:
+            break;
+        }
+      }
+    }
+
     for (Foo foo : foos) {
       content.append("  public void ").append(foo.methodStart).append(" {\r\n");
       first = true;
-      for (Descriptors.Descriptor mt : fileDesc.getMessageTypes()) {
+      for (Descriptors.Descriptor mt : all.values()) {
+        if (mt.toProto().getOptions().getMapEntry()) {
+          continue;
+        }
         for (Descriptors.FieldDescriptor fd : mt.getFields()) {
           if (foo.types.contains(fd.getType())) {
             if (first) {
@@ -140,8 +167,6 @@ class ProtoReaderGenerator {
       content.append("    }\r\n");
       content.append("  }\r\n");
     }
-
-    Map<String, Descriptors.Descriptor> all = Utils.transitiveClosure(fileDesc.getMessageTypes());
 
     // **************
     // ENTER
