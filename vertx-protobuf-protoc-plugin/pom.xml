@@ -55,6 +55,11 @@
       <artifactId>picocli</artifactId>
       <version>4.7.5</version>
     </dependency>
+    <dependency>
+      <groupId>org.antlr</groupId>
+      <artifactId>ST4</artifactId>
+      <version>4.3.4</version>
+    </dependency>
   </dependencies>
 
   <build>
