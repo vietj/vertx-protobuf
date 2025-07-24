@@ -89,12 +89,11 @@ public class VertxGrpcGeneratorImpl extends Generator {
         ex.initCause(e);
         throw ex;
       }
-      String javaPkgFqn = extractJavaPkgFqn(fileDescProto.fileDescProto);
-      files.addAll(generateDataObjectsFiles(javaPkgFqn, fileDesc));
-      files.addAll(generateEnumFiles(javaPkgFqn, fileDesc));
-      files.add(generateSchemaFile(javaPkgFqn, fileDesc));
-      files.add(generateProtoReaderFile(javaPkgFqn, fileDesc));
-      files.add(generateProtoWriterFile(javaPkgFqn, fileDesc));
+      files.addAll(generateDataObjectsFiles(fileDesc));
+      files.addAll(generateEnumFiles(fileDesc));
+      files.add(generateSchemaFile(fileDesc));
+      files.add(generateProtoReaderFile(fileDesc));
+      files.add(generateProtoWriterFile(fileDesc));
     }
 
     return files;
@@ -141,8 +140,10 @@ public class VertxGrpcGeneratorImpl extends Generator {
   }
 
   private static PluginProtos.CodeGeneratorResponse.File generateProtoWriterFile(
-          String javaPkgFqn,
           Descriptors.FileDescriptor fileDesc) {
+
+    String javaPkgFqn = extractJavaPkgFqn(fileDesc.toProto());
+
     StringBuilder content = new StringBuilder();
 
     content.append("package ").append(javaPkgFqn).append(";\r\n");
@@ -236,8 +237,10 @@ public class VertxGrpcGeneratorImpl extends Generator {
   }
 
   private static PluginProtos.CodeGeneratorResponse.File generateProtoReaderFile(
-          String javaPkgFqn,
           Descriptors.FileDescriptor fileDesc) {
+
+    String javaPkgFqn = extractJavaPkgFqn(fileDesc.toProto());
+
     StringBuilder content = new StringBuilder();
 
     content.append("package ").append(javaPkgFqn).append(";\r\n");
@@ -491,8 +494,9 @@ public class VertxGrpcGeneratorImpl extends Generator {
   }
 
   private static PluginProtos.CodeGeneratorResponse.File generateSchemaFile(
-          String javaPkgFqn,
           Descriptors.FileDescriptor file) {
+
+    String javaPkgFqn = extractJavaPkgFqn(file.toProto());
 
     StringBuilder content = new StringBuilder();
 
@@ -563,7 +567,7 @@ public class VertxGrpcGeneratorImpl extends Generator {
     return Strings.nullToEmpty(proto.getPackage());
   }
 
-  private String extractJavaPkgFqn(DescriptorProtos.FileDescriptorProto proto) {
+  private static String extractJavaPkgFqn(DescriptorProtos.FileDescriptorProto proto) {
     DescriptorProtos.FileOptions options = proto.getOptions();
     String javaPackage = options.getJavaPackage();
     if (!Strings.isNullOrEmpty(javaPackage)) {
@@ -572,14 +576,16 @@ public class VertxGrpcGeneratorImpl extends Generator {
     return Strings.nullToEmpty(proto.getPackage());
   }
 
-  private List<PluginProtos.CodeGeneratorResponse.File> generateDataObjectsFiles(String javaPkgFqn, Descriptors.FileDescriptor fileDesc) {
+  private List<PluginProtos.CodeGeneratorResponse.File> generateDataObjectsFiles(Descriptors.FileDescriptor fileDesc) {
+    String javaPkgFqn = extractJavaPkgFqn(fileDesc.toProto());
     return fileDesc.getMessageTypes()
             .stream()
             .map(mt -> buildFiles(javaPkgFqn, mt))
             .collect(Collectors.toList());
   }
 
-  private List<PluginProtos.CodeGeneratorResponse.File> generateEnumFiles(String javaPkgFqn, Descriptors.FileDescriptor fileDesc) {
+  private List<PluginProtos.CodeGeneratorResponse.File> generateEnumFiles(Descriptors.FileDescriptor fileDesc) {
+    String javaPkgFqn = extractJavaPkgFqn(fileDesc.toProto());
     return fileDesc.getEnumTypes()
             .stream()
             .map(mt -> buildFiles(javaPkgFqn, mt))
