@@ -41,7 +41,7 @@ class ProtoReaderGenerator {
     content.append("  }\r\n");
 
     // **************
-    // VISIT STRING
+    // INIT
     // **************
 
     content.append("  public void init(MessageType type) {\r\n");
