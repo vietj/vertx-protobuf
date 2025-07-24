@@ -2,6 +2,9 @@ package io.vertx.grpc.plugin;
 
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.compiler.PluginProtos;
+import org.stringtemplate.v4.ST;
+import org.stringtemplate.v4.STGroup;
+import org.stringtemplate.v4.STGroupFile;
 
 import java.util.Map;
 
@@ -13,67 +16,78 @@ class SchemaGenerator {
     this.file = file;
   }
 
+  public static class MessageTypeDeclaration {
+
+    public final String identifier;
+    public final String name;
+
+    public MessageTypeDeclaration(String identifier, String name) {
+      this.identifier = identifier;
+      this.name = name;
+    }
+  }
+
+  public static class FieldDeclaration {
+
+    public final String identifier;
+    public final String messageTypeRef;
+    public final int number;
+    public final String typeExpr;
+
+    public FieldDeclaration(String identifier, String messageTypeRef, int number, String typeExpr) {
+      this.identifier = identifier;
+      this.messageTypeRef = messageTypeRef;
+      this.number = number;
+      this.typeExpr = typeExpr;
+    }
+  }
+
   PluginProtos.CodeGeneratorResponse.File generate() {
-
+    STGroup group = new STGroupFile("schema.stg");
+    ST st = group.getInstanceOf("unit");
     String javaPkgFqn = Utils.extractJavaPkgFqn(file.toProto());
-
-    StringBuilder content = new StringBuilder();
-
-    content.append("package ").append(javaPkgFqn).append(";\r\n");
-    content.append("import io.vertx.protobuf.schema.Schema;\r\n");
-    content.append("import io.vertx.protobuf.schema.MessageType;\r\n");
-    content.append("import io.vertx.protobuf.schema.ScalarType;\r\n");
-    content.append("import io.vertx.protobuf.schema.EnumType;\r\n");
-    content.append("import io.vertx.protobuf.schema.Field;\r\n");
-    content.append("public class SchemaLiterals {\r\n");
-
-    content.append("  public static final Schema SCHEMA = new Schema();\r\n");
-
+    st.add("pkg", javaPkgFqn);
     Map<String, Descriptors.Descriptor> all = Utils.transitiveClosure(file.getMessageTypes());
-
     all.values().forEach(messageType -> {
-
-      content.append("  public static final MessageType ").append(Utils.schemaLiteralOf(messageType)).append(" = SCHEMA.of(\"").append(messageType.getName()).append("\");\r\n");
+      st.add("message", new MessageTypeDeclaration(Utils.schemaLiteralOf(messageType), messageType.getName()));
       messageType.getFields().forEach(field -> {
+        String identifier = Utils.schemaLiteralOf(field);
+        String messageTypeRef = Utils.schemaLiteralOf(messageType);
+        int number = field.getNumber();
+        String typeExpr;
         switch (field.getType()) {
           case DOUBLE:
-            content.append("  public static final Field ").append(Utils.schemaLiteralOf(field)).append(" = ").append(Utils.schemaLiteralOf(messageType)).append(".addField(").append(field.getNumber()).append(", ScalarType.DOUBLE);\r\n");
+            typeExpr = "ScalarType.DOUBLE";
             break;
           case BOOL:
-            content.append("  public static final Field ").append(Utils.schemaLiteralOf(field)).append(" = ").append(Utils.schemaLiteralOf(messageType)).append(".addField(").append(field.getNumber()).append(", ScalarType.BOOL);\r\n");
+            typeExpr = "ScalarType.BOOL";
             break;
           case STRING:
-            content.append("  public static final Field ").append(Utils.schemaLiteralOf(field)).append(" = ").append(Utils.schemaLiteralOf(messageType)).append(".addField(").append(field.getNumber()).append(", ScalarType.STRING);\r\n");
+            typeExpr = "ScalarType.STRING";
             break;
           case ENUM:
-            content.append("  public static final Field ").append(Utils.schemaLiteralOf(field)).append(" = ").append(Utils.schemaLiteralOf(messageType)).append(".addField(").append(field.getNumber()).append(", new EnumType());\r\n");
+            typeExpr = "new EnumType()";
             break;
           case BYTES:
-            content.append("  public static final Field ").append(Utils.schemaLiteralOf(field)).append(" = ").append(Utils.schemaLiteralOf(messageType)).append(".addField(").append(field.getNumber()).append(", ScalarType.BYTES);\r\n");
+            typeExpr = "ScalarType.BYTES";
             break;
           case INT32:
-            content.append("  public static final Field ").append(Utils.schemaLiteralOf(field)).append(" = ").append(Utils.schemaLiteralOf(messageType)).append(".addField(").append(field.getNumber()).append(", ScalarType.INT32);\r\n");
+            typeExpr = "ScalarType.INT32";
             break;
           case MESSAGE:
-            String prefix;
-            if (field.getMessageType().getFile() != file) {
-              prefix = field.getMessageType().getFile().getOptions().getJavaPackage() + ".SchemaLiterals.";
-            } else {
-              prefix = "";
-            }
-            content.append("  public static final Field ").append(Utils.schemaLiteralOf(field)).append(" = ").append(Utils.schemaLiteralOf(messageType)).append(".addField(").append(field.getNumber()).append(", ").append(prefix).append("SCHEMA.of(\"").append(field.getMessageType().getName()).append("\"));\r\n");
+            typeExpr = field.getMessageType().getFile().getOptions().getJavaPackage() + ".SchemaLiterals." + Utils.schemaLiteralOf(field.getMessageType());
             break;
+          default:
+            return;
         }
+        st.add("field", new FieldDeclaration(identifier, messageTypeRef, number, typeExpr));
       });
-
     });
-
-    content.append("}\r\n");
 
     return PluginProtos.CodeGeneratorResponse.File
       .newBuilder()
       .setName(Utils.absoluteFileName(javaPkgFqn, "SchemaLiterals"))
-      .setContent(content.toString())
+      .setContent(st.render())
       .build();
   }
 }

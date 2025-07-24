@@ -1,0 +1,27 @@
+unit(pkg, message, field) ::= <<
+package <pkg>;
+
+import io.vertx.protobuf.schema.Schema;
+import io.vertx.protobuf.schema.MessageType;
+import io.vertx.protobuf.schema.ScalarType;
+import io.vertx.protobuf.schema.EnumType;
+import io.vertx.protobuf.schema.Field;
+
+public class SchemaLiterals {
+
+  public static final Schema SCHEMA = new Schema();
+
+  <message:messageDeclaration();separator="\r\n">
+
+  <field:fieldDeclaration();separator="\r\n">
+
+}
+>>
+
+messageDeclaration(message) ::= <<
+public static final MessageType <message.identifier> = SCHEMA.of("<message.name>");
+>>
+
+fieldDeclaration(field) ::= <<
+public static final Field <field.identifier> = <field.messageTypeRef>.addField(<field.number>, <field.typeExpr>);
+>>
