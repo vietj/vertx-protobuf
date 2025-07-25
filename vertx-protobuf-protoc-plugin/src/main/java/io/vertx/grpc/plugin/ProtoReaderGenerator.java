@@ -2,9 +2,6 @@ package io.vertx.grpc.plugin;
 
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.compiler.PluginProtos;
-import org.stringtemplate.v4.ST;
-import org.stringtemplate.v4.STGroup;
-import org.stringtemplate.v4.STGroupFile;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,7 +31,8 @@ class ProtoReaderGenerator {
   public static class FieldDescriptor {
     public Descriptors.FieldDescriptor.Type type;
     public VisitorKind kind;
-    public boolean mapEntry;
+    public boolean map;
+    public boolean entry;
     public String identifier;
     public String javaType;
     public boolean repeated;
@@ -42,6 +40,7 @@ class ProtoReaderGenerator {
     public String setterMethod;
     public String containingJavaType;
     public Function<String, String> converter;
+    public boolean imported;
   }
 
   public PluginProtos.CodeGeneratorResponse.File generate() {
@@ -57,12 +56,6 @@ class ProtoReaderGenerator {
     for (Descriptors.Descriptor mt : all.values()) {
       for (Descriptors.FieldDescriptor fd : mt.getFields()) {
 
-        boolean map;
-        if (fd.getType() == Descriptors.FieldDescriptor.Type.MESSAGE) {
-          map = fd.isMapField();
-        } else {
-          map = fd.getContainingType().toProto().getOptions().getMapEntry();
-        }
         FieldDescriptor descriptor = new FieldDescriptor();
 
         VisitorKind kind;
@@ -105,7 +98,8 @@ class ProtoReaderGenerator {
         }
         descriptor.type = fd.getType();
         descriptor.kind = kind;
-        descriptor.mapEntry = map;
+        descriptor.map = fd.isMapField();
+        descriptor.entry = fd.getContainingType().toProto().getOptions().getMapEntry();
         descriptor.identifier = Utils.schemaLiteralOf(fd);
         descriptor.javaType = Utils.javaTypeOf(fd);
         descriptor.repeated = fd.isRepeated();
@@ -113,10 +107,13 @@ class ProtoReaderGenerator {
         descriptor.setterMethod = Utils.setterOf(fd);
         descriptor.containingJavaType = Utils.javaTypeOf(fd.getContainingType());
         descriptor.converter = converter;
+        descriptor.imported = fd.getType() == Descriptors.FieldDescriptor.Type.MESSAGE && fd.getMessageType().getFile() != fileDesc;
         collected.add(descriptor);
       }
     }
 
+    List<Descriptors.FieldDescriptor> messageFields = all.values().stream()
+      .flatMap(mt -> mt.getFields().stream()).filter(f -> f.getType() == Descriptors.FieldDescriptor.Type.MESSAGE).collect(Collectors.toList());
 
     StringBuilder content = new StringBuilder();
 
@@ -146,22 +143,11 @@ class ProtoReaderGenerator {
     // **************
 
     content.append("  public void init(MessageType type) {\r\n");
-    boolean first = true;
+    content.append("    ");
     for (Descriptors.Descriptor messageType : fileDesc.getMessageTypes()) {
-      if (first) {
-        content.append("    ");
-        first = false;
-      } else {
-        content.append(" else ");
-      }
       content.append("if (type == SchemaLiterals.").append(Utils.schemaLiteralOf(messageType)).append(") {\r\n");
       content.append("      stack.push(new ").append(messageType.getName()).append("());\r\n");
-      content.append("    }");
-    }
-    if (first) {
-      content.append("    ");
-    } else {
-      content.append(" else ");
+      content.append("    } else ");
     }
     content.append("if (next != null) {\r\n");
     content.append("      next.init(type);\r\n");
@@ -172,31 +158,31 @@ class ProtoReaderGenerator {
     // VISIT STRING
     // **************
 
-    class Foo {
+    class VisitMethod {
       final String methodStart;
       final Set<Descriptors.FieldDescriptor.Type> types;
       final String next;
 
-      Foo(String methodStart, String next, Descriptors.FieldDescriptor.Type... types) {
+      VisitMethod(String methodStart, String next, Descriptors.FieldDescriptor.Type... types) {
         this.methodStart = methodStart;
         this.types = new HashSet<>(Arrays.asList(types));
         this.next = next;
       }
     }
 
-    Foo[] foos = {
-      new Foo("visitBytes(Field field, byte[] value)", "visitBytes(field, value)", Descriptors.FieldDescriptor.Type.BYTES),
-      new Foo("visitString(Field field, String value)", "visitString(field, value)", Descriptors.FieldDescriptor.Type.STRING),
-      new Foo("visitDouble(Field field, double value)", "visitDouble(field, value)", Descriptors.FieldDescriptor.Type.DOUBLE),
-      new Foo("visitVarInt32(Field field, int value)", "visitVarInt32(field, value)", Descriptors.FieldDescriptor.Type.BOOL, Descriptors.FieldDescriptor.Type.ENUM, Descriptors.FieldDescriptor.Type.INT32)
+    VisitMethod[] visitMethods = {
+      new VisitMethod("visitBytes(Field field, byte[] value)", "visitBytes(field, value)", Descriptors.FieldDescriptor.Type.BYTES),
+      new VisitMethod("visitString(Field field, String value)", "visitString(field, value)", Descriptors.FieldDescriptor.Type.STRING),
+      new VisitMethod("visitDouble(Field field, double value)", "visitDouble(field, value)", Descriptors.FieldDescriptor.Type.DOUBLE),
+      new VisitMethod("visitVarInt32(Field field, int value)", "visitVarInt32(field, value)", Descriptors.FieldDescriptor.Type.BOOL, Descriptors.FieldDescriptor.Type.ENUM, Descriptors.FieldDescriptor.Type.INT32)
     };
 
-    for (Foo foo : foos) {
-      content.append("  public void ").append(foo.methodStart).append(" {\r\n");
+    for (VisitMethod visitMethod : visitMethods) {
+      content.append("  public void ").append(visitMethod.methodStart).append(" {\r\n");
       content.append("    ");
-      for (FieldDescriptor fd : collected.stream().filter(f -> foo.types.contains(f.type)).collect(Collectors.toList())) {
+      for (FieldDescriptor fd : collected.stream().filter(f -> visitMethod.types.contains(f.type)).collect(Collectors.toList())) {
         content.append("if (field == SchemaLiterals.").append(fd.identifier).append(") {\r\n");
-        if (fd.mapEntry) {
+        if (fd.entry) {
           content.append("      stack.push(value);\r\n");
         } else if (fd.repeated) {
           content.append("      ").append(fd.containingJavaType).append(" blah = (").append(fd.containingJavaType).append(")stack.peek()").append(";\t\n");
@@ -210,7 +196,7 @@ class ProtoReaderGenerator {
         content.append("    } else ");
       }
       content.append("if (next != null) {\r\n");
-      content.append("      next.").append(foo.next).append(";\r\n");
+      content.append("      next.").append(visitMethod.next).append(";\r\n");
       content.append("    } else {\r\n");
       content.append("      throw new UnsupportedOperationException();\r\n");
       content.append("    }\r\n");
@@ -222,50 +208,34 @@ class ProtoReaderGenerator {
     // **************
 
     content.append("  public void enter(Field field) {\r\n");
-    first = true;
-    for (Descriptors.Descriptor messageType : all.values()) {
-      for (Descriptors.FieldDescriptor field : messageType.getFields()) {
-        if (field.getType() != Descriptors.FieldDescriptor.Type.MESSAGE) {
-          continue;
-        }
-        if (first) {
-          content.append("    ");
-          first = false;
-        } else {
-          content.append(" else ");
-        }
-        content.append("if (field == SchemaLiterals.").append(Utils.schemaLiteralOf(field)).append(") {\r\n");
-        if (field.isMapField()) {
-          content.append("      ").append(field.getContainingType().getName()).append(" container = (").append(field.getContainingType().getName()).append(")stack.peek();").append("\r\n");
-          content.append("      ").append(Utils.javaTypeOf(field)).append(" map = container.").append(Utils.getterOf(field)).append("();\r\n");
-          content.append("      if (map == null) {\r\n");
-          content.append("        map = new java.util.HashMap<>();\r\n");
-          content.append("        container.").append(Utils.setterOf(field)).append("(map);\r\n");
-          content.append("      }\r\n");
-          content.append("      stack.push(map);\r\n");
-        } else {
-          if (field.getMessageType().getFile() == fileDesc) {
-            String i_type;
-            if (field.isRepeated()) {
-              i_type = "java.util.ArrayList<" + Utils.javaTypeOfInternal(field) + ">";
-            } else {
-              i_type = Utils.javaTypeOf(field);
-            }
-            content.append("      ").append(Utils.javaTypeOf(field)).append(" v = new ").append(i_type).append("();\r\n");
-            content.append("      stack.push(v);\r\n");
+    content.append("    ");
+    for (Descriptors.FieldDescriptor field : messageFields) {
+      content.append("if (field == SchemaLiterals.").append(Utils.schemaLiteralOf(field)).append(") {\r\n");
+      if (field.isMapField()) {
+        content.append("      ").append(field.getContainingType().getName()).append(" container = (").append(field.getContainingType().getName()).append(")stack.peek();").append("\r\n");
+        content.append("      ").append(Utils.javaTypeOf(field)).append(" map = container.").append(Utils.getterOf(field)).append("();\r\n");
+        content.append("      if (map == null) {\r\n");
+        content.append("        map = new java.util.HashMap<>();\r\n");
+        content.append("        container.").append(Utils.setterOf(field)).append("(map);\r\n");
+        content.append("      }\r\n");
+        content.append("      stack.push(map);\r\n");
+      } else {
+        if (field.getMessageType().getFile() == fileDesc) {
+          String i_type;
+          if (field.isRepeated()) {
+            i_type = "java.util.ArrayList<" + Utils.javaTypeOfInternal(field) + ">";
           } else {
-            content.append("      Visitor v = new ").append(field.getMessageType().getFile().getOptions().getJavaPackage()).append(".ProtoReader(stack);\r\n");
-            content.append("      v.init((MessageType)field.type);\r\n");
-            content.append("      next = v;\r\n");
+            i_type = Utils.javaTypeOf(field);
           }
+          content.append("      ").append(Utils.javaTypeOf(field)).append(" v = new ").append(i_type).append("();\r\n");
+          content.append("      stack.push(v);\r\n");
+        } else {
+          content.append("      Visitor v = new ").append(field.getMessageType().getFile().getOptions().getJavaPackage()).append(".ProtoReader(stack);\r\n");
+          content.append("      v.init((MessageType)field.type);\r\n");
+          content.append("      next = v;\r\n");
         }
-        content.append("    }");
       }
-    }
-    if (first) {
-      content.append("    ");
-    } else {
-      content.append(" else ");
+      content.append("    } else ");
     }
     content.append("if (next != null) {\r\n");
     content.append("      next.enter(field);\r\n");
@@ -279,42 +249,29 @@ class ProtoReaderGenerator {
     // **************
 
     content.append("  public void leave(Field field) {\r\n");
-    first = true;
-    for (Descriptors.Descriptor messageType : all.values()) {
-      for (Descriptors.FieldDescriptor field : messageType.getFields()) {
-        if (field.getType() != Descriptors.FieldDescriptor.Type.MESSAGE) {
-          continue;
-        }
-        if (first) {
-          content.append("    ");
-          first = false;
-        } else {
-          content.append(" else ");
-        }
-        content.append("if (field == SchemaLiterals.").append(Utils.schemaLiteralOf(field)).append(") {\r\n");
-        if (field.isMapField()) {
+    content.append("    ");
+    collected
+      .stream()
+      .filter(field -> field.type == Descriptors.FieldDescriptor.Type.MESSAGE)
+      .forEach(field -> {
+        content.append("if (field == SchemaLiterals.").append(field.identifier).append(") {\r\n");
+        if (field.map) {
           content.append("      Object value = stack.pop();\r\n");
           content.append("      Object key = stack.pop();\r\n");
           content.append("      java.util.Map entries = (java.util.Map)stack.pop();\r\n");
           content.append("      entries.put(key, value);\r\n");
-        } else if (field.getContainingType().toProto().getOptions().getMapEntry()) {
-
+        } else if (field.entry) {
+          content.append("      //\r\n");
         } else {
-          if (field.getMessageType().getFile() != fileDesc) {
+          if (field.imported) {
             content.append("      next.destroy();\r\n");
             content.append("      next = null;\r\n");
           }
-          content.append("      ").append(Utils.javaTypeOf(field)).append(" v = (").append(Utils.javaTypeOf(field)).append(")stack.pop();\r\n");
-          content.append("      ((").append(messageType.getName()).append(")stack.peek()).").append(Utils.setterOf(field)).append("(v);\n");
+          content.append("      ").append(field.javaType).append(" v = (").append(field.javaType).append(")stack.pop();\r\n");
+          content.append("      ((").append(field.containingJavaType).append(")stack.peek()).").append(field.setterMethod).append("(v);\n");
         }
-        content.append("    }");
-      }
-    }
-    if (first) {
-      content.append("    ");
-    } else {
-      content.append(" else ");
-    }
+        content.append("    } else ");
+    });
     content.append("if (next != null) {\r\n");
     content.append("      next.leave(field);\r\n");
     content.append("    } else {\r\n");
