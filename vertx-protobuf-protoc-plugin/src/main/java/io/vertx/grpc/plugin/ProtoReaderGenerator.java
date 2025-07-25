@@ -39,6 +39,7 @@ class ProtoReaderGenerator {
     public String getterMethod;
     public String setterMethod;
     public String containingJavaType;
+    public String typePkgFqn;
     public Function<String, String> converter;
     public boolean imported;
   }
@@ -47,10 +48,7 @@ class ProtoReaderGenerator {
 
     String javaPkgFqn = Utils.extractJavaPkgFqn(fileDesc.toProto());
 
-
     Map<String, Descriptors.Descriptor> all = Utils.transitiveClosure(fileDesc.getMessageTypes());
-
-
 
     List<FieldDescriptor> collected = new ArrayList<>();
     for (Descriptors.Descriptor mt : all.values()) {
@@ -106,20 +104,19 @@ class ProtoReaderGenerator {
         descriptor.getterMethod = Utils.getterOf(fd);
         descriptor.setterMethod = Utils.setterOf(fd);
         descriptor.containingJavaType = Utils.javaTypeOf(fd.getContainingType());
+        descriptor.typePkgFqn = fd.getType() == Descriptors.FieldDescriptor.Type.MESSAGE ? fd.getMessageType().getFile().getOptions().getJavaPackage() : null;
         descriptor.converter = converter;
         descriptor.imported = fd.getType() == Descriptors.FieldDescriptor.Type.MESSAGE && fd.getMessageType().getFile() != fileDesc;
         collected.add(descriptor);
       }
     }
 
-    List<Descriptors.FieldDescriptor> messageFields = all.values().stream()
-      .flatMap(mt -> mt.getFields().stream()).filter(f -> f.getType() == Descriptors.FieldDescriptor.Type.MESSAGE).collect(Collectors.toList());
+    List<FieldDescriptor> messageFields = collected
+      .stream()
+      .filter(field -> field.type == Descriptors.FieldDescriptor.Type.MESSAGE)
+      .collect(Collectors.toList());
 
     StringBuilder content = new StringBuilder();
-
-
-
-
 
     content.append("package ").append(javaPkgFqn).append(";\r\n");
     content.append("import io.vertx.protobuf.Visitor;\r\n");
@@ -185,11 +182,11 @@ class ProtoReaderGenerator {
         if (fd.entry) {
           content.append("      stack.push(value);\r\n");
         } else if (fd.repeated) {
-          content.append("      ").append(fd.containingJavaType).append(" blah = (").append(fd.containingJavaType).append(")stack.peek()").append(";\t\n");
-          content.append("      if (blah.").append(fd.getterMethod).append("() == null) {\r\n");
-          content.append("        blah.").append(fd.setterMethod).append("(new java.util.ArrayList<>());\r\n");
+          content.append("      ").append(fd.containingJavaType).append(" messageFields = (").append(fd.containingJavaType).append(")stack.peek()").append(";\t\n");
+          content.append("      if (messageFields.").append(fd.getterMethod).append("() == null) {\r\n");
+          content.append("        messageFields.").append(fd.setterMethod).append("(new java.util.ArrayList<>());\r\n");
           content.append("      }\r\n");
-          content.append("      blah.").append(fd.getterMethod).append("().add(").append(fd.converter.apply("value")).append(");\t\n");
+          content.append("      messageFields.").append(fd.getterMethod).append("().add(").append(fd.converter.apply("value")).append(");\t\n");
         } else {
           content.append("      ((").append(fd.containingJavaType).append(")stack.peek()).").append(fd.setterMethod).append("(").append(fd.converter.apply("value")).append(");\t\n");
         }
@@ -209,34 +206,36 @@ class ProtoReaderGenerator {
 
     content.append("  public void enter(Field field) {\r\n");
     content.append("    ");
-    for (Descriptors.FieldDescriptor field : messageFields) {
-      content.append("if (field == SchemaLiterals.").append(Utils.schemaLiteralOf(field)).append(") {\r\n");
-      if (field.isMapField()) {
-        content.append("      ").append(field.getContainingType().getName()).append(" container = (").append(field.getContainingType().getName()).append(")stack.peek();").append("\r\n");
-        content.append("      ").append(Utils.javaTypeOf(field)).append(" map = container.").append(Utils.getterOf(field)).append("();\r\n");
-        content.append("      if (map == null) {\r\n");
-        content.append("        map = new java.util.HashMap<>();\r\n");
-        content.append("        container.").append(Utils.setterOf(field)).append("(map);\r\n");
-        content.append("      }\r\n");
-        content.append("      stack.push(map);\r\n");
-      } else {
-        if (field.getMessageType().getFile() == fileDesc) {
-          String i_type;
-          if (field.isRepeated()) {
-            i_type = "java.util.ArrayList<" + Utils.javaTypeOfInternal(field) + ">";
-          } else {
-            i_type = Utils.javaTypeOf(field);
-          }
-          content.append("      ").append(Utils.javaTypeOf(field)).append(" v = new ").append(i_type).append("();\r\n");
-          content.append("      stack.push(v);\r\n");
+
+    messageFields
+      .forEach(field -> {
+        content.append("if (field == SchemaLiterals.").append(field.identifier).append(") {\r\n");
+        if (field.map) {
+          content.append("      ").append(field.containingJavaType).append(" container = (").append(field.containingJavaType).append(")stack.peek();").append("\r\n");
+          content.append("      ").append(field.javaType).append(" map = container.").append(field.getterMethod).append("();\r\n");
+          content.append("      if (map == null) {\r\n");
+          content.append("        map = new java.util.HashMap<>();\r\n");
+          content.append("        container.").append(field.setterMethod).append("(map);\r\n");
+          content.append("      }\r\n");
+          content.append("      stack.push(map);\r\n");
         } else {
-          content.append("      Visitor v = new ").append(field.getMessageType().getFile().getOptions().getJavaPackage()).append(".ProtoReader(stack);\r\n");
-          content.append("      v.init((MessageType)field.type);\r\n");
-          content.append("      next = v;\r\n");
+          if (field.imported) {
+            content.append("      Visitor v = new ").append(field.typePkgFqn).append(".ProtoReader(stack);\r\n");
+            content.append("      v.init((MessageType)field.type);\r\n");
+            content.append("      next = v;\r\n");
+          } else {
+            String i_type;
+            if (field.repeated) {
+              i_type = field.javaType.replace("java.util.List", "java.util.ArrayList");
+            } else {
+              i_type = field.javaType;
+            }
+            content.append("      ").append(field.javaType).append(" v = new ").append(i_type).append("();\r\n");
+            content.append("      stack.push(v);\r\n");
+          }
         }
-      }
-      content.append("    } else ");
-    }
+        content.append("    } else ");
+      });
     content.append("if (next != null) {\r\n");
     content.append("      next.enter(field);\r\n");
     content.append("    } else {\r\n");
@@ -250,9 +249,7 @@ class ProtoReaderGenerator {
 
     content.append("  public void leave(Field field) {\r\n");
     content.append("    ");
-    collected
-      .stream()
-      .filter(field -> field.type == Descriptors.FieldDescriptor.Type.MESSAGE)
+    messageFields
       .forEach(field -> {
         content.append("if (field == SchemaLiterals.").append(field.identifier).append(") {\r\n");
         if (field.map) {
