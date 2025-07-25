@@ -2,9 +2,14 @@ package io.vertx.grpc.plugin;
 
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.compiler.PluginProtos;
+import org.stringtemplate.v4.ST;
+import org.stringtemplate.v4.STGroup;
+import org.stringtemplate.v4.STGroupFile;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
@@ -17,11 +22,85 @@ class ProtoReaderGenerator {
     this.fileDesc = fileDesc;
   }
 
+  public enum VisitorKind {
+    String,
+    Bytes,
+    VarInt32,
+    Double,
+    Message
+  }
+
+  public static class FieldDescriptor {
+    public Descriptors.FieldDescriptor.Type type;
+    public VisitorKind kind;
+    public boolean map;
+  }
+
   public PluginProtos.CodeGeneratorResponse.File generate() {
 
     String javaPkgFqn = Utils.extractJavaPkgFqn(fileDesc.toProto());
 
+
+
+
+    Map<String, Descriptors.Descriptor> all = Utils.transitiveClosure(fileDesc.getMessageTypes());
+
+
+
+    List<FieldDescriptor> collected = new ArrayList<>();
+    for (Descriptors.Descriptor mt : fileDesc.getMessageTypes()) {
+      for (Descriptors.FieldDescriptor fd : mt.getFields()) {
+        VisitorKind kind;
+        switch (fd.getType()) {
+          // Bytes
+          case BYTES:
+            kind = VisitorKind.Bytes;
+            break;
+          // VarInt32
+          case BOOL:
+          case ENUM:
+          case INT32:
+            kind = VisitorKind.VarInt32;
+            break;
+          // String
+          case STRING:
+            kind = VisitorKind.String;
+            break;
+          // Double
+          case DOUBLE:
+            kind = VisitorKind.Double;
+            break;
+          case MESSAGE:
+            kind = VisitorKind.Message;
+            break;
+          default:
+            continue;
+        }
+        FieldDescriptor descriptor = new FieldDescriptor();
+        descriptor.type = fd.getType();
+        descriptor.kind = kind;
+        collected.add(descriptor);
+      }
+    }
+
+    //
+    STGroup group = new STGroupFile("reader.stg");
+    ST st = group.getInstanceOf("unit");
+
+    st.add("pkg", javaPkgFqn);
+
     StringBuilder content = new StringBuilder();
+    content.append("/*");
+    content.append(st.render());
+    content.append("*/");
+
+
+
+
+
+
+
+
 
     content.append("package ").append(javaPkgFqn).append(";\r\n");
     content.append("import io.vertx.protobuf.Visitor;\r\n");
@@ -90,30 +169,6 @@ class ProtoReaderGenerator {
       new Foo("visitVarInt32(Field field, int value)", "visitVarInt32(field, value)", Descriptors.FieldDescriptor.Type.BOOL, Descriptors.FieldDescriptor.Type.ENUM, Descriptors.FieldDescriptor.Type.INT32)
     };
 
-    Map<String, Descriptors.Descriptor> all = Utils.transitiveClosure(fileDesc.getMessageTypes());
-
-
-    for (Descriptors.Descriptor mt : fileDesc.getMessageTypes()) {
-      for (Descriptors.FieldDescriptor fd : mt.getFields()) {
-        switch (fd.getType()) {
-          // Bytes
-          case BYTES:
-            break;
-          // VarInt32
-          case BOOL:
-          case ENUM:
-          case INT32:
-            break;
-          // String
-          case STRING:
-            break;
-          // Double
-          case DOUBLE:
-            break;
-        }
-      }
-    }
-
     for (Foo foo : foos) {
       content.append("  public void ").append(foo.methodStart).append(" {\r\n");
       first = true;
@@ -175,7 +230,7 @@ class ProtoReaderGenerator {
     first = true;
     for (Descriptors.Descriptor messageType : all.values()) {
       for (Descriptors.FieldDescriptor field : messageType.getFields()) {
-        if (field.getJavaType() != Descriptors.FieldDescriptor.JavaType.MESSAGE) {
+        if (field.getType() != Descriptors.FieldDescriptor.Type.MESSAGE) {
           continue;
         }
         if (first) {
@@ -194,7 +249,7 @@ class ProtoReaderGenerator {
           content.append("      }\r\n");
           content.append("      stack.push(map);\r\n");
         } else {
-          if (field.getType() != Descriptors.FieldDescriptor.Type.MESSAGE || field.getMessageType().getFile() == fileDesc) {
+          if (field.getMessageType().getFile() == fileDesc) {
             String i_type;
             if (field.isRepeated()) {
               i_type = "java.util.ArrayList<" + Utils.javaTypeOfInternal(field) + ">";
