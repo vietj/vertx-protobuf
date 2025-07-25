@@ -118,48 +118,49 @@ class ProtoReaderGenerator {
       .filter(field -> field.type == Descriptors.FieldDescriptor.Type.MESSAGE)
       .collect(Collectors.toList());
 
-    StringWriter out = new StringWriter();
-    PrintWriter content = new PrintWriter(out);
+    GenWriter out = new GenWriter();
 
-    content.println("package " + javaPkgFqn + ";");
-    content.println();
-    content.println("import io.vertx.protobuf.Visitor;");
-    content.println("import io.vertx.protobuf.schema.MessageType;");
-    content.println("import io.vertx.protobuf.schema.Field;");
-    content.println("import java.util.Deque;");
-    content.println("import java.util.ArrayDeque;");
-    content.println();
-    content.println("public class ProtoReader implements Visitor {");
-    content.println();
-    content.println("  public final Deque<Object> stack;");
-    content.println("  private Visitor next;");
-    content.println();
-    content.println("  public ProtoReader(Deque<Object> stack) {");
-    content.println("    this.stack = stack;");
-    content.println("  }");
-    content.println();
-    content.println("  public ProtoReader() {");
-    content.println("    this(new ArrayDeque<>());");
-    content.println("  }");
+    out.println(
+      "package " + javaPkgFqn + ";",
+      "",
+      "import io.vertx.protobuf.Visitor;",
+      "import io.vertx.protobuf.schema.MessageType;",
+      "import io.vertx.protobuf.schema.Field;",
+      "import java.util.Deque;",
+      "import java.util.ArrayDeque;",
+      "",
+      "public class ProtoReader implements Visitor {",
+      "",
+      "  public final Deque<Object> stack;",
+      "  private Visitor next;",
+      "",
+      "  public ProtoReader(Deque<Object> stack) {",
+      "    this.stack = stack;", "  }",
+      "", "  public ProtoReader() {",
+      "    this(new ArrayDeque<>());",
+      "  }");
 
     // **************
     // INIT
     // **************
 
-    content.println();
-    content.println("  public void init(MessageType type) {");
-    content.print("    ");
+    out.println(
+      "",
+      "  public void init(MessageType type) {");
+    out.print("    ");
     for (Descriptors.Descriptor messageType : fileDesc.getMessageTypes()) {
-      content.println("if (type == SchemaLiterals." + Utils.schemaLiteralOf(messageType) + ") {");
-      content.println("      stack.push(new " + messageType.getName() + "());");
-      content.print("    } else ");
+      out.println(
+        "if (type == SchemaLiterals." + Utils.schemaLiteralOf(messageType) + ") {",
+        "      stack.push(new " + messageType.getName() + "());",
+        "    } else ");
     }
-    content.println("if (next != null) {");
-    content.println("      next.init(type);");
-    content.println("    } else {");
-    content.println("      throw new UnsupportedOperationException();");
-    content.println("    }");
-    content.println("  }");
+    out.println(
+      "if (next != null) {",
+      "      next.init(type);",
+      "    } else {",
+      "      throw new UnsupportedOperationException();",
+      "    }",
+      "  }");
 
     // **************
     // VISIT STRING
@@ -185,56 +186,62 @@ class ProtoReaderGenerator {
     };
 
     for (VisitMethod visitMethod : visitMethods) {
-      content.println();
-      content.println("  public void " + visitMethod.methodStart + " {");
-      content.print("    ");
+      out.println(
+        "",
+        "  public void " + visitMethod.methodStart + " {");
+      out.print("    ");
       for (FieldDescriptor fd : collected.stream().filter(f -> visitMethod.types.contains(f.type)).collect(Collectors.toList())) {
-        content.println("if (field == SchemaLiterals." + fd.identifier + ") {");
+        out.println("if (field == SchemaLiterals." + fd.identifier + ") {");
         if (fd.entry) {
-          content.println("      stack.push(value);");
+          out.println("      stack.push(value);");
         } else if (fd.repeated) {
-          content.println("      " + fd.containingJavaType + " messageFields = (" + fd.containingJavaType + ")stack.peek()" + ";");
-          content.println("      if (messageFields." + fd.getterMethod + "() == null) {");
-          content.println("        messageFields." + fd.setterMethod + "(new java.util.ArrayList<>());");
-          content.println("      }");
-          content.println("      messageFields." + fd.getterMethod + "().add(" + fd.converter.apply("value") + ");");
+          out.println(
+            "      " + fd.containingJavaType + " messageFields = (" + fd.containingJavaType + ")stack.peek()" + ";",
+            "      if (messageFields." + fd.getterMethod + "() == null) {",
+            "        messageFields." + fd.setterMethod + "(new java.util.ArrayList<>());",
+            "      }",
+            "      messageFields." + fd.getterMethod + "().add(" + fd.converter.apply("value") + ");");
         } else {
-          content.println("      ((" + fd.containingJavaType + ")stack.peek())." + fd.setterMethod + "(" + fd.converter.apply("value") + ");");
+          out.println("      ((" + fd.containingJavaType + ")stack.peek())." + fd.setterMethod + "(" + fd.converter.apply("value") + ");");
         }
-        content.print("    } else ");
+        out.print("    } else ");
       }
-      content.println("if (next != null) {");
-      content.println("      next." + visitMethod.next + ";");
-      content.println("    } else {");
-      content.println("      throw new UnsupportedOperationException();");
-      content.println("    }");
-      content.println("  }");
+      out.println(
+        "if (next != null) {",
+        "      next." + visitMethod.next + ";",
+        "    } else {",
+        "      throw new UnsupportedOperationException();",
+        "    }",
+        "  }");
     }
 
     // **************
     // ENTER
     // **************
 
-    content.println();
-    content.println("  public void enter(Field field) {");
-    content.print("    ");
+    out.println(
+      "",
+      "  public void enter(Field field) {");
+    out.print("    ");
 
     messageFields
       .forEach(field -> {
-        content.println("if (field == SchemaLiterals." + field.identifier + ") {");
+        out.println("if (field == SchemaLiterals." + field.identifier + ") {");
         if (field.map) {
-          content.println("      " + field.containingJavaType + " container = (" + field.containingJavaType + ")stack.peek();");
-          content.println("      " + field.javaType + " map = container." + field.getterMethod + "();");
-          content.println("      if (map == null) {");
-          content.println("        map = new java.util.HashMap<>();");
-          content.println("        container." + field.setterMethod + "(map);");
-          content.println("      }");
-          content.println("      stack.push(map);");
+          out.println(
+            "      " + field.containingJavaType + " container = (" + field.containingJavaType + ")stack.peek();",
+            "      " + field.javaType + " map = container." + field.getterMethod + "();",
+            "      if (map == null) {",
+            "        map = new java.util.HashMap<>();",
+            "        container." + field.setterMethod + "(map);",
+            "      }",
+            "      stack.push(map);");
         } else {
           if (field.imported) {
-            content.println("      Visitor v = new " + field.typePkgFqn + ".ProtoReader(stack);");
-            content.println("      v.init((MessageType)field.type);");
-            content.println("      next = v;");
+            out.println(
+              "      Visitor v = new " + field.typePkgFqn + ".ProtoReader(stack);",
+              "      v.init((MessageType)field.type);",
+              "      next = v;");
           } else {
             String i_type;
             if (field.repeated) {
@@ -242,67 +249,72 @@ class ProtoReaderGenerator {
             } else {
               i_type = field.javaType;
             }
-            content.println("      " + field.javaType + " v = new " + i_type + "();");
-            content.println("      stack.push(v);");
+            out.println("      " + field.javaType + " v = new " + i_type + "();");
+            out.println("      stack.push(v);");
           }
         }
-        content.print("    } else ");
+        out.print("    } else ");
       });
-    content.println("if (next != null) {");
-    content.println("      next.enter(field);");
-    content.println("    } else {");
-    content.println("      throw new UnsupportedOperationException();");
-    content.println("    }");
-    content.println("  }");
+    out.println(
+      "if (next != null) {",
+      "      next.enter(field);",
+      "    } else {",
+      "      throw new UnsupportedOperationException();",
+      "    }",
+      "  }");
 
     // **************
     // VISIT LEAVE
     // **************
 
-    content.println();
-    content.println("  public void leave(Field field) {");
-    content.print("    ");
+    out.println(
+      "",
+      "  public void leave(Field field) {");
+    out.print("    ");
     messageFields
       .forEach(field -> {
-        content.println("if (field == SchemaLiterals." + field.identifier + ") {");
+        out.println("if (field == SchemaLiterals." + field.identifier + ") {");
         if (field.map) {
-          content.println("      Object value = stack.pop();");
-          content.println("      Object key = stack.pop();");
-          content.println("      java.util.Map entries = (java.util.Map)stack.pop();");
-          content.println("      entries.put(key, value);");
+          out.println(
+            "      Object value = stack.pop();",
+            "      Object key = stack.pop();",
+            "      java.util.Map entries = (java.util.Map)stack.pop();",
+            "      entries.put(key, value);");
         } else if (field.entry) {
-          content.println("      //");
+          out.println("      //");
         } else {
           if (field.imported) {
-            content.println("      next.destroy();");
-            content.println("      next = null;");
+            out.println(
+              "      next.destroy();",
+              "      next = null;");
           }
-          content.println("      " + field.javaType + " v = (" + field.javaType + ")stack.pop();");
-          content.println("      ((" + field.containingJavaType + ")stack.peek())." + field.setterMethod + "(v);");
+          out.println(
+            "      " + field.javaType + " v = (" + field.javaType + ")stack.pop();",
+            "      ((" + field.containingJavaType + ")stack.peek())." + field.setterMethod + "(v);");
         }
-        content.print("    } else ");
+        out.print("    } else ");
     });
-    content.println("if (next != null) {");
-    content.println("      next.leave(field);");
-    content.println("    } else {");
-    content.println("      throw new UnsupportedOperationException();");
-    content.println("    }");
-    content.println("  }");
+    out.println(
+      "if (next != null) {",
+      "      next.leave(field);",
+      "    } else {",
+      "      throw new UnsupportedOperationException();",
+      "    }",
+      "  }");
 
     // **************
     // DESTROY
     // **************
 
-    content.println();
-    content.println("  public void destroy() {");
-    content.println("    if (next != null) {");
-    content.println("      next.destroy();");
-    content.println("    }");
-    content.println("  }");
+    out.println(
+      "",
+      "  public void destroy() {",
+      "    if (next != null) {",
+      "      next.destroy();", "    }",
+      "  }");
 
-    content.println("}");
+    out.println("}");
 
-    content.close();
     return PluginProtos.CodeGeneratorResponse.File
       .newBuilder()
       .setName(Utils.absoluteFileName(javaPkgFqn, "ProtoReader"))
