@@ -118,9 +118,6 @@ class ProtoReaderGenerator {
       content.append("  public void ").append(foo.methodStart).append(" {\r\n");
       first = true;
       for (Descriptors.Descriptor mt : all.values()) {
-        if (mt.toProto().getOptions().getMapEntry()) {
-          continue;
-        }
         for (Descriptors.FieldDescriptor fd : mt.getFields()) {
           if (foo.types.contains(fd.getType())) {
             if (first) {
@@ -142,7 +139,9 @@ class ProtoReaderGenerator {
                 converter = s -> "io.vertx.core.buffer.Buffer.buffer(" + s + ")";
                 break;
             }
-            if (fd.isRepeated()) {
+            if (fd.getContainingType().toProto().getOptions().getMapEntry()) {
+              content.append("      stack.push(value);\r\n");
+            } else if (fd.isRepeated()) {
               content.append("      ").append(Utils.javaTypeOf(fd.getContainingType())).append(" blah = (").append(Utils.javaTypeOf(fd.getContainingType())).append(")stack.peek()").append(";\t\n");
               content.append("      if (blah.").append(Utils.getterOf(fd)).append("() == null) {\r\n");
               content.append("        blah.").append(Utils.setterOf(fd)).append("(new java.util.ArrayList<>());\r\n");
@@ -163,7 +162,7 @@ class ProtoReaderGenerator {
       content.append("if (next != null) {\r\n");
       content.append("      next.").append(foo.next).append(";\r\n");
       content.append("    } else {\r\n");
-      content.append("      stack.push(value);\r\n");
+      content.append("      throw new UnsupportedOperationException();\r\n");
       content.append("    }\r\n");
       content.append("  }\r\n");
     }
@@ -220,6 +219,8 @@ class ProtoReaderGenerator {
     }
     content.append("if (next != null) {\r\n");
     content.append("      next.enter(field);\r\n");
+    content.append("    } else {\r\n");
+    content.append("      throw new UnsupportedOperationException();\r\n");
     content.append("    }\r\n");
     content.append("  }\r\n");
 
@@ -229,7 +230,7 @@ class ProtoReaderGenerator {
 
     content.append("  public void leave(Field field) {\r\n");
     first = true;
-    for (Descriptors.Descriptor messageType : fileDesc.getMessageTypes()) {
+    for (Descriptors.Descriptor messageType : all.values()) {
       for (Descriptors.FieldDescriptor field : messageType.getFields()) {
         if (field.getType() != Descriptors.FieldDescriptor.Type.MESSAGE) {
           continue;
@@ -246,6 +247,8 @@ class ProtoReaderGenerator {
           content.append("      Object key = stack.pop();\r\n");
           content.append("      java.util.Map entries = (java.util.Map)stack.pop();\r\n");
           content.append("      entries.put(key, value);\r\n");
+        } else if (field.getContainingType().toProto().getOptions().getMapEntry()) {
+
         } else {
           if (field.getMessageType().getFile() != fileDesc) {
             content.append("      next.destroy();\r\n");
@@ -264,6 +267,8 @@ class ProtoReaderGenerator {
     }
     content.append("if (next != null) {\r\n");
     content.append("      next.leave(field);\r\n");
+    content.append("    } else {\r\n");
+    content.append("      throw new UnsupportedOperationException();\r\n");
     content.append("    }\r\n");
     content.append("  }\r\n");
 
