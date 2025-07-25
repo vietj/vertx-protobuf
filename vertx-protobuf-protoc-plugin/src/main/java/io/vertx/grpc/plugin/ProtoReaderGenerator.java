@@ -127,7 +127,8 @@ class ProtoReaderGenerator {
     content.append("public class ProtoReader implements Visitor {\r\n");
 
     content.append("  public final Deque<Object> stack;\r\n");
-    content.append("  private Visitor next;");
+    content.append("  private Visitor next;\r\n");
+    content.append("\r\n");
     content.append("  public ProtoReader(Deque<Object> stack) {\r\n");
     content.append("    this.stack = stack;\r\n");
     content.append("  }\r\n");
