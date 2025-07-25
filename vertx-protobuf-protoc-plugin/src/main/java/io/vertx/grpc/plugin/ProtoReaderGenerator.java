@@ -40,27 +40,11 @@ class ProtoReaderGenerator {
     public String getterMethod;
     public String setterMethod;
     public String containingJavaType;
-    public boolean isEnum() {
-      return type == Descriptors.FieldDescriptor.Type.ENUM;
-    }
-    public boolean isBool() {
-      return type == Descriptors.FieldDescriptor.Type.BOOL;
-    }
-    public boolean isBytes() {
-      return type == Descriptors.FieldDescriptor.Type.BYTES;
-    }
   }
 
   public PluginProtos.CodeGeneratorResponse.File generate() {
 
     String javaPkgFqn = Utils.extractJavaPkgFqn(fileDesc.toProto());
-
-
-    //
-    STGroup group = new STGroupFile("reader.stg");
-    ST st = group.getInstanceOf("unit");
-
-    st.add("pkg", javaPkgFqn);
 
 
     Map<String, Descriptors.Descriptor> all = Utils.transitiveClosure(fileDesc.getMessageTypes());
@@ -84,24 +68,20 @@ class ProtoReaderGenerator {
           // Bytes
           case BYTES:
             kind = VisitorKind.Bytes;
-            st.add("bytes_field", descriptor);
             break;
           // VarInt32
           case BOOL:
           case ENUM:
           case INT32:
             kind = VisitorKind.VarInt32;
-            st.add("varint32_field", descriptor);
             break;
           // String
           case STRING:
             kind = VisitorKind.String;
-            st.add("string_field", descriptor);
             break;
           // Double
           case DOUBLE:
             kind = VisitorKind.Double;
-            st.add("double_field", descriptor);
             break;
           case MESSAGE:
             kind = VisitorKind.Message;
@@ -146,10 +126,6 @@ class ProtoReaderGenerator {
     content.append("    this(new ArrayDeque<>());\r\n");
     content.append("  }\r\n");
 
-    // STR TEMPL
-
-    content.append(st.render());
-
     // **************
     // INIT
     // **************
@@ -181,7 +157,6 @@ class ProtoReaderGenerator {
     // VISIT STRING
     // **************
 
-/*
     class Foo {
       final String methodStart;
       final Set<Descriptors.FieldDescriptor.Type> types;
@@ -252,7 +227,6 @@ class ProtoReaderGenerator {
       content.append("    }\r\n");
       content.append("  }\r\n");
     }
-*/
 
     // **************
     // ENTER
