@@ -9,16 +9,14 @@ public class Main {
 
   public static void main(String[] args) {
 
-    STGroup group = new STGroupFile("enum.stg");
+    STGroup group = new STGroupFile("test.stg");
 
 
     ST st = group.getInstanceOf("unit");
 
-    st.add("pkg", "com.foo.bar");
-    st.add("name", "Color");
-    st.add("constant", "RED");
-    st.add("constant", "GREEN");
-    st.add("constant", "BLUE");
+    st.add("value", "A");
+    st.add("value", "B");
+    st.add("value", "C");
 
     String result = st.render();
 

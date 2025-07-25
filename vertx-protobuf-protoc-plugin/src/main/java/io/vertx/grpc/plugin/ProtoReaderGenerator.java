@@ -33,7 +33,22 @@ class ProtoReaderGenerator {
   public static class FieldDescriptor {
     public Descriptors.FieldDescriptor.Type type;
     public VisitorKind kind;
-    public boolean map;
+    public boolean mapEntry;
+    public String identifier;
+    public String javaType;
+    public boolean repeated;
+    public String getterMethod;
+    public String setterMethod;
+    public String containingJavaType;
+    public boolean isEnum() {
+      return type == Descriptors.FieldDescriptor.Type.ENUM;
+    }
+    public boolean isBool() {
+      return type == Descriptors.FieldDescriptor.Type.BOOL;
+    }
+    public boolean isBytes() {
+      return type == Descriptors.FieldDescriptor.Type.BYTES;
+    }
   }
 
   public PluginProtos.CodeGeneratorResponse.File generate() {
@@ -41,6 +56,11 @@ class ProtoReaderGenerator {
     String javaPkgFqn = Utils.extractJavaPkgFqn(fileDesc.toProto());
 
 
+    //
+    STGroup group = new STGroupFile("reader.stg");
+    ST st = group.getInstanceOf("unit");
+
+    st.add("pkg", javaPkgFqn);
 
 
     Map<String, Descriptors.Descriptor> all = Utils.transitiveClosure(fileDesc.getMessageTypes());
@@ -48,27 +68,40 @@ class ProtoReaderGenerator {
 
 
     List<FieldDescriptor> collected = new ArrayList<>();
-    for (Descriptors.Descriptor mt : fileDesc.getMessageTypes()) {
+    for (Descriptors.Descriptor mt : all.values()) {
       for (Descriptors.FieldDescriptor fd : mt.getFields()) {
+
+        boolean map;
+        if (fd.getType() == Descriptors.FieldDescriptor.Type.MESSAGE) {
+          map = fd.isMapField();
+        } else {
+          map = fd.getContainingType().toProto().getOptions().getMapEntry();
+        }
+        FieldDescriptor descriptor = new FieldDescriptor();
+
         VisitorKind kind;
         switch (fd.getType()) {
           // Bytes
           case BYTES:
             kind = VisitorKind.Bytes;
+            st.add("bytes_field", descriptor);
             break;
           // VarInt32
           case BOOL:
           case ENUM:
           case INT32:
             kind = VisitorKind.VarInt32;
+            st.add("varint32_field", descriptor);
             break;
           // String
           case STRING:
             kind = VisitorKind.String;
+            st.add("string_field", descriptor);
             break;
           // Double
           case DOUBLE:
             kind = VisitorKind.Double;
+            st.add("double_field", descriptor);
             break;
           case MESSAGE:
             kind = VisitorKind.Message;
@@ -76,27 +109,21 @@ class ProtoReaderGenerator {
           default:
             continue;
         }
-        FieldDescriptor descriptor = new FieldDescriptor();
         descriptor.type = fd.getType();
         descriptor.kind = kind;
+        descriptor.mapEntry = map;
+        descriptor.identifier = Utils.schemaLiteralOf(fd);
+        descriptor.javaType = Utils.javaTypeOf(fd);
+        descriptor.repeated = fd.isRepeated();
+        descriptor.getterMethod = Utils.getterOf(fd);
+        descriptor.setterMethod = Utils.setterOf(fd);
+        descriptor.containingJavaType = Utils.javaTypeOf(fd.getContainingType());
         collected.add(descriptor);
       }
     }
 
-    //
-    STGroup group = new STGroupFile("reader.stg");
-    ST st = group.getInstanceOf("unit");
-
-    st.add("pkg", javaPkgFqn);
 
     StringBuilder content = new StringBuilder();
-    content.append("/*");
-    content.append(st.render());
-    content.append("*/");
-
-
-
-
 
 
 
@@ -118,6 +145,10 @@ class ProtoReaderGenerator {
     content.append("  public ProtoReader() {\r\n");
     content.append("    this(new ArrayDeque<>());\r\n");
     content.append("  }\r\n");
+
+    // STR TEMPL
+
+    content.append(st.render());
 
     // **************
     // INIT
@@ -150,6 +181,7 @@ class ProtoReaderGenerator {
     // VISIT STRING
     // **************
 
+/*
     class Foo {
       final String methodStart;
       final Set<Descriptors.FieldDescriptor.Type> types;
@@ -172,42 +204,41 @@ class ProtoReaderGenerator {
     for (Foo foo : foos) {
       content.append("  public void ").append(foo.methodStart).append(" {\r\n");
       first = true;
-      for (Descriptors.Descriptor mt : all.values()) {
-        for (Descriptors.FieldDescriptor fd : mt.getFields()) {
-          if (foo.types.contains(fd.getType())) {
-            if (first) {
-              content.append("    ");
-              first = false;
-            } else {
-              content.append(" else ");
-            }
-            content.append("if (field == SchemaLiterals.").append(Utils.schemaLiteralOf(fd)).append(") {\r\n");
-            Function<String, String> converter = Function.identity();
-            switch (fd.getType()) {
-              case BOOL:
-                converter = s -> "value == 1";
-                break;
-              case ENUM:
-                converter = s -> Utils.javaTypeOf(fd) + ".valueOf(" + s + ")";
-                break;
-              case BYTES:
-                converter = s -> "io.vertx.core.buffer.Buffer.buffer(" + s + ")";
-                break;
-            }
-            if (fd.getContainingType().toProto().getOptions().getMapEntry()) {
-              content.append("      stack.push(value);\r\n");
-            } else if (fd.isRepeated()) {
-              content.append("      ").append(Utils.javaTypeOf(fd.getContainingType())).append(" blah = (").append(Utils.javaTypeOf(fd.getContainingType())).append(")stack.peek()").append(";\t\n");
-              content.append("      if (blah.").append(Utils.getterOf(fd)).append("() == null) {\r\n");
-              content.append("        blah.").append(Utils.setterOf(fd)).append("(new java.util.ArrayList<>());\r\n");
-              content.append("      }\r\n");
-              content.append("      blah.").append(Utils.getterOf(fd)).append("().add(").append(converter.apply("value")).append(");\t\n");
-            } else {
-              content.append("      ((").append(Utils.javaTypeOf(fd.getContainingType())).append(")stack.peek()).").append(Utils.setterOf(fd)).append("(").append(converter.apply("value")).append(");\t\n");
-            }
-            content.append("    }");
-          }
+      for (FieldDescriptor fd : collected) {
+        if (!foo.types.contains(fd.type)) {
+          continue;
         }
+        if (first) {
+          content.append("    ");
+          first = false;
+        } else {
+          content.append(" else ");
+        }
+        content.append("if (field == SchemaLiterals.").append(fd.identifier).append(") {\r\n");
+        Function<String, String> converter = Function.identity();
+        switch (fd.type) {
+          case BOOL:
+            converter = s -> "value == 1";
+            break;
+          case ENUM:
+            converter = s -> fd.javaType + ".valueOf(" + s + ")";
+            break;
+          case BYTES:
+            converter = s -> "io.vertx.core.buffer.Buffer.buffer(" + s + ")";
+            break;
+        }
+        if (fd.mapEntry) {
+          content.append("      stack.push(value);\r\n");
+        } else if (fd.repeated) {
+          content.append("      ").append(fd.containingJavaType).append(" blah = (").append(fd.containingJavaType).append(")stack.peek()").append(";\t\n");
+          content.append("      if (blah.").append(fd.getterMethod).append("() == null) {\r\n");
+          content.append("        blah.").append(fd.setterMethod).append("(new java.util.ArrayList<>());\r\n");
+          content.append("      }\r\n");
+          content.append("      blah.").append(fd.getterMethod).append("().add(").append(converter.apply("value")).append(");\t\n");
+        } else {
+          content.append("      ((").append(fd.containingJavaType).append(")stack.peek()).").append(fd.setterMethod).append("(").append(converter.apply("value")).append(");\t\n");
+        }
+        content.append("    }");
       }
       if (first) {
         content.append("    ");
@@ -221,6 +252,7 @@ class ProtoReaderGenerator {
       content.append("    }\r\n");
       content.append("  }\r\n");
     }
+*/
 
     // **************
     // ENTER

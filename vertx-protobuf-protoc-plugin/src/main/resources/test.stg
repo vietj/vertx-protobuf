@@ -1,9 +1,5 @@
-unit(pkg, name, value) ::= <<
-package <pkg>;
-
-public enum <name> {
-  <value:init();separator=",">
-}
+unit(value) ::= <<
+  <trunc(value):wrap("a");separator=",">
 >>
 
-init(v) ::= "_<v>_"
+wrap(v, w) ::= "_<v>-<w>_"

@@ -1,3 +1,69 @@
-unit(pkg) ::= <<
-HOLA
+unit(pkg, string_field, varint32_field, bytes_field, double_field) ::= <<
+
+  public void visitString(Field field, String value) {
+    <string_field:bilto();separator="\n">
+    if (next != null) {
+      next.visitString(field, value);
+    } else {
+      throw new UnsupportedOperationException();
+    }
+  }
+
+  public void visitBytes(Field field, byte[] value) {
+    <bytes_field:bilto();separator="\n">
+    if (next != null) {
+      next.visitBytes(field, value);
+    } else {
+      throw new UnsupportedOperationException();
+    }
+  }
+
+  public void visitVarInt32(Field field, int value) {
+    <varint32_field:bilto();separator="\n">
+    if (next != null) {
+      next.visitVarInt32(field, value);
+    } else {
+      throw new UnsupportedOperationException();
+    }
+  }
+
+  public void visitDouble(Field field, double value) {
+    <double_field:bilto();separator="\n">
+    if (next != null) {
+      next.visitDouble(field, value);
+    } else {
+      throw new UnsupportedOperationException();
+    }
+  }
+
 >>
+
+bilto(field) ::= <<
+if (field == SchemaLiterals.<field.identifier>) {
+  <if(field.mapEntry)>
+  stack.push(value);
+  <elseif(field.repeated)>
+  <field.containingJavaType> container = (<field.containingJavaType>)stack.peek();
+  if (container.<field.getterMethod>() == null) {
+    container.<field.setterMethod>(new java.util.ArrayList\<\>());
+  }
+  container.<field.getterMethod>().add(value);
+  <else>
+  ((<field.containingJavaType>)stack.peek()).<field.setterMethod>(<convert(field, "value")>);
+  <endif>
+  return;
+}
+>>
+
+
+convert(field, value) ::= <%
+<if(field.enum)>
+<field.javaType>.valueOf(<value>)
+<elseif(field.bool)>
+<value> == 1
+<elseif(field.bytes)>
+io.vertx.core.buffer.Buffer.buffer(<value>)
+<else>
+<value>
+<endif>
+%>
