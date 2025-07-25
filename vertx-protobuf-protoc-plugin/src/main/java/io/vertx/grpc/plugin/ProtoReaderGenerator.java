@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 class ProtoReaderGenerator {
 
@@ -40,6 +41,7 @@ class ProtoReaderGenerator {
     public String getterMethod;
     public String setterMethod;
     public String containingJavaType;
+    public Function<String, String> converter;
   }
 
   public PluginProtos.CodeGeneratorResponse.File generate() {
@@ -89,6 +91,18 @@ class ProtoReaderGenerator {
           default:
             continue;
         }
+        Function<String, String> converter = Function.identity();
+        switch (fd.getType()) {
+          case BOOL:
+            converter = s -> "value == 1";
+            break;
+          case ENUM:
+            converter = s -> Utils.javaTypeOf(fd) + ".valueOf(" + s + ")";
+            break;
+          case BYTES:
+            converter = s -> "io.vertx.core.buffer.Buffer.buffer(" + s + ")";
+            break;
+        }
         descriptor.type = fd.getType();
         descriptor.kind = kind;
         descriptor.mapEntry = map;
@@ -98,6 +112,7 @@ class ProtoReaderGenerator {
         descriptor.getterMethod = Utils.getterOf(fd);
         descriptor.setterMethod = Utils.setterOf(fd);
         descriptor.containingJavaType = Utils.javaTypeOf(fd.getContainingType());
+        descriptor.converter = converter;
         collected.add(descriptor);
       }
     }
@@ -178,30 +193,9 @@ class ProtoReaderGenerator {
 
     for (Foo foo : foos) {
       content.append("  public void ").append(foo.methodStart).append(" {\r\n");
-      first = true;
-      for (FieldDescriptor fd : collected) {
-        if (!foo.types.contains(fd.type)) {
-          continue;
-        }
-        if (first) {
-          content.append("    ");
-          first = false;
-        } else {
-          content.append(" else ");
-        }
+      content.append("    ");
+      for (FieldDescriptor fd : collected.stream().filter(f -> foo.types.contains(f.type)).collect(Collectors.toList())) {
         content.append("if (field == SchemaLiterals.").append(fd.identifier).append(") {\r\n");
-        Function<String, String> converter = Function.identity();
-        switch (fd.type) {
-          case BOOL:
-            converter = s -> "value == 1";
-            break;
-          case ENUM:
-            converter = s -> fd.javaType + ".valueOf(" + s + ")";
-            break;
-          case BYTES:
-            converter = s -> "io.vertx.core.buffer.Buffer.buffer(" + s + ")";
-            break;
-        }
         if (fd.mapEntry) {
           content.append("      stack.push(value);\r\n");
         } else if (fd.repeated) {
@@ -209,16 +203,11 @@ class ProtoReaderGenerator {
           content.append("      if (blah.").append(fd.getterMethod).append("() == null) {\r\n");
           content.append("        blah.").append(fd.setterMethod).append("(new java.util.ArrayList<>());\r\n");
           content.append("      }\r\n");
-          content.append("      blah.").append(fd.getterMethod).append("().add(").append(converter.apply("value")).append(");\t\n");
+          content.append("      blah.").append(fd.getterMethod).append("().add(").append(fd.converter.apply("value")).append(");\t\n");
         } else {
-          content.append("      ((").append(fd.containingJavaType).append(")stack.peek()).").append(fd.setterMethod).append("(").append(converter.apply("value")).append(");\t\n");
+          content.append("      ((").append(fd.containingJavaType).append(")stack.peek()).").append(fd.setterMethod).append("(").append(fd.converter.apply("value")).append(");\t\n");
         }
-        content.append("    }");
-      }
-      if (first) {
-        content.append("    ");
-      } else {
-        content.append(" else ");
+        content.append("    } else ");
       }
       content.append("if (next != null) {\r\n");
       content.append("      next.").append(foo.next).append(";\r\n");
