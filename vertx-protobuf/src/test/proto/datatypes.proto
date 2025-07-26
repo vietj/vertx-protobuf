@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package io.vertx.tests.protobuf.datatypes;
+
+option java_package = "io.vertx.tests.protobuf.datatypes";
+option java_outer_classname = "DataTypesProto";
+
+message DataTypes {
+  string string = 1;
+  bytes bytes = 2;
+  int32 int32 = 3;
+  int64 int64 = 4;
+  uint32 uint32 = 5;
+  uint64 uint64 = 6;
+}

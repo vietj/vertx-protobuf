@@ -31,6 +31,7 @@ class ProtoWriterGenerator {
     TYPE_TO.put(Descriptors.FieldDescriptor.Type.BOOL, new Bilto("visitVarInt32", s -> s + "? 1 : 0"));
     TYPE_TO.put(Descriptors.FieldDescriptor.Type.ENUM, new Bilto("visitVarInt32", s -> s + ".index()"));
     TYPE_TO.put(Descriptors.FieldDescriptor.Type.INT32, new Bilto("visitVarInt32"));
+    TYPE_TO.put(Descriptors.FieldDescriptor.Type.INT64, new Bilto("visitVarInt64"));
   }
 
   private final Descriptors.FileDescriptor fileDesc;

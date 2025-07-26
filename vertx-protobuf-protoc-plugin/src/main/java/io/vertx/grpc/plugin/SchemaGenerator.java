@@ -72,6 +72,9 @@ class SchemaGenerator {
           case INT32:
             typeExpr = "ScalarType.INT32";
             break;
+          case INT64:
+            typeExpr = "ScalarType.INT64";
+            break;
           case MESSAGE:
             typeExpr = field.getMessageType().getFile().getOptions().getJavaPackage() + ".SchemaLiterals." + Utils.schemaLiteralOf(field.getMessageType());
             break;

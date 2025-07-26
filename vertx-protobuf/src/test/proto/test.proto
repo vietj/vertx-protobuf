@@ -11,9 +11,10 @@ message SimpleMessage {
   string string_field = 1;
   bytes bytes_field = 2;
   int32 int32_field = 3;
-  repeated string string_list_field = 4;
-  map<string, string> map_string_string = 5;
-  map<string, int32> map_string_int32 = 6;
+  int64 int64_field = 4;
+  repeated string string_list_field = 5;
+  map<string, string> map_string_string = 6;
+  map<string, int32> map_string_int32 = 7;
 }
 
 enum Colors {

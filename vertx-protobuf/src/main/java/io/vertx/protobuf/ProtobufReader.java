@@ -28,7 +28,12 @@ public class ProtobufReader {
       case BOOL:
       case ENUM:
       case INT32:
+      case UINT32:
         visitor.visitVarInt32(field, value);
+        break;
+      case INT64:
+      case UINT64:
+        visitor.visitVarInt64(field, value);
         break;
       default:
         throw new UnsupportedOperationException("" + field.type);
@@ -66,6 +71,7 @@ public class ProtobufReader {
     ProtobufDecoder decoder = new ProtobufDecoder(buffer);
     visitor.init(rootType);
     parse(decoder, rootType, visitor);
+    visitor.destroy();
   }
 
   private static void parse(ProtobufDecoder decoder, MessageType type, Visitor visitor) {

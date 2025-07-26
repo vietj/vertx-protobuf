@@ -89,7 +89,11 @@ public class Utils {
       case DOUBLE:
         return "java.lang.Double";
       case INT32:
+      case UINT32:
         return "java.lang.Integer";
+      case INT64:
+      case UINT64:
+        return "java.lang.Long";
       case ENUM:
         pkg = extractJavaPkgFqn(field.getEnumType().getFile());
         return pkg + "." + field.getEnumType().getName();
