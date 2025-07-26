@@ -61,6 +61,32 @@ public class RecordingVisitor implements Visitor {
     }
   }
 
+  private static class Fixed32 extends Record {
+    private final Field field;
+    private final int value;
+    Fixed32(Field field, int value) {
+      this.field = field;
+      this.value = value;
+    }
+    @Override
+    protected void apply(Visitor visitor) {
+      visitor.visitFixed32(field, value);
+    }
+  }
+
+  private static class Fixed64 extends Record {
+    private final Field field;
+    private final long value;
+    Fixed64(Field field, long value) {
+      this.field = field;
+      this.value = value;
+    }
+    @Override
+    protected void apply(Visitor visitor) {
+      visitor.visitFixed64(field, value);
+    }
+  }
+
   private List<Record> records = new ArrayList<>();
 
   @Override
@@ -86,6 +112,16 @@ public class RecordingVisitor implements Visitor {
   @Override
   public void visitDouble(Field field, double d) {
 
+  }
+
+  @Override
+  public void visitFixed32(Field field, int v) {
+    records.add(new Fixed32(field, v));
+  }
+
+  @Override
+  public void visitFixed64(Field field, long v) {
+    records.add(new Fixed64(field, v));
   }
 
   @Override
@@ -123,10 +159,10 @@ public class RecordingVisitor implements Visitor {
     }
 
     private <E extends Record> E expecting(Class<E> type) {
-      Record expected = expectations.poll();
-      assertNotNull(expected);
-      assertTrue(type.isInstance(expected));
-      return type.cast(expected);
+      Record expectation = expectations.poll();
+      assertNotNull(expectation);
+      assertTrue("Expecting an instance of " + type.getName() + " instead of " + expectation.getClass().getName(), type.isInstance(expectation));
+      return type.cast(expectation);
     }
 
     @Override
@@ -156,6 +192,20 @@ public class RecordingVisitor implements Visitor {
     @Override
     public void visitDouble(Field field, double d) {
       throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void visitFixed32(Field field, int v) {
+      Fixed32 expectation = expecting(Fixed32.class);
+      assertSame(expectation.field, field);
+      assertEquals(expectation.value, v);
+    }
+
+    @Override
+    public void visitFixed64(Field field, long v) {
+      Fixed64 expectation = expecting(Fixed64.class);
+      assertSame(expectation.field, field);
+      assertEquals(expectation.value, v);
     }
 
     @Override

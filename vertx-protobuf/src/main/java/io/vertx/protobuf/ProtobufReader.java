@@ -16,6 +16,16 @@ public class ProtobufReader {
         double d = decoder.doubleValue();
         visitor.visitDouble(field, d);
         break;
+      case FIXED32:
+        assertTrue(decoder.readInt());
+        int i = decoder.intValue();
+        visitor.visitFixed32(field, i);
+        break;
+      case FIXED64:
+        assertTrue(decoder.readLong());
+        long j = decoder.longValue();
+        visitor.visitFixed64(field, j);
+        break;
       default:
         throw new UnsupportedOperationException();
     }
@@ -39,7 +49,7 @@ public class ProtobufReader {
 
   private static void parseVarInt(ProtobufDecoder decoder, Field field, Visitor visitor) {
     assertTrue(decoder.readVarInt());
-    int value = decoder.int32Value();
+    int value = decoder.intValue();
     switch (field.type.id()) {
       case SINT32:
         value = decodeSint32(value);
@@ -62,7 +72,7 @@ public class ProtobufReader {
 
   private static void parseLen(ProtobufDecoder decoder, Field field, Visitor visitor) {
     assertTrue(decoder.readVarInt());
-    int len = decoder.int32Value();
+    int len = decoder.intValue();
     if (field.type instanceof MessageType) {
       int to = decoder.len();
       decoder.len(decoder.index() + len);
@@ -107,6 +117,9 @@ public class ProtobufReader {
           parseLen(decoder, field, visitor);
           break;
         case I64:
+          parseFixed(decoder, field, visitor);
+          break;
+        case I32:
           parseFixed(decoder, field, visitor);
           break;
         case VARINT:

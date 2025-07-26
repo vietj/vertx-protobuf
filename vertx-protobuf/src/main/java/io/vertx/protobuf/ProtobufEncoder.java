@@ -19,7 +19,7 @@ public class ProtobufEncoder {
   }
 
   public ProtobufEncoder writeTag(int fieldNumber, int wireType) {
-    int tag = fieldNumber << 3 | (wireType & 0x03);
+    int tag = (fieldNumber << 3) | (wireType & 0x07);
     writeRawVarint32(buffer, tag);
     return this;
   }
@@ -32,6 +32,16 @@ public class ProtobufEncoder {
   public ProtobufEncoder writeDouble(double d) {
     long l = Double.doubleToRawLongBits(d);
     buffer.appendLongLE(l);
+    return this;
+  }
+
+  public ProtobufEncoder writeInt(int d) {
+    buffer.appendIntLE(d);
+    return this;
+  }
+
+  public ProtobufEncoder writeLong(long d) {
+    buffer.appendLongLE(d);
     return this;
   }
 

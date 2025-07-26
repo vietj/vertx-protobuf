@@ -11,6 +11,7 @@ public class ProtobufDecoder {
   private int fieldNumber;
   private int wireType;
   private int intValue;
+  private long longValue;
   private double doubleValue;
 
   public ProtobufDecoder(Buffer buffer) {
@@ -69,8 +70,12 @@ public class ProtobufDecoder {
     return wireType;
   }
 
-  public int int32Value() {
+  public int intValue() {
     return intValue;
+  }
+
+  public long longValue() {
+    return longValue;
   }
 
   public double doubleValue() {
@@ -87,6 +92,20 @@ public class ProtobufDecoder {
     long l = buffer.getLongLE(idx);
     idx += 8;
     doubleValue = Double.longBitsToDouble(l);
+    return true;
+  }
+
+  public boolean readInt() {
+    int l = buffer.getIntLE(idx);
+    idx += 4;
+    intValue = l;
+    return true;
+  }
+
+  public boolean readLong() {
+    long l = buffer.getLongLE(idx);
+    idx += 8;
+    longValue = l;
     return true;
   }
 

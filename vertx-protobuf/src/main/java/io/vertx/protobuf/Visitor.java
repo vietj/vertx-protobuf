@@ -22,6 +22,14 @@ public interface Visitor {
 
   void visitDouble(Field field, double d);
 
+  default void visitFixed32(Field field, int v) {
+    throw new UnsupportedOperationException();
+  }
+
+  default void visitFixed64(Field field, long v) {
+    throw new UnsupportedOperationException();
+  }
+
   void enter(Field field);
 
   void leave(Field field);

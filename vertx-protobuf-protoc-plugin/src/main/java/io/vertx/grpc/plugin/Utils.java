@@ -91,10 +91,12 @@ public class Utils {
       case INT32:
       case UINT32:
       case SINT32:
+      case FIXED32:
         return "java.lang.Integer";
       case INT64:
       case UINT64:
       case SINT64:
+      case FIXED64:
         return "java.lang.Long";
       case ENUM:
         pkg = extractJavaPkgFqn(field.getEnumType().getFile());

@@ -22,6 +22,8 @@ public class DataTypeTest {
   private static final Field UINT64 = DATA_TYPE.addField(6, ScalarType.UINT64);
   private static final Field SINT32 = DATA_TYPE.addField(7, ScalarType.SINT32);
   private static final Field SINT64 = DATA_TYPE.addField(8, ScalarType.SINT64);
+  private static final Field FIXED32 = DATA_TYPE.addField(9, ScalarType.FIXED32);
+  private static final Field FIXED64 = DATA_TYPE.addField(10, ScalarType.FIXED64);
 
   private void testDataType(RecordingVisitor visitor, DataTypesProto.DataTypes expected) throws Exception {
     byte[] bytes = expected.toByteArray();
@@ -111,6 +113,7 @@ public class DataTypeTest {
   @Test
   public void testSint32() throws Exception {
     testSint32(4);
+    testSint32(-4);
     // testSint32(Integer.MAX_VALUE);
   }
 
@@ -125,6 +128,7 @@ public class DataTypeTest {
   @Test
   public void testSint64() throws Exception {
     testSint64(4);
+    testSint64(-4);
     // testSint32(Integer.MAX_VALUE);
   }
 
@@ -134,5 +138,33 @@ public class DataTypeTest {
     visitor.visitVarInt64(SINT64, value);
     visitor.destroy();
     testDataType(visitor, DataTypesProto.DataTypes.newBuilder().setSint64(value).build());
+  }
+
+  @Test
+  public void testFixed32() throws Exception {
+    testFixed32(4);
+    testFixed32(Integer.MAX_VALUE);
+  }
+
+  private void testFixed32(int value) throws Exception {
+    RecordingVisitor visitor = new RecordingVisitor();
+    visitor.init(DATA_TYPE);
+    visitor.visitFixed32(FIXED32, value);
+    visitor.destroy();
+    testDataType(visitor, DataTypesProto.DataTypes.newBuilder().setFixed32(value).build());
+  }
+
+  @Test
+  public void testFixed64() throws Exception {
+    testFixed64(4);
+    testFixed64(Integer.MAX_VALUE);
+  }
+
+  private void testFixed64(long value) throws Exception {
+    RecordingVisitor visitor = new RecordingVisitor();
+    visitor.init(DATA_TYPE);
+    visitor.visitFixed64(FIXED64, value);
+    visitor.destroy();
+    testDataType(visitor, DataTypesProto.DataTypes.newBuilder().setFixed64(value).build());
   }
 }
