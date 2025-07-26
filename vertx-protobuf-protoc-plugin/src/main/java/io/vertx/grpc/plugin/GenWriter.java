@@ -1,5 +1,11 @@
 package io.vertx.grpc.plugin;
 
+import java.util.Spliterators;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
+
 public class GenWriter {
 
   private StringBuilder content = new StringBuilder();

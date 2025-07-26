@@ -2,15 +2,9 @@ package io.vertx.grpc.plugin;
 
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.compiler.PluginProtos;
-import org.stringtemplate.v4.ST;
-import org.stringtemplate.v4.STGroup;
-import org.stringtemplate.v4.STGroupFile;
-import org.stringtemplate.v4.STGroupString;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -40,15 +34,52 @@ class EnumGenerator {
   }
 
   private PluginProtos.CodeGeneratorResponse.File buildFiles(String javaPkgFqn, Descriptors.EnumDescriptor enumType) {
-    STGroup group = new STGroupFile("enum.stg");
-    ST st = group.getInstanceOf("unit");
-    st.add("pkg", javaPkgFqn);
-    st.add("name", enumType.getName());
+    List<Constant> constants = new ArrayList<>();
     for (Descriptors.EnumValueDescriptor enumValue : enumType.getValues()) {
       Constant constant = new Constant(enumValue.getName(), enumValue.getIndex());
-      st.add("constant", constant);
+      constants.add(constant);
     }
-    String result = st.render();
-    return Utils.buildFile(javaPkgFqn, enumType, result);
+
+    GenWriter writer = new GenWriter();
+
+    writer.println(
+      "package " + javaPkgFqn + ";",
+      "public enum " + enumType.getName() + " {",
+      "");
+
+    for (Iterator<Constant> it = constants.iterator(); it.hasNext();) {
+      Constant constant = it.next();
+      writer.println(
+        "  " + constant.identifier + "(" + constant.index + ")" + (it.hasNext() ? "," : ";"));
+    }
+
+    writer.println(
+      "",
+      "  private static final java.util.Map<Integer, " + enumType.getName() + "> BY_INDEX = new java.util.HashMap<>();",
+      "",
+      "  public static " + enumType.getName() + " valueOf(int index) {",
+      "    return BY_INDEX.get(index);",
+      "  }",
+      "",
+      "  static {",
+      "    for (" + enumType.getName() + " value : values()) {",
+      "      BY_INDEX.put(value.index, value);",
+      "    }",
+      "  }",
+      "",
+      "  private final int index;",
+      "",
+      "  " + enumType.getName() + "(int index) {",
+      "    this.index = index;",
+      "  }",
+      "",
+      "  public int index() {",
+      "    return index;",
+      "  }",
+      "}"
+    );
+
+
+    return Utils.buildFile(javaPkgFqn, enumType, writer.toString());
   }
 }
