@@ -26,12 +26,21 @@ class ProtoWriterGenerator {
 
   static {
     TYPE_TO.put(Descriptors.FieldDescriptor.Type.BYTES, new Bilto("visitBytes", s -> s + ".getBytes()"));
+    TYPE_TO.put(Descriptors.FieldDescriptor.Type.FLOAT, new Bilto("visitFloat"));
     TYPE_TO.put(Descriptors.FieldDescriptor.Type.DOUBLE, new Bilto("visitDouble"));
     TYPE_TO.put(Descriptors.FieldDescriptor.Type.STRING, new Bilto("visitString"));
     TYPE_TO.put(Descriptors.FieldDescriptor.Type.BOOL, new Bilto("visitVarInt32", s -> s + "? 1 : 0"));
     TYPE_TO.put(Descriptors.FieldDescriptor.Type.ENUM, new Bilto("visitVarInt32", s -> s + ".index()"));
     TYPE_TO.put(Descriptors.FieldDescriptor.Type.INT32, new Bilto("visitVarInt32"));
+    TYPE_TO.put(Descriptors.FieldDescriptor.Type.UINT32, new Bilto("visitVarInt32"));
     TYPE_TO.put(Descriptors.FieldDescriptor.Type.INT64, new Bilto("visitVarInt64"));
+    TYPE_TO.put(Descriptors.FieldDescriptor.Type.UINT64, new Bilto("visitVarInt64"));
+    TYPE_TO.put(Descriptors.FieldDescriptor.Type.SINT32, new Bilto("visitVarInt32"));
+    TYPE_TO.put(Descriptors.FieldDescriptor.Type.SINT64, new Bilto("visitVarInt64"));
+    TYPE_TO.put(Descriptors.FieldDescriptor.Type.FIXED32, new Bilto("visitFixed32"));
+    TYPE_TO.put(Descriptors.FieldDescriptor.Type.FIXED64, new Bilto("visitFixed64"));
+    TYPE_TO.put(Descriptors.FieldDescriptor.Type.SFIXED32, new Bilto("visitSfixed32"));
+    TYPE_TO.put(Descriptors.FieldDescriptor.Type.SFIXED64, new Bilto("visitSfixed64"));
   }
 
   private final Descriptors.FileDescriptor fileDesc;
@@ -74,7 +83,7 @@ class ProtoWriterGenerator {
                 default:
                   Bilto res = TYPE_TO.get(field.getMessageType().getFields().get(0).getType());
                   if (res == null) {
-                    throw new UnsupportedOperationException("Handle me");
+                    throw new UnsupportedOperationException("Handle me " + field.getMessageType().getFields().get(0).getType() + " not mapped");
                   }
                   content.append("        visitor.").append(res.visitMethod).append("(SchemaLiterals.").append(Utils.schemaLiteralOf(field.getMessageType().getFields().get(0))).append(", ").append(res.fn.apply("entry.getKey()")).append(");\r\n");
               }
@@ -87,7 +96,7 @@ class ProtoWriterGenerator {
                 default:
                   Bilto res = TYPE_TO.get(field.getMessageType().getFields().get(1).getType());
                   if (res == null) {
-                    throw new UnsupportedOperationException();
+                    throw new UnsupportedOperationException("Not found " + field.getMessageType().getFields().get(1).getType());
                   } else {
                     content.append("        visitor.").append(res.visitMethod).append("(SchemaLiterals.").append(Utils.schemaLiteralOf(field.getMessageType().getFields().get(1))).append(", ").append(res.fn.apply("entry.getValue()")).append(");\r\n");
                   }
