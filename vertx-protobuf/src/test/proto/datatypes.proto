@@ -12,4 +12,5 @@ message DataTypes {
   int64 int64 = 4;
   uint32 uint32 = 5;
   uint64 uint64 = 6;
+  sint32 sint32 = 7;
 }

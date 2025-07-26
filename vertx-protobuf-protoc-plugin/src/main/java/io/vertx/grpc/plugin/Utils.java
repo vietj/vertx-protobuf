@@ -90,6 +90,7 @@ public class Utils {
         return "java.lang.Double";
       case INT32:
       case UINT32:
+      case SINT32:
         return "java.lang.Integer";
       case INT64:
       case UINT64:

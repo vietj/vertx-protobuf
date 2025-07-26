@@ -21,14 +21,25 @@ public class ProtobufReader {
     }
   }
 
+  private static int decodeSint32(int value) {
+    int b;
+    if ((value & 1) == 0) {
+      return value >> 1;
+    } else {
+      return (value + 1) / -2;
+    }
+  }
+
   private static void parseVarInt(ProtobufDecoder decoder, Field field, Visitor visitor) {
     assertTrue(decoder.readVarInt());
     int value = decoder.int32Value();
     switch (field.type.id()) {
+      case SINT32:
+        value = decodeSint32(value);
       case BOOL:
       case ENUM:
-      case INT32:
       case UINT32:
+      case INT32:
         visitor.visitVarInt32(field, value);
         break;
       case INT64:

@@ -4,6 +4,7 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.EncodeException;
 import io.vertx.protobuf.schema.Field;
 import io.vertx.protobuf.schema.MessageType;
+import io.vertx.protobuf.schema.ScalarType;
 import io.vertx.protobuf.schema.WireType;
 
 import java.nio.charset.StandardCharsets;
@@ -12,6 +13,10 @@ import java.util.function.Consumer;
 import static java.lang.Character.MIN_SUPPLEMENTARY_CODE_POINT;
 
 public class ProtobufWriter {
+
+  private static int encodeSint32(int value) {
+    return (value << 1) ^ (value >> 31);
+  }
 
   public static Buffer encode(Consumer<Visitor> consumer) {
     return Buffer.buffer(encodeToByteArray(consumer));
@@ -46,6 +51,9 @@ public class ProtobufWriter {
 
     @Override
     public void visitVarInt32(Field field, int v) {
+      if (field.type == ScalarType.SINT32) {
+        v = encodeSint32(v);
+      }
       lengths[depth] += 1 + ProtobufEncoder.computeRawVarint32Size(v);
     }
 
@@ -132,6 +140,9 @@ public class ProtobufWriter {
 
     @Override
     public void visitVarInt32(Field field, int v) {
+      if (field.type == ScalarType.SINT32) {
+        v = encodeSint32(v);
+      }
       encoder.writeTag(field.number, WireType.VARINT.id);
       encoder.writeVarInt32(v);
     }

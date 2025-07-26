@@ -20,6 +20,7 @@ public class DataTypeTest {
   private static final Field INT64 = DATA_TYPE.addField(4, ScalarType.INT64);
   private static final Field UINT32 = DATA_TYPE.addField(5, ScalarType.UINT32);
   private static final Field UINT64 = DATA_TYPE.addField(6, ScalarType.UINT64);
+  private static final Field SINT32 = DATA_TYPE.addField(7, ScalarType.SINT32);
 
   private void testDataType(RecordingVisitor visitor, DataTypesProto.DataTypes expected) throws Exception {
     byte[] bytes = expected.toByteArray();
@@ -28,6 +29,40 @@ public class DataTypeTest {
     assertTrue(checker.isEmpty());
     bytes = ProtobufWriter.encode(visitor::apply).getBytes();
     assertEquals(expected, DataTypesProto.DataTypes.parseFrom(bytes));
+  }
+
+  @Test
+  public void testSint() {
+    test(0, 0);
+    test(1, -1);
+    test(2, 1);
+    test(3, -2);
+    test(4, 2);
+    test(5, -3);
+  }
+
+  private static void test(int encoded, int decoded) {
+
+    // Encoding
+    int d = (decoded << 1) ^ (decoded >> 31);
+
+    assertEquals(encoded, d);
+
+    // Decoding
+
+    int b;
+    if ((encoded & 1) == 0) {
+      b = encoded / 2;
+    } else {
+      b = (encoded + 1) / -2;
+    }
+    assertEquals(decoded, b);
+
+//    System.out.println(decoded + " " + c + " ");
+
+
+
+
   }
 
   @Test
@@ -70,5 +105,19 @@ public class DataTypeTest {
     visitor.visitVarInt32(UINT32, value);
     visitor.destroy();
     testDataType(visitor, DataTypesProto.DataTypes.newBuilder().setUint32(value).build());
+  }
+
+  @Test
+  public void testSint32() throws Exception {
+    testSint32(4);
+    // testSint32(Integer.MAX_VALUE);
+  }
+
+  private void testSint32(int value) throws Exception {
+    RecordingVisitor visitor = new RecordingVisitor();
+    visitor.init(DATA_TYPE);
+    visitor.visitVarInt32(SINT32, value);
+    visitor.destroy();
+    testDataType(visitor, DataTypesProto.DataTypes.newBuilder().setSint32(value).build());
   }
 }
