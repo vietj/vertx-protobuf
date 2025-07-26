@@ -5,6 +5,7 @@ import io.vertx.core.json.EncodeException;
 import io.vertx.protobuf.schema.Field;
 import io.vertx.protobuf.schema.MessageType;
 import io.vertx.protobuf.schema.ScalarType;
+import io.vertx.protobuf.schema.TypeID;
 import io.vertx.protobuf.schema.WireType;
 
 import java.nio.charset.StandardCharsets;
@@ -59,6 +60,9 @@ public class ProtobufWriter {
 
     @Override
     public void visitVarInt64(Field field, long v) {
+      if (field.type.id() == TypeID.SINT64) {
+        v = encodeSint32((int) v);
+      }
       lengths[depth] += 1 + ProtobufEncoder.computeRawVarint32Size((int)v);
     }
 
@@ -149,6 +153,9 @@ public class ProtobufWriter {
 
     @Override
     public void visitVarInt64(Field field, long v) {
+      if (field.type.id() == TypeID.SINT64) {
+        v = encodeSint32((int) v);
+      }
       encoder.writeTag(field.number, WireType.VARINT.id);
       encoder.writeVarInt32((int)v);
     }

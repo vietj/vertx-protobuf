@@ -21,6 +21,7 @@ public class DataTypeTest {
   private static final Field UINT32 = DATA_TYPE.addField(5, ScalarType.UINT32);
   private static final Field UINT64 = DATA_TYPE.addField(6, ScalarType.UINT64);
   private static final Field SINT32 = DATA_TYPE.addField(7, ScalarType.SINT32);
+  private static final Field SINT64 = DATA_TYPE.addField(8, ScalarType.SINT64);
 
   private void testDataType(RecordingVisitor visitor, DataTypesProto.DataTypes expected) throws Exception {
     byte[] bytes = expected.toByteArray();
@@ -119,5 +120,19 @@ public class DataTypeTest {
     visitor.visitVarInt32(SINT32, value);
     visitor.destroy();
     testDataType(visitor, DataTypesProto.DataTypes.newBuilder().setSint32(value).build());
+  }
+
+  @Test
+  public void testSint64() throws Exception {
+    testSint64(4);
+    // testSint32(Integer.MAX_VALUE);
+  }
+
+  private void testSint64(long value) throws Exception {
+    RecordingVisitor visitor = new RecordingVisitor();
+    visitor.init(DATA_TYPE);
+    visitor.visitVarInt64(SINT64, value);
+    visitor.destroy();
+    testDataType(visitor, DataTypesProto.DataTypes.newBuilder().setSint64(value).build());
   }
 }

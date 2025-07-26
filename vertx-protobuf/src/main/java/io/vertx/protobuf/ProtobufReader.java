@@ -22,7 +22,14 @@ public class ProtobufReader {
   }
 
   private static int decodeSint32(int value) {
-    int b;
+    if ((value & 1) == 0) {
+      return value >> 1;
+    } else {
+      return (value + 1) / -2;
+    }
+  }
+
+  private static long decodeSint64(long value) {
     if ((value & 1) == 0) {
       return value >> 1;
     } else {
@@ -42,6 +49,8 @@ public class ProtobufReader {
       case INT32:
         visitor.visitVarInt32(field, value);
         break;
+      case SINT64:
+        value = decodeSint32(value);
       case INT64:
       case UINT64:
         visitor.visitVarInt64(field, value);
