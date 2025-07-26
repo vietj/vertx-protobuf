@@ -2,10 +2,9 @@ package io.vertx.grpc.plugin;
 
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.compiler.PluginProtos;
-import org.stringtemplate.v4.ST;
-import org.stringtemplate.v4.STGroup;
-import org.stringtemplate.v4.STGroupFile;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 class SchemaGenerator {
@@ -43,13 +42,12 @@ class SchemaGenerator {
   }
 
   PluginProtos.CodeGeneratorResponse.File generate() {
-    STGroup group = new STGroupFile("schema.stg");
-    ST st = group.getInstanceOf("unit");
     String javaPkgFqn = Utils.extractJavaPkgFqn(file.toProto());
-    st.add("pkg", javaPkgFqn);
     Map<String, Descriptors.Descriptor> all = Utils.transitiveClosure(file.getMessageTypes());
+    List<MessageTypeDeclaration> list = new ArrayList<>();
+    List<FieldDeclaration> list2 = new ArrayList<>();
     all.values().forEach(messageType -> {
-      st.add("message", new MessageTypeDeclaration(Utils.schemaLiteralOf(messageType), messageType.getName()));
+      list.add(new MessageTypeDeclaration(Utils.schemaLiteralOf(messageType), messageType.getName()));
       messageType.getFields().forEach(field -> {
         String identifier = Utils.schemaLiteralOf(field);
         String messageTypeRef = Utils.schemaLiteralOf(messageType);
@@ -80,14 +78,44 @@ class SchemaGenerator {
           default:
             return;
         }
-        st.add("field", new FieldDeclaration(identifier, messageTypeRef, number, typeExpr));
+        list2.add(new FieldDeclaration(identifier, messageTypeRef, number, typeExpr));
       });
     });
+
+    GenWriter writer = new GenWriter();
+
+    writer.println(
+      "package " + javaPkgFqn + ";",
+      "",
+      "import io.vertx.protobuf.schema.Schema;",
+      "import io.vertx.protobuf.schema.MessageType;",
+      "import io.vertx.protobuf.schema.ScalarType;",
+      "import io.vertx.protobuf.schema.EnumType;",
+      "import io.vertx.protobuf.schema.Field;",
+      "",
+      "public class SchemaLiterals {",
+      "",
+      "  public static final Schema SCHEMA = new Schema();",
+      "");
+
+    list.forEach(decl -> {
+      writer.println("  public static final MessageType " + decl.identifier + " = SCHEMA.of(\"" + decl.name +  "\");");
+    });
+
+    writer.println();
+
+    list2.forEach(decl -> {
+      writer.println("  public static final Field " + decl.identifier + " = " + decl.messageTypeRef + ".addField(" + decl.number + ", " + decl.typeExpr + ");");
+    });
+
+    writer.println(
+      "",
+      "}");
 
     return PluginProtos.CodeGeneratorResponse.File
       .newBuilder()
       .setName(Utils.absoluteFileName(javaPkgFqn, "SchemaLiterals"))
-      .setContent(st.render())
+      .setContent(writer.toString())
       .build();
   }
 }
