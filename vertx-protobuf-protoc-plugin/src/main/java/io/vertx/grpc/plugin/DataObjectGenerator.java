@@ -3,7 +3,9 @@ package io.vertx.grpc.plugin;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.compiler.PluginProtos;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 class DataObjectGenerator {
@@ -16,7 +18,8 @@ class DataObjectGenerator {
 
   List<PluginProtos.CodeGeneratorResponse.File> generate() {
     String javaPkgFqn = Utils.extractJavaPkgFqn(fileDesc.toProto());
-    return fileDesc.getMessageTypes()
+    Map<String, Descriptors.Descriptor> stringDescriptorMap = Utils.transitiveClosure(fileDesc.getMessageTypes());
+    return stringDescriptorMap.values()
       .stream()
       .map(mt -> buildFiles(javaPkgFqn, mt))
       .collect(Collectors.toList());

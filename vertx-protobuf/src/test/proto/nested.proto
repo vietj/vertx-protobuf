@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package io.vertx.tests.nesting;
+
+option java_package = "io.vertx.tests.nesting";
+option java_outer_classname = "NestingProto";
+
+message Container {
+  message NestedMessage1 {
+    message NestedMessage2 {
+      string value = 1;
+    }
+    NestedMessage2 nestedMessage = 1;
+  }
+  NestedMessage1 nestedMessage = 1;
+}

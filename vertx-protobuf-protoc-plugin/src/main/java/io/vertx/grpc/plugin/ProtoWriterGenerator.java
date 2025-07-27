@@ -3,7 +3,9 @@ package io.vertx.grpc.plugin;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.compiler.PluginProtos;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
@@ -53,6 +55,8 @@ class ProtoWriterGenerator {
 
     String javaPkgFqn = Utils.extractJavaPkgFqn(fileDesc.toProto());
 
+    List<Descriptors.Descriptor> all = new ArrayList<>(Utils.transitiveClosure(fileDesc.getMessageTypes()).values());
+
     StringBuilder content = new StringBuilder();
 
     content.append("package ").append(javaPkgFqn).append(";\r\n");
@@ -61,7 +65,7 @@ class ProtoWriterGenerator {
     content.append("import io.vertx.protobuf.schema.Field;\r\n");
     content.append("public class ProtoWriter {\r\n");
 
-    for (Descriptors.Descriptor d : fileDesc.getMessageTypes()) {
+    for (Descriptors.Descriptor d : all) {
       content.append("  public static void emit(").append(d.getName()).append(" value, Visitor visitor) {\r\n");
       content.append("    visitor.init(SchemaLiterals.").append(Utils.schemaLiteralOf(d)).append(");\r\n");
       content.append("    visit(value, visitor);\r\n");
@@ -69,7 +73,7 @@ class ProtoWriterGenerator {
       content.append("  }\r\n");
     }
 
-    for (Descriptors.Descriptor d : fileDesc.getMessageTypes()) {
+    for (Descriptors.Descriptor d : all) {
       content.append("  public static void visit(").append(d.getName()).append(" value, Visitor visitor) {\r\n");
       for (Descriptors.FieldDescriptor field : d.getFields()) {
         content.append("    if (value.").append(Utils.getterOf(field)).append("() != null) {\r\n");
