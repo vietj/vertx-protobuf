@@ -12,9 +12,8 @@ public class ProtobufDecoder {
   private int fieldNumber;
   private WireType wireType;
   private int intValue;
-  private long longValue;
   private float floatValue;
-  private double doubleValue;
+  private long longValue;
 
   public ProtobufDecoder(Buffer buffer) {
     this.buffer = buffer;
@@ -69,7 +68,7 @@ public class ProtobufDecoder {
     // Can be branch-less
     if (idx > c) {
       fieldNumber = e >> 3;
-      wireType = wireTypes[e & 0x03];
+      wireType = wireTypes[e & 0b0111];
       return true;
     } else {
       return false;
@@ -88,12 +87,8 @@ public class ProtobufDecoder {
     return intValue;
   }
 
-  public long longValue() {
+  public long i64Value() {
     return longValue;
-  }
-
-  public double doubleValue() {
-    return doubleValue;
   }
 
   public float floatValue() {
@@ -113,13 +108,6 @@ public class ProtobufDecoder {
     return true;
   }
 
-  public boolean readDouble() {
-    long l = buffer.getLongLE(idx);
-    idx += 8;
-    doubleValue = Double.longBitsToDouble(l);
-    return true;
-  }
-
   public boolean readInt() {
     int l = buffer.getIntLE(idx);
     idx += 4;
@@ -127,7 +115,7 @@ public class ProtobufDecoder {
     return true;
   }
 
-  public boolean readLong() {
+  public boolean readI64() {
     long l = buffer.getLongLE(idx);
     idx += 8;
     longValue = l;

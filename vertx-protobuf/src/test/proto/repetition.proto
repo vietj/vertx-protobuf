@@ -10,6 +10,7 @@ message Container {
   repeated int32 repeated_int = 1;
   repeated Enum repeated_enum = 2;
   repeated double repeated_double = 3;
+  repeated fixed64 repeated_fixed64 = 4;
 
 }
 

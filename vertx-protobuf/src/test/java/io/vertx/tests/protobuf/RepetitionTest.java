@@ -29,6 +29,9 @@ public class RepetitionTest {
       .addRepeatedDouble(0)
       .addRepeatedDouble(1)
       .addRepeatedDouble(2)
+      .addRepeatedFixed64(0)
+      .addRepeatedFixed64(1)
+      .addRepeatedFixed64(2)
       .build().toByteArray();
     ProtoReader reader = new ProtoReader();
     ProtobufReader.parse(SchemaLiterals.CONTAINER, reader, Buffer.buffer(bytes));

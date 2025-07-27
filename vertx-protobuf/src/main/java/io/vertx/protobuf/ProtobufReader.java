@@ -9,6 +9,12 @@ import io.vertx.protobuf.schema.ScalarType;
 
 public class ProtobufReader {
 
+  private static void parseI64(ProtobufDecoder decoder, Field field, Visitor visitor) {
+    assertTrue(decoder.readI64());
+    long v = decoder.i64Value();
+    visitor.visitI64(field, v);
+  }
+
   private static void parseFixed(ProtobufDecoder decoder, Field field, Visitor visitor) {
     ScalarType bt = (ScalarType) field.type;
     switch (bt.id()) {
@@ -17,30 +23,15 @@ public class ProtobufReader {
         float f = decoder.floatValue();
         visitor.visitFloat(field, f);
         break;
-      case DOUBLE:
-        assertTrue(decoder.readDouble());
-        double d = decoder.doubleValue();
-        visitor.visitDouble(field, d);
-        break;
       case FIXED32:
         assertTrue(decoder.readInt());
         int i = decoder.intValue();
         visitor.visitFixed32(field, i);
         break;
-      case FIXED64:
-        assertTrue(decoder.readLong());
-        long j = decoder.longValue();
-        visitor.visitFixed64(field, j);
-        break;
       case SFIXED32:
         assertTrue(decoder.readInt());
         int i_ = decoder.intValue();
         visitor.visitSFixed32(field, i_);
-        break;
-      case SFIXED64:
-        assertTrue(decoder.readLong());
-        long j_ = decoder.longValue();
-        visitor.visitSFixed64(field, j_);
         break;
       default:
         throw new UnsupportedOperationException();
@@ -109,15 +100,18 @@ public class ProtobufReader {
           byte[] bytes = decoder.readBytes(len);
           visitor.visitBytes(field, bytes);
           break;
-        case INT32:
-          parsePackedVarInt32(decoder, field, len, visitor);
-          break;
-        case DOUBLE:
-          parsePackedDouble(decoder, field, len, visitor);
-          break;
         default:
           // Packed
-          throw new UnsupportedOperationException("" + field.type);
+          switch (builtInType.wireType()) {
+            case VARINT:
+              parsePackedVarInt32(decoder, field, len, visitor);
+              break;
+            case I64:
+              parsePackedI64(decoder, field, len, visitor);
+              break;
+            default:
+              throw new UnsupportedOperationException("" + field.type);
+          }
       }
     }
   }
@@ -131,12 +125,12 @@ public class ProtobufReader {
     }
   }
 
-  private static void parsePackedDouble(ProtobufDecoder decoder, Field field, int len, Visitor visitor) {
+  private static void parsePackedI64(ProtobufDecoder decoder, Field field, int len, Visitor visitor) {
     int to = decoder.index() + len;
     while (decoder.index() < to) {
-      assertTrue(decoder.readDouble());
-      double v = decoder.doubleValue();
-      visitor.visitDouble(field, v);
+      assertTrue(decoder.readI64());
+      long v = decoder.i64Value();
+      visitor.visitI64(field, v);
     }
   }
 
@@ -160,7 +154,7 @@ public class ProtobufReader {
           parseLen(decoder, field, visitor);
           break;
         case I64:
-          parseFixed(decoder, field, visitor);
+          parseI64(decoder, field, visitor);
           break;
         case I32:
           parseFixed(decoder, field, visitor);

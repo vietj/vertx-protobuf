@@ -3,6 +3,7 @@ package io.vertx.protobuf;
 
 import io.vertx.protobuf.schema.Field;
 import io.vertx.protobuf.schema.MessageType;
+import io.vertx.protobuf.schema.ScalarType;
 
 public interface Visitor {
 
@@ -20,25 +21,45 @@ public interface Visitor {
     throw new UnsupportedOperationException(getClass().getName() + " implement me");
   }
 
-  void visitDouble(Field field, double d);
+  default void visitI64(Field field, long value) {
+    switch (field.type.id()) {
+      case DOUBLE:
+        visitDouble(field, Double.longBitsToDouble(value));
+        break;
+      case FIXED64:
+        visitFixed64(field, value);
+        break;
+      case SFIXED64:
+        visitSFixed64(field, value);
+        break;
+      default:
+        throw new AssertionError();
+    }
+  }
 
-  default void visitFloat(Field field, float f) {
-    throw new UnsupportedOperationException();
+  default void visitDouble(Field field, double d) {
+    visitI64(field, Double.doubleToRawLongBits(d));
+  }
+
+  default void visitFixed64(Field field, long v) {
+    visitI64(field, v);
+  }
+
+  default void visitSFixed64(Field field, long v) {
+    visitI64(field, v);
   }
 
   default void visitFixed32(Field field, int v) {
     throw new UnsupportedOperationException();
   }
 
-  default void visitFixed64(Field field, long v) {
+  default void visitFloat(Field field, float f) {
     throw new UnsupportedOperationException();
   }
+
+
 
   default void visitSFixed32(Field field, int v) {
-    throw new UnsupportedOperationException();
-  }
-
-  default void visitSFixed64(Field field, long v) {
     throw new UnsupportedOperationException();
   }
 

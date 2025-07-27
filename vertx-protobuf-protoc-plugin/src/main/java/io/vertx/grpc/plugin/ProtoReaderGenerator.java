@@ -26,6 +26,7 @@ class ProtoReaderGenerator {
     Bytes,
     VarInt32,
     Double,
+    Fixed64,
     Float,
     Message
   }
@@ -81,6 +82,9 @@ class ProtoReaderGenerator {
             break;
           case MESSAGE:
             kind = VisitorKind.Message;
+            break;
+          case FIXED64:
+            kind = VisitorKind.Fixed64;
             break;
           default:
             continue;
@@ -189,6 +193,7 @@ class ProtoReaderGenerator {
       new VisitMethod("visitBytes(Field field, byte[] value)", "visitBytes(field, value)", Descriptors.FieldDescriptor.Type.BYTES),
       new VisitMethod("visitString(Field field, String value)", "visitString(field, value)", Descriptors.FieldDescriptor.Type.STRING),
       new VisitMethod("visitDouble(Field field, double value)", "visitDouble(field, value)", Descriptors.FieldDescriptor.Type.DOUBLE),
+      new VisitMethod("visitFixed64(Field field, long value)", "visitFixed64(field, value)", Descriptors.FieldDescriptor.Type.FIXED64),
       new VisitMethod("visitVarInt32(Field field, int value)", "visitVarInt32(field, value)", Descriptors.FieldDescriptor.Type.BOOL, Descriptors.FieldDescriptor.Type.ENUM, Descriptors.FieldDescriptor.Type.INT32)
     };
 
