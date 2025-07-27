@@ -2,6 +2,7 @@ package io.vertx.protobuf;
 
 import io.netty.handler.codec.CorruptedFrameException;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.protobuf.schema.WireType;
 
 public class ProtobufDecoder {
 
@@ -9,7 +10,7 @@ public class ProtobufDecoder {
   private int idx;
   private int len;
   private int fieldNumber;
-  private int wireType;
+  private WireType wireType;
   private int intValue;
   private long longValue;
   private float floatValue;
@@ -50,13 +51,25 @@ public class ProtobufDecoder {
     return str;
   }
 
+  private static final WireType[] wireTypes = {
+    WireType.VARINT,
+    WireType.I64,
+    WireType.LEN,
+    null,
+    null,
+    WireType.I32,
+    null,
+    null,
+    null
+  };
+
   public boolean readTag() {
     int c = idx;
     int e = readRawVarint32();
     // Can be branch-less
     if (idx > c) {
       fieldNumber = e >> 3;
-      wireType = e & 0x03;
+      wireType = wireTypes[e & 0x03];
       return true;
     } else {
       return false;
@@ -67,7 +80,7 @@ public class ProtobufDecoder {
     return fieldNumber;
   }
 
-  public int wireType() {
+  public WireType wireType() {
     return wireType;
   }
 

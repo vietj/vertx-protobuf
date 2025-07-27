@@ -2,6 +2,7 @@ package io.vertx.protobuf;
 
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.DecodeException;
+import io.vertx.protobuf.schema.EnumType;
 import io.vertx.protobuf.schema.Field;
 import io.vertx.protobuf.schema.MessageType;
 import io.vertx.protobuf.schema.ScalarType;
@@ -95,6 +96,8 @@ public class ProtobufReader {
       parse(decoder, (MessageType) field.type, visitor);
       visitor.leave(field);
       decoder.len(to);
+    } else if (field.type instanceof EnumType) {
+      parsePackedVarInt32(decoder, field, len, visitor);
     } else {
       ScalarType builtInType = (ScalarType) field.type;
       switch (builtInType.id()) {
@@ -106,9 +109,34 @@ public class ProtobufReader {
           byte[] bytes = decoder.readBytes(len);
           visitor.visitBytes(field, bytes);
           break;
+        case INT32:
+          parsePackedVarInt32(decoder, field, len, visitor);
+          break;
+        case DOUBLE:
+          parsePackedDouble(decoder, field, len, visitor);
+          break;
         default:
+          // Packed
           throw new UnsupportedOperationException("" + field.type);
       }
+    }
+  }
+
+  private static void parsePackedVarInt32(ProtobufDecoder decoder, Field field, int len, Visitor visitor) {
+    int to = decoder.index() + len;
+    while (decoder.index() < to) {
+      assertTrue(decoder.readVarInt());
+      int v = decoder.intValue();
+      visitor.visitVarInt32(field, v);
+    }
+  }
+
+  private static void parsePackedDouble(ProtobufDecoder decoder, Field field, int len, Visitor visitor) {
+    int to = decoder.index() + len;
+    while (decoder.index() < to) {
+      assertTrue(decoder.readDouble());
+      double v = decoder.doubleValue();
+      visitor.visitDouble(field, v);
     }
   }
 
@@ -127,7 +155,7 @@ public class ProtobufReader {
       if (field == null) {
         throw new DecodeException();
       }
-      switch (field.type.wireType()) {
+      switch (decoder.wireType()) {
         case LEN:
           parseLen(decoder, field, visitor);
           break;

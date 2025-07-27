@@ -39,7 +39,7 @@ class DataObjectGenerator {
     });
     content.append("  public ").append(messageType.getName()).append(" init() {\r\n");
     messageType.getFields().forEach(field -> {
-      if (field.getType() == Descriptors.FieldDescriptor.Type.ENUM) {
+      if (field.getType() == Descriptors.FieldDescriptor.Type.ENUM && !field.isRepeated()) {
         content.append("    this.").append(field.getJsonName()).append(" = ").append(Utils.javaTypeOf(field)).append(".valueOf(0);\r\n");
       }
     });

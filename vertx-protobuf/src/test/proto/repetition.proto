@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package io.vertx.tests.repetition;
+
+option java_package = "io.vertx.tests.repetition";
+option java_outer_classname = "RepetitionProto";
+
+message Container {
+
+  repeated int32 repeated_int = 1;
+  repeated Enum repeated_enum = 2;
+  repeated double repeated_double = 3;
+
+}
+
+enum Enum {
+  constant = 0;
+}

@@ -1,0 +1,45 @@
+package io.vertx.tests.protobuf;
+
+import io.vertx.core.buffer.Buffer;
+import io.vertx.protobuf.ProtobufReader;
+import io.vertx.protobuf.ProtobufWriter;
+import io.vertx.tests.repetition.Container;
+import io.vertx.tests.repetition.Enum;
+import io.vertx.tests.repetition.ProtoReader;
+import io.vertx.tests.repetition.ProtoWriter;
+import io.vertx.tests.repetition.SchemaLiterals;
+import io.vertx.tests.repetition.RepetitionProto;
+import org.junit.Test;
+
+import java.util.Arrays;
+import java.util.Collections;
+
+import static org.junit.Assert.assertEquals;
+
+public class RepetitionTest {
+
+  @Test
+  public void testRepetition() throws Exception {
+    RepetitionProto.Enum value = null;
+    byte[] bytes = RepetitionProto.Container.newBuilder()
+      .addRepeatedInt(0)
+      .addRepeatedInt(1)
+      .addRepeatedInt(2)
+      .addRepeatedEnum(RepetitionProto.Enum.constant)
+      .addRepeatedDouble(0)
+      .addRepeatedDouble(1)
+      .addRepeatedDouble(2)
+      .build().toByteArray();
+    ProtoReader reader = new ProtoReader();
+    ProtobufReader.parse(SchemaLiterals.CONTAINER, reader, Buffer.buffer(bytes));
+    Container msg = (Container) reader.stack.pop();
+    assertEquals(Arrays.asList(0, 1, 2), msg.getRepeatedInt());
+    assertEquals(Collections.singletonList(Enum.constant), msg.getRepeatedEnum());
+    assertEquals(Arrays.asList(0D, 1D, 2D), msg.getRepeatedDouble());
+    bytes = ProtobufWriter.encodeToByteArray(visitor -> ProtoWriter.emit(msg, visitor));
+    RepetitionProto.Container container = RepetitionProto.Container.parseFrom(bytes);
+    assertEquals(Arrays.asList(0, 1, 2), container.getRepeatedIntList());
+    assertEquals(Collections.singletonList(RepetitionProto.Enum.constant), container.getRepeatedEnumList());
+    assertEquals(Arrays.asList(0D, 1D, 2D), container.getRepeatedDoubleList());
+  }
+}

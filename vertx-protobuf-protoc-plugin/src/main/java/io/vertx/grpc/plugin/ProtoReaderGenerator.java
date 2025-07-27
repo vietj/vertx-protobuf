@@ -38,6 +38,7 @@ class ProtoReaderGenerator {
     public String identifier;
     public String javaType;
     public boolean repeated;
+    public boolean packed;
     public String getterMethod;
     public String setterMethod;
     public String containingJavaType;
@@ -90,7 +91,7 @@ class ProtoReaderGenerator {
             converter = s -> "value == 1";
             break;
           case ENUM:
-            converter = s -> Utils.javaTypeOf(fd) + ".valueOf(" + s + ")";
+            converter = s -> Utils.javaTypeOfInternal(fd) + ".valueOf(" + s + ")";
             break;
           case BYTES:
             converter = s -> "io.vertx.core.buffer.Buffer.buffer(" + s + ")";
@@ -103,6 +104,7 @@ class ProtoReaderGenerator {
         descriptor.identifier = Utils.schemaLiteralOf(fd);
         descriptor.javaType = Utils.javaTypeOf(fd);
         descriptor.repeated = fd.isRepeated();
+        descriptor.packed = fd.isPacked();
         descriptor.getterMethod = Utils.getterOf(fd);
         descriptor.setterMethod = Utils.setterOf(fd);
         descriptor.containingJavaType = Utils.javaTypeOf(fd.getContainingType());
@@ -110,6 +112,11 @@ class ProtoReaderGenerator {
         descriptor.converter = converter;
         descriptor.imported = fd.getType() == Descriptors.FieldDescriptor.Type.MESSAGE && !Utils.extractJavaPkgFqn(fd.getMessageType().getFile()).equals(javaPkgFqn);
         collected.add(descriptor);
+//
+//        if (descriptor.packed) {
+//          throw new UnsupportedOperationException("Handle me " + descriptor.javaType);
+//        }
+//
       }
     }
 
