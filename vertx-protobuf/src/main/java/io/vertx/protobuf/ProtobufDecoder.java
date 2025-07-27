@@ -12,6 +12,7 @@ public class ProtobufDecoder {
   private int wireType;
   private int intValue;
   private long longValue;
+  private float floatValue;
   private double doubleValue;
 
   public ProtobufDecoder(Buffer buffer) {
@@ -82,10 +83,21 @@ public class ProtobufDecoder {
     return doubleValue;
   }
 
+  public float floatValue() {
+    return floatValue;
+  }
+
   public boolean readVarInt() {
     int c = idx;
     intValue = readRawVarint32();
     return idx > c;
+  }
+
+  public boolean readFloat() {
+    int l = buffer.getIntLE(idx);
+    idx += 4;
+    floatValue = Float.intBitsToFloat(l);
+    return true;
   }
 
   public boolean readDouble() {

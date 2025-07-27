@@ -67,6 +67,11 @@ public class ProtobufWriter {
     }
 
     @Override
+    public void visitFloat(Field field, float f) {
+      lengths[depth] += 1 + 4;
+    }
+
+    @Override
     public void visitDouble(Field field, double d) {
       lengths[depth] += 1 + 8;
     }
@@ -178,6 +183,12 @@ public class ProtobufWriter {
       }
       encoder.writeTag(field.number, WireType.VARINT.id);
       encoder.writeVarInt32((int)v);
+    }
+
+    @Override
+    public void visitFloat(Field field, float f) {
+      encoder.writeTag(field.number, WireType.I32.id);
+      encoder.writeFloat(f);
     }
 
     @Override

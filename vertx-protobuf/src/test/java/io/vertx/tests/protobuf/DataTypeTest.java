@@ -17,15 +17,18 @@ public class DataTypeTest {
 
   private static final Schema SCHEMA = new Schema();
   private static final MessageType DATA_TYPE = SCHEMA.of("DataType");
-  private static final Field INT64 = DATA_TYPE.addField(4, ScalarType.INT64);
-  private static final Field UINT32 = DATA_TYPE.addField(5, ScalarType.UINT32);
-  private static final Field UINT64 = DATA_TYPE.addField(6, ScalarType.UINT64);
-  private static final Field SINT32 = DATA_TYPE.addField(7, ScalarType.SINT32);
-  private static final Field SINT64 = DATA_TYPE.addField(8, ScalarType.SINT64);
-  private static final Field FIXED32 = DATA_TYPE.addField(9, ScalarType.FIXED32);
-  private static final Field FIXED64 = DATA_TYPE.addField(10, ScalarType.FIXED64);
-  private static final Field SFIXED32 = DATA_TYPE.addField(11, ScalarType.SFIXED32);
-  private static final Field SFIXED64 = DATA_TYPE.addField(12, ScalarType.SFIXED64);
+  private static final Field FLOAT = DATA_TYPE.addField(3, ScalarType.FLOAT);
+  private static final Field DOUBLE = DATA_TYPE.addField(4, ScalarType.DOUBLE);
+  private static final Field INT32 = DATA_TYPE.addField(5, ScalarType.INT32);
+  private static final Field INT64 = DATA_TYPE.addField(6, ScalarType.INT64);
+  private static final Field UINT32 = DATA_TYPE.addField(7, ScalarType.UINT32);
+  private static final Field UINT64 = DATA_TYPE.addField(8, ScalarType.UINT64);
+  private static final Field SINT32 = DATA_TYPE.addField(9, ScalarType.SINT32);
+  private static final Field SINT64 = DATA_TYPE.addField(10, ScalarType.SINT64);
+  private static final Field FIXED32 = DATA_TYPE.addField(11, ScalarType.FIXED32);
+  private static final Field FIXED64 = DATA_TYPE.addField(12, ScalarType.FIXED64);
+  private static final Field SFIXED32 = DATA_TYPE.addField(13, ScalarType.SFIXED32);
+  private static final Field SFIXED64 = DATA_TYPE.addField(14, ScalarType.SFIXED64);
 
   private void testDataType(RecordingVisitor visitor, DataTypesProto.DataTypes expected) throws Exception {
     byte[] bytes = expected.toByteArray();
@@ -37,37 +40,31 @@ public class DataTypeTest {
   }
 
   @Test
-  public void testSint() {
-    test(0, 0);
-    test(1, -1);
-    test(2, 1);
-    test(3, -2);
-    test(4, 2);
-    test(5, -3);
+  public void testFloat() throws Exception {
+    testFloat(4);
+    // testVarInt64(Long.MAX_VALUE);
   }
 
-  private static void test(int encoded, int decoded) {
+  private void testFloat(float value) throws Exception {
+    RecordingVisitor visitor = new RecordingVisitor();
+    visitor.init(DATA_TYPE);
+    visitor.visitFloat(FLOAT, value);
+    visitor.destroy();
+    testDataType(visitor, DataTypesProto.DataTypes.newBuilder().setFloat(value).build());
+  }
 
-    // Encoding
-    int d = (decoded << 1) ^ (decoded >> 31);
+  @Test
+  public void testDouble() throws Exception {
+    testDouble(4);
+    // testVarInt64(Long.MAX_VALUE);
+  }
 
-    assertEquals(encoded, d);
-
-    // Decoding
-
-    int b;
-    if ((encoded & 1) == 0) {
-      b = encoded / 2;
-    } else {
-      b = (encoded + 1) / -2;
-    }
-    assertEquals(decoded, b);
-
-//    System.out.println(decoded + " " + c + " ");
-
-
-
-
+  private void testDouble(double value) throws Exception {
+    RecordingVisitor visitor = new RecordingVisitor();
+    visitor.init(DATA_TYPE);
+    visitor.visitDouble(DOUBLE, value);
+    visitor.destroy();
+    testDataType(visitor, DataTypesProto.DataTypes.newBuilder().setDouble(value).build());
   }
 
   @Test

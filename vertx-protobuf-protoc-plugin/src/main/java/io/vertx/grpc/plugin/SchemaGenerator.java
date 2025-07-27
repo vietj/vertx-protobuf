@@ -54,6 +54,9 @@ class SchemaGenerator {
         int number = field.getNumber();
         String typeExpr;
         switch (field.getType()) {
+          case FLOAT:
+            typeExpr = "ScalarType.FLOAT";
+            break;
           case DOUBLE:
             typeExpr = "ScalarType.DOUBLE";
             break;

@@ -29,6 +29,12 @@ public class ProtobufEncoder {
     return this;
   }
 
+  public ProtobufEncoder writeFloat(float f) {
+    int l = Float.floatToRawIntBits(f);
+    buffer.appendIntLE(l);
+    return this;
+  }
+
   public ProtobufEncoder writeDouble(double d) {
     long l = Double.doubleToRawLongBits(d);
     buffer.appendLongLE(l);

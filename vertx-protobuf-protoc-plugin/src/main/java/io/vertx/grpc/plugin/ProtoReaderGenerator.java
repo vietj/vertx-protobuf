@@ -26,6 +26,7 @@ class ProtoReaderGenerator {
     Bytes,
     VarInt32,
     Double,
+    Float,
     Message
   }
 
@@ -72,6 +73,10 @@ class ProtoReaderGenerator {
           // Double
           case DOUBLE:
             kind = VisitorKind.Double;
+            break;
+          // Double
+          case FLOAT:
+            kind = VisitorKind.Float;
             break;
           case MESSAGE:
             kind = VisitorKind.Message;

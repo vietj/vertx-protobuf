@@ -11,6 +11,11 @@ public class ProtobufReader {
   private static void parseFixed(ProtobufDecoder decoder, Field field, Visitor visitor) {
     ScalarType bt = (ScalarType) field.type;
     switch (bt.id()) {
+      case FLOAT:
+        assertTrue(decoder.readFloat());
+        float f = decoder.floatValue();
+        visitor.visitFloat(field, f);
+        break;
       case DOUBLE:
         assertTrue(decoder.readDouble());
         double d = decoder.doubleValue();

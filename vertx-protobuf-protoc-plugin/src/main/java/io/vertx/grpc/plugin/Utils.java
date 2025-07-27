@@ -85,6 +85,8 @@ public class Utils {
         return "java.lang.Boolean";
       case STRING:
         return "java.lang.String";
+      case FLOAT:
+        return "java.lang.Float";
       case DOUBLE:
         return "java.lang.Double";
       case INT32:

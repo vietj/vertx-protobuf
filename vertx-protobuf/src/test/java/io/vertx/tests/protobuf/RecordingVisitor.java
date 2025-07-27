@@ -35,6 +35,32 @@ public class RecordingVisitor implements Visitor {
     }
   }
 
+  private static class Float extends Record {
+    private final Field field;
+    private final float value;
+    Float(Field field, float value) {
+      this.field = field;
+      this.value = value;
+    }
+    @Override
+    protected void apply(Visitor visitor) {
+      visitor.visitFloat(field, value);
+    }
+  }
+
+  private static class Double extends Record {
+    private final Field field;
+    private final double value;
+    Double(Field field, double value) {
+      this.field = field;
+      this.value = value;
+    }
+    @Override
+    protected void apply(Visitor visitor) {
+      visitor.visitDouble(field, value);
+    }
+  }
+
   private static class VarInt64 extends Record {
     private final Field field;
     private final long value;
@@ -136,8 +162,13 @@ public class RecordingVisitor implements Visitor {
   }
 
   @Override
-  public void visitDouble(Field field, double d) {
+  public void visitFloat(Field field, float f) {
+    records.add(new Float(field, f));
+  }
 
+  @Override
+  public void visitDouble(Field field, double d) {
+    records.add(new Double(field, d));
   }
 
   @Override
@@ -226,8 +257,17 @@ public class RecordingVisitor implements Visitor {
     }
 
     @Override
+    public void visitFloat(Field field, float f) {
+      Float expectation = expecting(Float.class);
+      assertSame(expectation.field, field);
+      assertEquals(expectation.value, f, 0.001D);
+    }
+
+    @Override
     public void visitDouble(Field field, double d) {
-      throw new UnsupportedOperationException();
+      Double expectation = expecting(Double.class);
+      assertSame(expectation.field, field);
+      assertEquals(expectation.value, d, 0.001D);
     }
 
     @Override
