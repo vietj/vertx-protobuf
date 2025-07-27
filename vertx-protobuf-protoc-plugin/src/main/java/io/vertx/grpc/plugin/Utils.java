@@ -3,6 +3,7 @@ package io.vertx.grpc.plugin;
 import com.google.common.base.Strings;
 import com.google.protobuf.DescriptorProtos;
 import com.google.protobuf.Descriptors;
+import com.google.protobuf.StructProto;
 import com.google.protobuf.compiler.PluginProtos;
 
 import java.util.LinkedHashMap;
@@ -40,16 +41,14 @@ public class Utils {
     descriptor.getNestedTypes().forEach(nested -> transitiveClosure(nested, result));
   }
 
-  private static String extractJavaPkgFqn(Descriptors.FileDescriptor proto) {
-    DescriptorProtos.FileOptions options = proto.getOptions();
-    String javaPackage = options.getJavaPackage();
-    if (!Strings.isNullOrEmpty(javaPackage)) {
-      return javaPackage;
-    }
-    return Strings.nullToEmpty(proto.getPackage());
+  public static String extractJavaPkgFqn(Descriptors.FileDescriptor proto) {
+    return extractJavaPkgFqn(proto.toProto());
   }
 
   static String extractJavaPkgFqn(DescriptorProtos.FileDescriptorProto proto) {
+    if (proto.getOptions().getJavaPackage().startsWith("com.google.")) {
+      return "io.vertx.protobuf." + proto.getOptions().getJavaPackage();
+    }
     DescriptorProtos.FileOptions options = proto.getOptions();
     String javaPackage = options.getJavaPackage();
     if (!Strings.isNullOrEmpty(javaPackage)) {

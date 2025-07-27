@@ -9,10 +9,12 @@ import java.util.Map;
 
 class SchemaGenerator {
 
-  private final Descriptors.FileDescriptor file;
+  private final String javaPkgFqn;
+  private final List<Descriptors.Descriptor> fileDesc;
 
-  public SchemaGenerator(Descriptors.FileDescriptor file) {
-    this.file = file;
+  public SchemaGenerator(String javaPkgFqn, List<Descriptors.Descriptor> fileDesc) {
+    this.javaPkgFqn = javaPkgFqn;
+    this.fileDesc = fileDesc;
   }
 
   public static class MessageTypeDeclaration {
@@ -42,11 +44,9 @@ class SchemaGenerator {
   }
 
   PluginProtos.CodeGeneratorResponse.File generate() {
-    String javaPkgFqn = Utils.extractJavaPkgFqn(file.toProto());
-    Map<String, Descriptors.Descriptor> all = Utils.transitiveClosure(file.getMessageTypes());
     List<MessageTypeDeclaration> list = new ArrayList<>();
     List<FieldDeclaration> list2 = new ArrayList<>();
-    all.values().forEach(messageType -> {
+    fileDesc.forEach(messageType -> {
       list.add(new MessageTypeDeclaration(Utils.schemaLiteralOf(messageType), messageType.getName()));
       messageType.getFields().forEach(field -> {
         String identifier = Utils.schemaLiteralOf(field);
@@ -100,7 +100,7 @@ class SchemaGenerator {
             typeExpr = "ScalarType.SFIXED64";
             break;
           case MESSAGE:
-            typeExpr = field.getMessageType().getFile().getOptions().getJavaPackage() + ".SchemaLiterals." + Utils.schemaLiteralOf(field.getMessageType());
+            typeExpr = Utils.extractJavaPkgFqn(field.getMessageType().getFile()) + ".SchemaLiterals." + Utils.schemaLiteralOf(field.getMessageType());
             break;
           default:
             return;

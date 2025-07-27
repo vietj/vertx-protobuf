@@ -10,21 +10,16 @@ import java.util.stream.Collectors;
 
 class EnumGenerator {
 
-  private final Descriptors.FileDescriptor fileDesc;
+  private final String javaPkgFqn;
+  private final List<Descriptors.EnumDescriptor> descs;
 
-  public EnumGenerator(Descriptors.FileDescriptor fileDesc) {
-    this.fileDesc = fileDesc;
+  public EnumGenerator(String javaPkgFqn, List<Descriptors.EnumDescriptor> descs) {
+    this.javaPkgFqn = javaPkgFqn;
+    this.descs = descs;
   }
 
   public List<PluginProtos.CodeGeneratorResponse.File> generate() {
-    String javaPkgFqn = Utils.extractJavaPkgFqn(fileDesc.toProto());
-    List<Descriptors.EnumDescriptor> enumDescriptors = new ArrayList<>(fileDesc.getEnumTypes());
-    Utils.transitiveClosure(fileDesc.getMessageTypes())
-      .values()
-      .stream()
-      .flatMap(descriptor -> descriptor.getEnumTypes().stream())
-      .forEach(enumDescriptors::add);
-    return enumDescriptors
+    return descs
       .stream()
       .map(mt -> buildFiles(javaPkgFqn, mt))
       .collect(Collectors.toList());

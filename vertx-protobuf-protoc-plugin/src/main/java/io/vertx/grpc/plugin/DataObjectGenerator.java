@@ -10,16 +10,16 @@ import java.util.stream.Collectors;
 
 class DataObjectGenerator {
 
-  private final Descriptors.FileDescriptor fileDesc;
+  private final String javaPkgFqn;
+  private final List<Descriptors.Descriptor> fileDesc;
 
-  public DataObjectGenerator(Descriptors.FileDescriptor fileDesc) {
+  public DataObjectGenerator(String javaPkgFqn, List<Descriptors.Descriptor> fileDesc) {
+    this.javaPkgFqn = javaPkgFqn;
     this.fileDesc = fileDesc;
   }
 
   List<PluginProtos.CodeGeneratorResponse.File> generate() {
-    String javaPkgFqn = Utils.extractJavaPkgFqn(fileDesc.toProto());
-    Map<String, Descriptors.Descriptor> stringDescriptorMap = Utils.transitiveClosure(fileDesc.getMessageTypes());
-    return stringDescriptorMap.values()
+    return fileDesc
       .stream()
       .map(mt -> buildFiles(javaPkgFqn, mt))
       .collect(Collectors.toList());

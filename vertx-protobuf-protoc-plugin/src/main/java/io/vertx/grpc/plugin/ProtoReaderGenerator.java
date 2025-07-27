@@ -3,22 +3,21 @@ package io.vertx.grpc.plugin;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.compiler.PluginProtos;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 class ProtoReaderGenerator {
 
-  private final Descriptors.FileDescriptor fileDesc;
+  private final String javaPkgFqn;
+  private final List<Descriptors.Descriptor> fileDesc;
 
-  public ProtoReaderGenerator(Descriptors.FileDescriptor fileDesc) {
+  public ProtoReaderGenerator(String javaPkgFqn, List<Descriptors.Descriptor> fileDesc) {
+    this.javaPkgFqn = javaPkgFqn;
     this.fileDesc = fileDesc;
   }
 
@@ -48,12 +47,8 @@ class ProtoReaderGenerator {
 
   public PluginProtos.CodeGeneratorResponse.File generate() {
 
-    String javaPkgFqn = Utils.extractJavaPkgFqn(fileDesc.toProto());
-
-    Map<String, Descriptors.Descriptor> all = Utils.transitiveClosure(fileDesc.getMessageTypes());
-
     List<FieldDescriptor> collected = new ArrayList<>();
-    for (Descriptors.Descriptor mt : all.values()) {
+    for (Descriptors.Descriptor mt : fileDesc) {
       for (Descriptors.FieldDescriptor fd : mt.getFields()) {
 
         FieldDescriptor descriptor = new FieldDescriptor();
@@ -106,9 +101,9 @@ class ProtoReaderGenerator {
         descriptor.getterMethod = Utils.getterOf(fd);
         descriptor.setterMethod = Utils.setterOf(fd);
         descriptor.containingJavaType = Utils.javaTypeOf(fd.getContainingType());
-        descriptor.typePkgFqn = fd.getType() == Descriptors.FieldDescriptor.Type.MESSAGE ? fd.getMessageType().getFile().getOptions().getJavaPackage() : null;
+        descriptor.typePkgFqn = fd.getType() == Descriptors.FieldDescriptor.Type.MESSAGE ? Utils.extractJavaPkgFqn(fd.getMessageType().getFile()) : null;
         descriptor.converter = converter;
-        descriptor.imported = fd.getType() == Descriptors.FieldDescriptor.Type.MESSAGE && fd.getMessageType().getFile() != fileDesc;
+        descriptor.imported = fd.getType() == Descriptors.FieldDescriptor.Type.MESSAGE && !Utils.extractJavaPkgFqn(fd.getMessageType().getFile()).equals(javaPkgFqn);
         collected.add(descriptor);
       }
     }
@@ -148,10 +143,10 @@ class ProtoReaderGenerator {
       "",
       "  public void init(MessageType type) {");
     out.print("    ");
-    for (Descriptors.Descriptor messageType : fileDesc.getMessageTypes()) {
+    for (Descriptors.Descriptor messageType : fileDesc) {
       out.println(
         "if (type == SchemaLiterals." + Utils.schemaLiteralOf(messageType) + ") {",
-        "      stack.push(new " + messageType.getName() + "().init());",
+        "      stack.push(new " + Utils.javaTypeOf(messageType) + "().init());",
         "    } else ");
     }
     out.println(

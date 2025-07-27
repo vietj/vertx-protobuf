@@ -45,17 +45,17 @@ class ProtoWriterGenerator {
     TYPE_TO.put(Descriptors.FieldDescriptor.Type.SFIXED64, new Bilto("visitSFixed64"));
   }
 
-  private final Descriptors.FileDescriptor fileDesc;
+  private final String javaPkgFqn;
+  private final List<Descriptors.Descriptor> fileDesc;
 
-  public ProtoWriterGenerator(Descriptors.FileDescriptor fileDesc) {
+  public ProtoWriterGenerator(String javaPkgFqn, List<Descriptors.Descriptor> fileDesc) {
+    this.javaPkgFqn = javaPkgFqn;
     this.fileDesc = fileDesc;
   }
 
   PluginProtos.CodeGeneratorResponse.File generate() {
 
-    String javaPkgFqn = Utils.extractJavaPkgFqn(fileDesc.toProto());
-
-    List<Descriptors.Descriptor> all = new ArrayList<>(Utils.transitiveClosure(fileDesc.getMessageTypes()).values());
+    List<Descriptors.Descriptor> all = new ArrayList<>(Utils.transitiveClosure(fileDesc).values());
 
     StringBuilder content = new StringBuilder();
 
@@ -66,7 +66,7 @@ class ProtoWriterGenerator {
     content.append("public class ProtoWriter {\r\n");
 
     for (Descriptors.Descriptor d : all) {
-      content.append("  public static void emit(").append(d.getName()).append(" value, Visitor visitor) {\r\n");
+      content.append("  public static void emit(").append(Utils.javaTypeOf(d)).append(" value, Visitor visitor) {\r\n");
       content.append("    visitor.init(SchemaLiterals.").append(Utils.schemaLiteralOf(d)).append(");\r\n");
       content.append("    visit(value, visitor);\r\n");
       content.append("    visitor.destroy();\r\n");
@@ -74,7 +74,7 @@ class ProtoWriterGenerator {
     }
 
     for (Descriptors.Descriptor d : all) {
-      content.append("  public static void visit(").append(d.getName()).append(" value, Visitor visitor) {\r\n");
+      content.append("  public static void visit(").append(Utils.javaTypeOf(d)).append(" value, Visitor visitor) {\r\n");
       for (Descriptors.FieldDescriptor field : d.getFields()) {
         content.append("    if (value.").append(Utils.getterOf(field)).append("() != null) {\r\n");
         content.append("      ").append(Utils.javaTypeOf(field)).append(" v = value.").append(Utils.getterOf(field)).append("();\r\n");
@@ -111,12 +111,12 @@ class ProtoWriterGenerator {
               if (field.isRepeated()) {
                 content.append("      for (").append(Utils.javaTypeOfInternal(field)).append(" c : v) {\r\n");
                 content.append("        visitor.enter(SchemaLiterals.").append(Utils.schemaLiteralOf(field)).append(");\r\n");
-                content.append("        ").append(field.getMessageType().getFile().getOptions().getJavaPackage()).append(".ProtoWriter.visit(c, visitor);\r\n");
+                content.append("        ").append(Utils.extractJavaPkgFqn(field.getMessageType().getFile())).append(".ProtoWriter.visit(c, visitor);\r\n");
                 content.append("        visitor.leave(SchemaLiterals.").append(Utils.schemaLiteralOf(field)).append(");\r\n");
                 content.append("      }\r\n");
               } else {
                 content.append("      visitor.enter(SchemaLiterals.").append(Utils.schemaLiteralOf(field)).append(");\r\n");
-                content.append("      ").append(field.getMessageType().getFile().getOptions().getJavaPackage()).append(".ProtoWriter.visit(v, visitor);\r\n");
+                content.append("      ").append(Utils.extractJavaPkgFqn(field.getMessageType().getFile())).append(".ProtoWriter.visit(v, visitor);\r\n");
                 content.append("      visitor.leave(SchemaLiterals.").append(Utils.schemaLiteralOf(field)).append(");\r\n");
               }
             }

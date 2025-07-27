@@ -4,14 +4,12 @@ import com.google.protobuf.ByteString;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.protobuf.ProtobufReader;
 import io.vertx.protobuf.ProtobufWriter;
+import io.vertx.protobuf.com.google.protobuf.SchemaLiterals;
+import io.vertx.protobuf.com.google.protobuf.NullValue;
+import io.vertx.protobuf.com.google.protobuf.Struct;
+import io.vertx.protobuf.com.google.protobuf.Value;
 import io.vertx.tests.importing.Container;
 import io.vertx.tests.importing.ImportingProto;
-import io.vertx.tests.protobuf.struct.NullValue;
-import io.vertx.tests.protobuf.struct.Struct;
-import io.vertx.tests.protobuf.struct.StructProto;
-import io.vertx.tests.protobuf.struct.ProtoReader;
-import io.vertx.tests.protobuf.struct.SchemaLiterals;
-import io.vertx.tests.protobuf.struct.Value;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -68,8 +66,8 @@ public class DataObjectTest {
 
   @Test
   public void testStringValue() {
-    byte[] bytes = StructProto.Value.newBuilder().setStringValue("hello").build().toByteArray();
-    ProtoReader reader = new ProtoReader();
+    byte[] bytes = com.google.protobuf.Value.newBuilder().setStringValue("hello").build().toByteArray();
+    io.vertx.protobuf.com.google.protobuf.ProtoReader reader = new io.vertx.protobuf.com.google.protobuf.ProtoReader();
     ProtobufReader.parse(SchemaLiterals.VALUE, reader, Buffer.buffer(bytes));
     Value msg = (Value) reader.stack.pop();
     assertEquals("hello", msg.getStringValue());
@@ -77,14 +75,14 @@ public class DataObjectTest {
 
   @Test
   public void testReadStructValue() {
-    byte[] bytes = StructProto.Value.newBuilder().setStructValue(StructProto.Struct.newBuilder()
-      .putFields("foo", StructProto.Value.newBuilder().setStringValue("string").build())
-      .putFields("bar", StructProto.Value.newBuilder().setBoolValue(true).build())
-      .putFields("juu", StructProto.Value.newBuilder().setNumberValue(5.1).build())
-      .putFields("daa", StructProto.Value.newBuilder().setNullValue(StructProto.NullValue.NULL_VALUE).build())
-      .putFields("bii", StructProto.Value.newBuilder().setStructValue(StructProto.Struct.newBuilder()).build())
+    byte[] bytes = com.google.protobuf.Value.newBuilder().setStructValue(com.google.protobuf.Struct.newBuilder()
+      .putFields("foo", com.google.protobuf.Value.newBuilder().setStringValue("string").build())
+      .putFields("bar", com.google.protobuf.Value.newBuilder().setBoolValue(true).build())
+      .putFields("juu", com.google.protobuf.Value.newBuilder().setNumberValue(5.1).build())
+      .putFields("daa", com.google.protobuf.Value.newBuilder().setNullValue(com.google.protobuf.NullValue.NULL_VALUE).build())
+      .putFields("bii", com.google.protobuf.Value.newBuilder().setStructValue(com.google.protobuf.Struct.newBuilder()).build())
       .build()).build().toByteArray();
-    ProtoReader reader = new ProtoReader();
+    io.vertx.protobuf.com.google.protobuf.ProtoReader reader = new io.vertx.protobuf.com.google.protobuf.ProtoReader();
     Buffer buffer = Buffer.buffer(bytes);
     ProtobufReader.parse(SchemaLiterals.VALUE, reader, buffer);
     Value msg = (Value) reader.stack.pop();
@@ -105,9 +103,9 @@ public class DataObjectTest {
     struct.getFields().put("juu", new Value().setNumberValue(5.1));
     struct.getFields().put("daa", new Value().setNullValue(NullValue.NULL_VALUE));
     Buffer result = ProtobufWriter.encode(visitor -> {
-      io.vertx.tests.protobuf.struct.ProtoWriter.emit(struct, visitor);
+      io.vertx.protobuf.com.google.protobuf.ProtoWriter.emit(struct, visitor);
     });
-    StructProto.Struct res = StructProto.Struct.parseFrom(result.getBytes());
+    com.google.protobuf.Struct res = com.google.protobuf.Struct.parseFrom(result.getBytes());
     assertEquals("string", res.getFieldsMap().get("foo").getStringValue());
     assertTrue(res.getFieldsMap().get("bar").getBoolValue());
     assertEquals(5.1, res.getFieldsMap().get("juu").getNumberValue(), 0.001);

@@ -3,6 +3,16 @@ syntax = "proto3";
 package io.vertx.tests.importing;
 
 import "test.proto";
+import "google/protobuf/struct.proto";
+import "google/protobuf/any.proto";
+import "google/protobuf/source_context.proto";
+import "google/protobuf/duration.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/field_mask.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/type.proto";
+// BUG - resolve later
+//import "google/protobuf/descriptor.proto";
 
 option java_package = "io.vertx.tests.importing";
 option java_outer_classname = "ImportingProto";
@@ -10,4 +20,13 @@ option java_outer_classname = "ImportingProto";
 // Message used for publishing to an address
 message Container {
   io.vertx.tests.protobuf.SimpleMessage simple_message = 1;
+  google.protobuf.Value value = 2;
+  google.protobuf.Any any = 3;
+  google.protobuf.SourceContext source_context = 4;
+  google.protobuf.Duration duration = 5;
+  google.protobuf.Empty empty = 6;
+  google.protobuf.FieldMask field_mask = 7;
+  google.protobuf.Timestamp timestamp = 8;
+  google.protobuf.Type type = 9;
+//  google.protobuf.FileDescriptorSet file_descriptor_set = 10;
 }
