@@ -24,6 +24,8 @@ public class DataTypeTest {
   private static final Field SINT64 = DATA_TYPE.addField(8, ScalarType.SINT64);
   private static final Field FIXED32 = DATA_TYPE.addField(9, ScalarType.FIXED32);
   private static final Field FIXED64 = DATA_TYPE.addField(10, ScalarType.FIXED64);
+  private static final Field SFIXED32 = DATA_TYPE.addField(11, ScalarType.SFIXED32);
+  private static final Field SFIXED64 = DATA_TYPE.addField(12, ScalarType.SFIXED64);
 
   private void testDataType(RecordingVisitor visitor, DataTypesProto.DataTypes expected) throws Exception {
     byte[] bytes = expected.toByteArray();
@@ -166,5 +168,33 @@ public class DataTypeTest {
     visitor.visitFixed64(FIXED64, value);
     visitor.destroy();
     testDataType(visitor, DataTypesProto.DataTypes.newBuilder().setFixed64(value).build());
+  }
+
+  @Test
+  public void testSFixed32() throws Exception {
+    testSFixed32(4);
+    testSFixed32(Integer.MAX_VALUE);
+  }
+
+  private void testSFixed32(int value) throws Exception {
+    RecordingVisitor visitor = new RecordingVisitor();
+    visitor.init(DATA_TYPE);
+    visitor.visitSFixed32(SFIXED32, value);
+    visitor.destroy();
+    testDataType(visitor, DataTypesProto.DataTypes.newBuilder().setSfixed32(value).build());
+  }
+
+  @Test
+  public void testSFixed64() throws Exception {
+    testSFixed64(4);
+    testSFixed64(Integer.MAX_VALUE);
+  }
+
+  private void testSFixed64(long value) throws Exception {
+    RecordingVisitor visitor = new RecordingVisitor();
+    visitor.init(DATA_TYPE);
+    visitor.visitSFixed64(SFIXED64, value);
+    visitor.destroy();
+    testDataType(visitor, DataTypesProto.DataTypes.newBuilder().setSfixed64(value).build());
   }
 }

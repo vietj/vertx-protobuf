@@ -26,6 +26,16 @@ public class ProtobufReader {
         long j = decoder.longValue();
         visitor.visitFixed64(field, j);
         break;
+      case SFIXED32:
+        assertTrue(decoder.readInt());
+        int i_ = decoder.intValue();
+        visitor.visitSFixed32(field, i_);
+        break;
+      case SFIXED64:
+        assertTrue(decoder.readLong());
+        long j_ = decoder.longValue();
+        visitor.visitSFixed64(field, j_);
+        break;
       default:
         throw new UnsupportedOperationException();
     }

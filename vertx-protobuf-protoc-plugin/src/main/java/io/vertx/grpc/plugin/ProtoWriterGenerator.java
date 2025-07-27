@@ -39,8 +39,8 @@ class ProtoWriterGenerator {
     TYPE_TO.put(Descriptors.FieldDescriptor.Type.SINT64, new Bilto("visitVarInt64"));
     TYPE_TO.put(Descriptors.FieldDescriptor.Type.FIXED32, new Bilto("visitFixed32"));
     TYPE_TO.put(Descriptors.FieldDescriptor.Type.FIXED64, new Bilto("visitFixed64"));
-    TYPE_TO.put(Descriptors.FieldDescriptor.Type.SFIXED32, new Bilto("visitSfixed32"));
-    TYPE_TO.put(Descriptors.FieldDescriptor.Type.SFIXED64, new Bilto("visitSfixed64"));
+    TYPE_TO.put(Descriptors.FieldDescriptor.Type.SFIXED32, new Bilto("visitSFixed32"));
+    TYPE_TO.put(Descriptors.FieldDescriptor.Type.SFIXED64, new Bilto("visitSFixed64"));
   }
 
   private final Descriptors.FileDescriptor fileDesc;

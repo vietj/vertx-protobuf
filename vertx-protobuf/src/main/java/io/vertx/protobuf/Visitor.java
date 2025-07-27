@@ -30,6 +30,14 @@ public interface Visitor {
     throw new UnsupportedOperationException();
   }
 
+  default void visitSFixed32(Field field, int v) {
+    throw new UnsupportedOperationException();
+  }
+
+  default void visitSFixed64(Field field, long v) {
+    throw new UnsupportedOperationException();
+  }
+
   void enter(Field field);
 
   void leave(Field field);

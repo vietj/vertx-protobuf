@@ -87,6 +87,32 @@ public class RecordingVisitor implements Visitor {
     }
   }
 
+  private static class SFixed32 extends Record {
+    private final Field field;
+    private final int value;
+    SFixed32(Field field, int value) {
+      this.field = field;
+      this.value = value;
+    }
+    @Override
+    protected void apply(Visitor visitor) {
+      visitor.visitSFixed32(field, value);
+    }
+  }
+
+  private static class SFixed64 extends Record {
+    private final Field field;
+    private final long value;
+    SFixed64(Field field, long value) {
+      this.field = field;
+      this.value = value;
+    }
+    @Override
+    protected void apply(Visitor visitor) {
+      visitor.visitSFixed64(field, value);
+    }
+  }
+
   private List<Record> records = new ArrayList<>();
 
   @Override
@@ -122,6 +148,16 @@ public class RecordingVisitor implements Visitor {
   @Override
   public void visitFixed64(Field field, long v) {
     records.add(new Fixed64(field, v));
+  }
+
+  @Override
+  public void visitSFixed32(Field field, int v) {
+    records.add(new SFixed32(field, v));
+  }
+
+  @Override
+  public void visitSFixed64(Field field, long v) {
+    records.add(new SFixed64(field, v));
   }
 
   @Override
@@ -204,6 +240,20 @@ public class RecordingVisitor implements Visitor {
     @Override
     public void visitFixed64(Field field, long v) {
       Fixed64 expectation = expecting(Fixed64.class);
+      assertSame(expectation.field, field);
+      assertEquals(expectation.value, v);
+    }
+
+    @Override
+    public void visitSFixed32(Field field, int v) {
+      SFixed32 expectation = expecting(SFixed32.class);
+      assertSame(expectation.field, field);
+      assertEquals(expectation.value, v);
+    }
+
+    @Override
+    public void visitSFixed64(Field field, long v) {
+      SFixed64 expectation = expecting(SFixed64.class);
       assertSame(expectation.field, field);
       assertEquals(expectation.value, v);
     }

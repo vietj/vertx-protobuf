@@ -93,6 +93,12 @@ class SchemaGenerator {
           case FIXED64:
             typeExpr = "ScalarType.FIXED64";
             break;
+          case SFIXED32:
+            typeExpr = "ScalarType.SFIXED32";
+            break;
+          case SFIXED64:
+            typeExpr = "ScalarType.SFIXED64";
+            break;
           case MESSAGE:
             typeExpr = field.getMessageType().getFile().getOptions().getJavaPackage() + ".SchemaLiterals." + Utils.schemaLiteralOf(field.getMessageType());
             break;
