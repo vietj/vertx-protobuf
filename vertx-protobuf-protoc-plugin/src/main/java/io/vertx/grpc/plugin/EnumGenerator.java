@@ -18,7 +18,13 @@ class EnumGenerator {
 
   public List<PluginProtos.CodeGeneratorResponse.File> generate() {
     String javaPkgFqn = Utils.extractJavaPkgFqn(fileDesc.toProto());
-    return fileDesc.getEnumTypes()
+    List<Descriptors.EnumDescriptor> enumDescriptors = new ArrayList<>(fileDesc.getEnumTypes());
+    Utils.transitiveClosure(fileDesc.getMessageTypes())
+      .values()
+      .stream()
+      .flatMap(descriptor -> descriptor.getEnumTypes().stream())
+      .forEach(enumDescriptors::add);
+    return enumDescriptors
       .stream()
       .map(mt -> buildFiles(javaPkgFqn, mt))
       .collect(Collectors.toList());

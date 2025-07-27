@@ -151,7 +151,7 @@ class ProtoReaderGenerator {
     for (Descriptors.Descriptor messageType : fileDesc.getMessageTypes()) {
       out.println(
         "if (type == SchemaLiterals." + Utils.schemaLiteralOf(messageType) + ") {",
-        "      stack.push(new " + messageType.getName() + "());",
+        "      stack.push(new " + messageType.getName() + "().init());",
         "    } else ");
     }
     out.println(
@@ -243,13 +243,13 @@ class ProtoReaderGenerator {
               "      v.init((MessageType)field.type);",
               "      next = v;");
           } else {
-            String i_type;
+            String initExpression;
             if (field.repeated) {
-              i_type = field.javaType.replace("java.util.List", "java.util.ArrayList");
+              initExpression = "new java.util.ArrayList<>()";
             } else {
-              i_type = field.javaType;
+              initExpression = "new " + field.javaType + "().init()";
             }
-            out.println("      " + field.javaType + " v = new " + i_type + "();");
+            out.println("      " + field.javaType + " v = " + initExpression + ";");
             out.println("      stack.push(v);");
           }
         }

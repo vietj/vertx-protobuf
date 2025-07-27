@@ -37,6 +37,14 @@ class DataObjectGenerator {
         content.append(";\r\n");
       }
     });
+    content.append("  public ").append(messageType.getName()).append(" init() {\r\n");
+    messageType.getFields().forEach(field -> {
+      if (field.getType() == Descriptors.FieldDescriptor.Type.ENUM) {
+        content.append("    this.").append(field.getJsonName()).append(" = ").append(Utils.javaTypeOf(field)).append(".valueOf(0);\r\n");
+      }
+    });
+    content.append("    return this;\r\n");
+    content.append("  }\r\n");
     messageType.getFields().forEach(field -> {
       String javaType = Utils.javaTypeOf(field);
       if (javaType != null) {

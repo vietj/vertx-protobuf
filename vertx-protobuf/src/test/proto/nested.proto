@@ -10,7 +10,18 @@ message Container {
     message NestedMessage2 {
       string value = 1;
     }
+    enum NestedEnum2 {
+      constant_1 = 0;
+      constant_2 = 1;
+    }
     NestedMessage2 nestedMessage = 1;
+    NestedEnum1 nestedEnum1 = 2;
+    NestedEnum2 nestedEnum2 = 3;
+  }
+  enum NestedEnum1 {
+    constant_1 = 0;
+    constant_2 = 1;
   }
   NestedMessage1 nestedMessage = 1;
+  NestedEnum1 nestedEnum = 2;
 }
