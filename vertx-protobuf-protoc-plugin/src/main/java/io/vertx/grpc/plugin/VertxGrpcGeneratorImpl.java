@@ -26,16 +26,12 @@ import com.google.protobuf.WrappersProto;
 import com.google.protobuf.compiler.PluginProtos;
 import com.salesforce.jprotoc.Generator;
 import com.salesforce.jprotoc.GeneratorException;
-import org.checkerframework.checker.units.qual.A;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class VertxGrpcGeneratorImpl extends Generator {
@@ -168,8 +164,7 @@ public class VertxGrpcGeneratorImpl extends Generator {
           .forEach(enums::add);
       }
 
-      files.addAll(new DataObjectGenerator(javaPkgFqn, new ArrayList<>(messages.values())).generate());
-      files.addAll(new EnumGenerator(javaPkgFqn, enums).generate());
+      files.addAll(new ElementGenerator(javaPkgFqn, new ArrayList<>(messages.values()), enums).generate());
       files.add(new SchemaGenerator(javaPkgFqn, new ArrayList<>(messages.values())).generate());
       files.add(new ProtoReaderGenerator(javaPkgFqn, new ArrayList<>(messages.values())).generate());
       files.add(new ProtoWriterGenerator(javaPkgFqn, new ArrayList<>(messages.values())).generate());

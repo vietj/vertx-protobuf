@@ -3,7 +3,6 @@ package io.vertx.grpc.plugin;
 import com.google.common.base.Strings;
 import com.google.protobuf.DescriptorProtos;
 import com.google.protobuf.Descriptors;
-import com.google.protobuf.StructProto;
 import com.google.protobuf.compiler.PluginProtos;
 
 import java.util.LinkedHashMap;
@@ -37,7 +36,7 @@ public class Utils {
   }
 
   private static void transitiveClosure(Descriptors.Descriptor descriptor, Map<String, Descriptors.Descriptor> result) {
-    result.put(descriptor.getName(), descriptor);
+    result.put(descriptor.getFullName(), descriptor);
     descriptor.getNestedTypes().forEach(nested -> transitiveClosure(nested, result));
   }
 
@@ -59,7 +58,7 @@ public class Utils {
 
   static String javaTypeOf(Descriptors.Descriptor mt) {
     String pkg = extractJavaPkgFqn(mt.getFile());
-    return pkg + "." + mt.getName();
+    return pkg + "." + simpleNameOf(mt);
   }
 
   static String javaTypeOf(Descriptors.FieldDescriptor field) {
@@ -103,13 +102,23 @@ public class Utils {
         return "java.lang.Long";
       case ENUM:
         pkg = extractJavaPkgFqn(field.getEnumType().getFile());
-        return pkg + "." + field.getEnumType().getName();
+        return pkg + "." + simpleNameOf(field.getEnumType());
       case MESSAGE:
         pkg = extractJavaPkgFqn(field.getMessageType().getFile());
-        return pkg + "." + field.getMessageType().getName();
+        return pkg + "." + simpleNameOf(field.getMessageType());
       default:
         return null;
     }
+  }
+
+  private static String simpleNameOf(Descriptors.Descriptor type) {
+    Descriptors.Descriptor containing = type.getContainingType();
+    return containing == null ? type.getName() : (simpleNameOf(containing) + "." + type.getName());
+  }
+
+  private static String simpleNameOf(Descriptors.EnumDescriptor descriptor) {
+    Descriptors.Descriptor containing = descriptor.getContainingType();
+    return containing == null ? descriptor.getName() : (simpleNameOf(containing) + "." + descriptor.getName());
   }
 
   static String absoluteFileName(String javaPkgFqn, Descriptors.GenericDescriptor messageType) {
