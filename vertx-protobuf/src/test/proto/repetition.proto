@@ -11,6 +11,8 @@ message Container {
   repeated Enum repeated_enum = 2;
   repeated double repeated_double = 3;
   repeated fixed64 repeated_fixed64 = 4;
+  repeated float repeated_float = 5;
+  repeated fixed32 repeated_fixed32 = 6;
 
 }
 

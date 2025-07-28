@@ -27,6 +27,7 @@ class ProtoReaderGenerator {
     VarInt32,
     Double,
     Fixed64,
+    Fixed32,
     Float,
     Message
   }
@@ -68,23 +69,23 @@ class ProtoReaderGenerator {
           case INT32:
             kind = VisitorKind.VarInt32;
             break;
-          // String
           case STRING:
             kind = VisitorKind.String;
             break;
-          // Double
           case DOUBLE:
             kind = VisitorKind.Double;
             break;
-          // Double
+          case FIXED64:
+            kind = VisitorKind.Fixed64;
+            break;
           case FLOAT:
             kind = VisitorKind.Float;
             break;
+          case FIXED32:
+            kind = VisitorKind.Fixed32;
+            break;
           case MESSAGE:
             kind = VisitorKind.Message;
-            break;
-          case FIXED64:
-            kind = VisitorKind.Fixed64;
             break;
           default:
             continue;
@@ -192,6 +193,8 @@ class ProtoReaderGenerator {
     VisitMethod[] visitMethods = {
       new VisitMethod("visitBytes(Field field, byte[] value)", "visitBytes(field, value)", Descriptors.FieldDescriptor.Type.BYTES),
       new VisitMethod("visitString(Field field, String value)", "visitString(field, value)", Descriptors.FieldDescriptor.Type.STRING),
+      new VisitMethod("visitFixed32(Field field, int value)", "visitFixed32(field, value)", Descriptors.FieldDescriptor.Type.FIXED32),
+      new VisitMethod("visitFloat(Field field, float value)", "visitFloat(field, value)", Descriptors.FieldDescriptor.Type.FLOAT),
       new VisitMethod("visitDouble(Field field, double value)", "visitDouble(field, value)", Descriptors.FieldDescriptor.Type.DOUBLE),
       new VisitMethod("visitFixed64(Field field, long value)", "visitFixed64(field, value)", Descriptors.FieldDescriptor.Type.FIXED64),
       new VisitMethod("visitVarInt32(Field field, int value)", "visitVarInt32(field, value)", Descriptors.FieldDescriptor.Type.BOOL, Descriptors.FieldDescriptor.Type.ENUM, Descriptors.FieldDescriptor.Type.INT32)

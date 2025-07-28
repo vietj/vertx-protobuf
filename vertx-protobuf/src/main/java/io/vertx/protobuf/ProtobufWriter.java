@@ -67,32 +67,12 @@ public class ProtobufWriter {
     }
 
     @Override
-    public void visitFloat(Field field, float f) {
+    public void visitI32(Field field, int value) {
       lengths[depth] += 1 + 4;
     }
 
     @Override
-    public void visitDouble(Field field, double d) {
-      lengths[depth] += 1 + 8;
-    }
-
-    @Override
-    public void visitFixed32(Field field, int v) {
-      lengths[depth] += 1 + 4;
-    }
-
-    @Override
-    public void visitFixed64(Field field, long v) {
-      lengths[depth] += 1 + 8;
-    }
-
-    @Override
-    public void visitSFixed32(Field field, int v) {
-      lengths[depth] += 1 + 4;
-    }
-
-    @Override
-    public void visitSFixed64(Field field, long v) {
+    public void visitI64(Field field, long value) {
       lengths[depth] += 1 + 8;
     }
 
@@ -186,39 +166,15 @@ public class ProtobufWriter {
     }
 
     @Override
-    public void visitFloat(Field field, float f) {
+    public void visitI32(Field field, int value) {
       encoder.writeTag(field.number, WireType.I32.id);
-      encoder.writeFloat(f);
+      encoder.writeInt(value);
     }
 
     @Override
-    public void visitDouble(Field field, double d) {
+    public void visitI64(Field field, long value) {
       encoder.writeTag(field.number, WireType.I64.id);
-      encoder.writeDouble(d);
-    }
-
-    @Override
-    public void visitFixed32(Field field, int v) {
-      encoder.writeTag(field.number, WireType.I32.id);
-      encoder.writeInt(v);
-    }
-
-    @Override
-    public void visitFixed64(Field field, long v) {
-      encoder.writeTag(field.number, WireType.I64.id);
-      encoder.writeLong(v);
-    }
-
-    @Override
-    public void visitSFixed32(Field field, int v) {
-      encoder.writeTag(field.number, WireType.I32.id);
-      encoder.writeInt(v);
-    }
-
-    @Override
-    public void visitSFixed64(Field field, long v) {
-      encoder.writeTag(field.number, WireType.I64.id);
-      encoder.writeLong(v);
+      encoder.writeLong(value);
     }
 
     @Override

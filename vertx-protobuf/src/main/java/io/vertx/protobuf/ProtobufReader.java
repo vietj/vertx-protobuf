@@ -11,31 +11,14 @@ public class ProtobufReader {
 
   private static void parseI64(ProtobufDecoder decoder, Field field, Visitor visitor) {
     assertTrue(decoder.readI64());
-    long v = decoder.i64Value();
+    long v = decoder.longValue();
     visitor.visitI64(field, v);
   }
 
-  private static void parseFixed(ProtobufDecoder decoder, Field field, Visitor visitor) {
-    ScalarType bt = (ScalarType) field.type;
-    switch (bt.id()) {
-      case FLOAT:
-        assertTrue(decoder.readFloat());
-        float f = decoder.floatValue();
-        visitor.visitFloat(field, f);
-        break;
-      case FIXED32:
-        assertTrue(decoder.readInt());
-        int i = decoder.intValue();
-        visitor.visitFixed32(field, i);
-        break;
-      case SFIXED32:
-        assertTrue(decoder.readInt());
-        int i_ = decoder.intValue();
-        visitor.visitSFixed32(field, i_);
-        break;
-      default:
-        throw new UnsupportedOperationException();
-    }
+  private static void parseI32(ProtobufDecoder decoder, Field field, Visitor visitor) {
+    assertTrue(decoder.readI32());
+    int v = decoder.intValue();
+    visitor.visitI32(field, v);
   }
 
   private static int decodeSint32(int value) {
@@ -109,6 +92,9 @@ public class ProtobufReader {
             case I64:
               parsePackedI64(decoder, field, len, visitor);
               break;
+            case I32:
+              parsePackedI32(decoder, field, len, visitor);
+              break;
             default:
               throw new UnsupportedOperationException("" + field.type);
           }
@@ -129,8 +115,17 @@ public class ProtobufReader {
     int to = decoder.index() + len;
     while (decoder.index() < to) {
       assertTrue(decoder.readI64());
-      long v = decoder.i64Value();
+      long v = decoder.longValue();
       visitor.visitI64(field, v);
+    }
+  }
+
+  private static void parsePackedI32(ProtobufDecoder decoder, Field field, int len, Visitor visitor) {
+    int to = decoder.index() + len;
+    while (decoder.index() < to) {
+      assertTrue(decoder.readI32());
+      int v = decoder.intValue();
+      visitor.visitI32(field, v);
     }
   }
 
@@ -157,7 +152,7 @@ public class ProtobufReader {
           parseI64(decoder, field, visitor);
           break;
         case I32:
-          parseFixed(decoder, field, visitor);
+          parseI32(decoder, field, visitor);
           break;
         case VARINT:
           parseVarInt(decoder, field, visitor);

@@ -12,7 +12,6 @@ public class ProtobufDecoder {
   private int fieldNumber;
   private WireType wireType;
   private int intValue;
-  private float floatValue;
   private long longValue;
 
   public ProtobufDecoder(Buffer buffer) {
@@ -87,12 +86,8 @@ public class ProtobufDecoder {
     return intValue;
   }
 
-  public long i64Value() {
+  public long longValue() {
     return longValue;
-  }
-
-  public float floatValue() {
-    return floatValue;
   }
 
   public boolean readVarInt() {
@@ -101,14 +96,7 @@ public class ProtobufDecoder {
     return idx > c;
   }
 
-  public boolean readFloat() {
-    int l = buffer.getIntLE(idx);
-    idx += 4;
-    floatValue = Float.intBitsToFloat(l);
-    return true;
-  }
-
-  public boolean readInt() {
+  public boolean readI32() {
     int l = buffer.getIntLE(idx);
     idx += 4;
     intValue = l;

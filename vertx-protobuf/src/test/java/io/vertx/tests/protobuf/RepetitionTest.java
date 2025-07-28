@@ -32,6 +32,12 @@ public class RepetitionTest {
       .addRepeatedFixed64(0)
       .addRepeatedFixed64(1)
       .addRepeatedFixed64(2)
+      .addRepeatedFloat(0)
+      .addRepeatedFloat(1)
+      .addRepeatedFloat(2)
+      .addRepeatedFixed32(0)
+      .addRepeatedFixed32(1)
+      .addRepeatedFixed32(2)
       .build().toByteArray();
     ProtoReader reader = new ProtoReader();
     ProtobufReader.parse(SchemaLiterals.CONTAINER, reader, Buffer.buffer(bytes));
@@ -39,10 +45,16 @@ public class RepetitionTest {
     assertEquals(Arrays.asList(0, 1, 2), msg.getRepeatedInt());
     assertEquals(Collections.singletonList(Enum.constant), msg.getRepeatedEnum());
     assertEquals(Arrays.asList(0D, 1D, 2D), msg.getRepeatedDouble());
+    assertEquals(Arrays.asList(0L, 1L, 2L), msg.getRepeatedFixed64());
+    assertEquals(Arrays.asList(0F, 1F, 2F), msg.getRepeatedFloat());
+    assertEquals(Arrays.asList(0, 1, 2), msg.getRepeatedFixed32());
     bytes = ProtobufWriter.encodeToByteArray(visitor -> ProtoWriter.emit(msg, visitor));
     RepetitionProto.Container container = RepetitionProto.Container.parseFrom(bytes);
     assertEquals(Arrays.asList(0, 1, 2), container.getRepeatedIntList());
     assertEquals(Collections.singletonList(RepetitionProto.Enum.constant), container.getRepeatedEnumList());
     assertEquals(Arrays.asList(0D, 1D, 2D), container.getRepeatedDoubleList());
+    assertEquals(Arrays.asList(0L, 1L, 2L), container.getRepeatedFixed64List());
+    assertEquals(Arrays.asList(0F, 1F, 2F), container.getRepeatedFloatList());
+    assertEquals(Arrays.asList(0, 1, 2), container.getRepeatedFixed32List());
   }
 }

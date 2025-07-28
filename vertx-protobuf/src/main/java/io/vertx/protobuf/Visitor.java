@@ -3,7 +3,6 @@ package io.vertx.protobuf;
 
 import io.vertx.protobuf.schema.Field;
 import io.vertx.protobuf.schema.MessageType;
-import io.vertx.protobuf.schema.ScalarType;
 
 public interface Visitor {
 
@@ -49,18 +48,32 @@ public interface Visitor {
     visitI64(field, v);
   }
 
-  default void visitFixed32(Field field, int v) {
-    throw new UnsupportedOperationException();
+  default void visitI32(Field field, int value) {
+    switch (field.type.id()) {
+      case FLOAT:
+        visitFloat(field, Float.intBitsToFloat(value));
+        break;
+      case FIXED32:
+        visitFixed32(field, value);
+        break;
+      case SFIXED32:
+        visitSFixed32(field, value);
+        break;
+      default:
+        throw new AssertionError();
+    }
   }
 
   default void visitFloat(Field field, float f) {
-    throw new UnsupportedOperationException();
+    visitI32(field, Float.floatToRawIntBits(f));
   }
 
-
+  default void visitFixed32(Field field, int v) {
+    visitI32(field, v);
+  }
 
   default void visitSFixed32(Field field, int v) {
-    throw new UnsupportedOperationException();
+    visitI32(field, v);
   }
 
   void enter(Field field);
