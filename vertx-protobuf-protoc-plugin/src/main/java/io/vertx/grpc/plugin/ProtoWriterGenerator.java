@@ -14,35 +14,38 @@ class ProtoWriterGenerator {
   static class Bilto {
     final String visitMethod;
     final Function<String, String> fn;
-    Bilto(String visitMethod, Function<String, String> fn) {
+    final Descriptors.FieldDescriptor.Type type;
+    Bilto(String visitMethod, Function<String, String> fn, Descriptors.FieldDescriptor.Type type) {
       this.visitMethod = visitMethod;
       this.fn = fn;
+      this.type = type;
     }
-    Bilto(String visitMethod) {
+    Bilto(String visitMethod, Descriptors.FieldDescriptor.Type type) {
       this.visitMethod = visitMethod;
       this.fn = Function.identity();
+      this.type = type;
     }
   }
 
   private static final Map<Descriptors.FieldDescriptor.Type, Bilto> TYPE_TO = new HashMap<>();
 
   static {
-    TYPE_TO.put(Descriptors.FieldDescriptor.Type.BYTES, new Bilto("visitBytes", s -> s + ".getBytes()"));
-    TYPE_TO.put(Descriptors.FieldDescriptor.Type.FLOAT, new Bilto("visitFloat"));
-    TYPE_TO.put(Descriptors.FieldDescriptor.Type.DOUBLE, new Bilto("visitDouble"));
-    TYPE_TO.put(Descriptors.FieldDescriptor.Type.STRING, new Bilto("visitString"));
-    TYPE_TO.put(Descriptors.FieldDescriptor.Type.BOOL, new Bilto("visitVarInt32", s -> s + "? 1 : 0"));
-    TYPE_TO.put(Descriptors.FieldDescriptor.Type.ENUM, new Bilto("visitVarInt32", s -> s + ".index()"));
-    TYPE_TO.put(Descriptors.FieldDescriptor.Type.INT32, new Bilto("visitVarInt32"));
-    TYPE_TO.put(Descriptors.FieldDescriptor.Type.UINT32, new Bilto("visitVarInt32"));
-    TYPE_TO.put(Descriptors.FieldDescriptor.Type.INT64, new Bilto("visitVarInt64"));
-    TYPE_TO.put(Descriptors.FieldDescriptor.Type.UINT64, new Bilto("visitVarInt64"));
-    TYPE_TO.put(Descriptors.FieldDescriptor.Type.SINT32, new Bilto("visitVarInt32"));
-    TYPE_TO.put(Descriptors.FieldDescriptor.Type.SINT64, new Bilto("visitVarInt64"));
-    TYPE_TO.put(Descriptors.FieldDescriptor.Type.FIXED32, new Bilto("visitFixed32"));
-    TYPE_TO.put(Descriptors.FieldDescriptor.Type.FIXED64, new Bilto("visitFixed64"));
-    TYPE_TO.put(Descriptors.FieldDescriptor.Type.SFIXED32, new Bilto("visitSFixed32"));
-    TYPE_TO.put(Descriptors.FieldDescriptor.Type.SFIXED64, new Bilto("visitSFixed64"));
+    TYPE_TO.put(Descriptors.FieldDescriptor.Type.BYTES, new Bilto("visitBytes", s -> s + ".getBytes()", Descriptors.FieldDescriptor.Type.BYTES));
+    TYPE_TO.put(Descriptors.FieldDescriptor.Type.FLOAT, new Bilto("visitFloat", Descriptors.FieldDescriptor.Type.FLOAT));
+    TYPE_TO.put(Descriptors.FieldDescriptor.Type.DOUBLE, new Bilto("visitDouble", Descriptors.FieldDescriptor.Type.DOUBLE));
+    TYPE_TO.put(Descriptors.FieldDescriptor.Type.STRING, new Bilto("visitString", Descriptors.FieldDescriptor.Type.STRING));
+    TYPE_TO.put(Descriptors.FieldDescriptor.Type.BOOL, new Bilto("visitVarInt32", s -> s + "? 1 : 0", Descriptors.FieldDescriptor.Type.BOOL));
+    TYPE_TO.put(Descriptors.FieldDescriptor.Type.ENUM, new Bilto("visitVarInt32", s -> s + ".index()", Descriptors.FieldDescriptor.Type.ENUM));
+    TYPE_TO.put(Descriptors.FieldDescriptor.Type.INT32, new Bilto("visitVarInt32", Descriptors.FieldDescriptor.Type.INT32));
+    TYPE_TO.put(Descriptors.FieldDescriptor.Type.UINT32, new Bilto("visitVarInt32", Descriptors.FieldDescriptor.Type.UINT32));
+    TYPE_TO.put(Descriptors.FieldDescriptor.Type.INT64, new Bilto("visitVarInt64", Descriptors.FieldDescriptor.Type.INT64));
+    TYPE_TO.put(Descriptors.FieldDescriptor.Type.UINT64, new Bilto("visitVarInt64", Descriptors.FieldDescriptor.Type.UINT64));
+    TYPE_TO.put(Descriptors.FieldDescriptor.Type.SINT32, new Bilto("visitVarInt32", Descriptors.FieldDescriptor.Type.SINT32));
+    TYPE_TO.put(Descriptors.FieldDescriptor.Type.SINT64, new Bilto("visitVarInt64", Descriptors.FieldDescriptor.Type.SINT64));
+    TYPE_TO.put(Descriptors.FieldDescriptor.Type.FIXED32, new Bilto("visitFixed32", Descriptors.FieldDescriptor.Type.FIXED32));
+    TYPE_TO.put(Descriptors.FieldDescriptor.Type.FIXED64, new Bilto("visitFixed64", Descriptors.FieldDescriptor.Type.FIXED64));
+    TYPE_TO.put(Descriptors.FieldDescriptor.Type.SFIXED32, new Bilto("visitSFixed32", Descriptors.FieldDescriptor.Type.SFIXED32));
+    TYPE_TO.put(Descriptors.FieldDescriptor.Type.SFIXED64, new Bilto("visitSFixed64", Descriptors.FieldDescriptor.Type.SFIXED64));
   }
 
   private final String javaPkgFqn;
@@ -53,95 +56,129 @@ class ProtoWriterGenerator {
     this.fileDesc = fileDesc;
   }
 
+  static class FieldDescriptor {
+    public Bilto typeTo;
+    public boolean map;
+    public String identifier;
+    public String keyJavaType;
+    public Bilto keyTypeTo;
+    public String keyIdentifier;
+    public String valueJavaType;
+    public Bilto valueTypeTo;
+    public String valueIdentifier;
+    public String getterMethod;
+    public String setterMethod;
+    public String javaType;
+    public String javaTypeInternal;
+    public String protoWriterFqn;
+    private boolean repeated;
+  }
+
   PluginProtos.CodeGeneratorResponse.File generate() {
 
-    List<Descriptors.Descriptor> all = new ArrayList<>(Utils.transitiveClosure(fileDesc).values());
+    List<Descriptors.Descriptor> all = new ArrayList<>(fileDesc);
 
-    StringBuilder content = new StringBuilder();
+    GenWriter content = new GenWriter();
 
-    content.append("package ").append(javaPkgFqn).append(";\r\n");
-    content.append("import io.vertx.protobuf.Visitor;\r\n");
-    content.append("import io.vertx.protobuf.schema.MessageType;\r\n");
-    content.append("import io.vertx.protobuf.schema.Field;\r\n");
-    content.append("public class ProtoWriter {\r\n");
+    content.println(
+      "package " + javaPkgFqn + ";",
+      "import io.vertx.protobuf.Visitor;",
+      "import io.vertx.protobuf.schema.MessageType;",
+      "import io.vertx.protobuf.schema.Field;",
+      "",
+      "public class ProtoWriter {");
 
     for (Descriptors.Descriptor d : all) {
-      content.append("  public static void emit(").append(Utils.javaTypeOf(d)).append(" value, Visitor visitor) {\r\n");
-      content.append("    visitor.init(SchemaLiterals.").append(Utils.schemaLiteralOf(d)).append(");\r\n");
-      content.append("    visit(value, visitor);\r\n");
-      content.append("    visitor.destroy();\r\n");
-      content.append("  }\r\n");
+      content.println(
+        "  public static void emit(" + Utils.javaTypeOf(d) + " value, Visitor visitor) {",
+        "    visitor.init(SchemaLiterals." + Utils.schemaLiteralOf(d) + ");",
+        "    visit(value, visitor);",
+        "    visitor.destroy();",
+        "  }");
     }
 
     for (Descriptors.Descriptor d : all) {
-      content.append("  public static void visit(").append(Utils.javaTypeOf(d)).append(" value, Visitor visitor) {\r\n");
-      for (Descriptors.FieldDescriptor field : Utils.actualFields(d)) {
-        content.append("    if (value.").append(Utils.getterOf(field)).append("() != null) {\r\n");
-        content.append("      ").append(Utils.javaTypeOf(field)).append(" v = value.").append(Utils.getterOf(field)).append("();\r\n");
-        switch (field.getType()) {
-          case MESSAGE:
-            if (field.isMapField()) {
-              content.append("      for (java.util.Map.Entry<").append(Utils.javaTypeOf(field.getMessageType().getFields().get(0))).append(", ").append(Utils.javaTypeOf(field.getMessageType().getFields().get(1))).append("> entry : v.entrySet()) {\r\n");
-              content.append("        visitor.enter(SchemaLiterals.").append(Utils.schemaLiteralOf(field)).append(");\r\n");
-              switch (field.getMessageType().getFields().get(0).getType()) {
-                default:
-                  Bilto res = TYPE_TO.get(field.getMessageType().getFields().get(0).getType());
-                  if (res == null) {
-                    throw new UnsupportedOperationException("Handle me " + field.getMessageType().getFields().get(0).getType() + " not mapped");
-                  }
-                  content.append("        visitor.").append(res.visitMethod).append("(SchemaLiterals.").append(Utils.schemaLiteralOf(field.getMessageType().getFields().get(0))).append(", ").append(res.fn.apply("entry.getKey()")).append(");\r\n");
-              }
-              switch (field.getMessageType().getFields().get(1).getType()) {
-                case MESSAGE:
-                  content.append("        visitor.enter(SchemaLiterals.").append(Utils.schemaLiteralOf(field.getMessageType().getFields().get(1))).append(");\r\n");
-                  content.append("        visit(entry.getValue(), visitor);\r\n");
-                  content.append("        visitor.leave(SchemaLiterals.").append(Utils.schemaLiteralOf(field.getMessageType().getFields().get(1))).append(");\r\n");
-                  break;
-                default:
-                  Bilto res = TYPE_TO.get(field.getMessageType().getFields().get(1).getType());
-                  if (res == null) {
-                    throw new UnsupportedOperationException("Not found " + field.getMessageType().getFields().get(1).getType());
-                  } else {
-                    content.append("        visitor.").append(res.visitMethod).append("(SchemaLiterals.").append(Utils.schemaLiteralOf(field.getMessageType().getFields().get(1))).append(", ").append(res.fn.apply("entry.getValue()")).append(");\r\n");
-                  }
-              }
-              content.append("        visitor.leave(SchemaLiterals.").append(Utils.schemaLiteralOf(field)).append(");\r\n");
-              content.append("      }\r\n");
-            } else {
-              if (field.isRepeated()) {
-                content.append("      for (").append(Utils.javaTypeOfInternal(field)).append(" c : v) {\r\n");
-                content.append("        visitor.enter(SchemaLiterals.").append(Utils.schemaLiteralOf(field)).append(");\r\n");
-                content.append("        ").append(Utils.extractJavaPkgFqn(field.getMessageType().getFile())).append(".ProtoWriter.visit(c, visitor);\r\n");
-                content.append("        visitor.leave(SchemaLiterals.").append(Utils.schemaLiteralOf(field)).append(");\r\n");
-                content.append("      }\r\n");
-              } else {
-                content.append("      visitor.enter(SchemaLiterals.").append(Utils.schemaLiteralOf(field)).append(");\r\n");
-                content.append("      ").append(Utils.extractJavaPkgFqn(field.getMessageType().getFile())).append(".ProtoWriter.visit(v, visitor);\r\n");
-                content.append("      visitor.leave(SchemaLiterals.").append(Utils.schemaLiteralOf(field)).append(");\r\n");
-              }
-            }
-            break;
-          default:
-            Bilto res = TYPE_TO.get(field.getType());
-            if (res != null) {
-              if (field.isRepeated()) {
-                content.append("      for (").append(Utils.javaTypeOfInternal(field)).append(" c : v) {\r\n");
-                content.append("        visitor.").append(res.visitMethod).append("(SchemaLiterals.").append(Utils.schemaLiteralOf(field)).append(", ").append(res.fn.apply("c")).append(");\r\n");
-                content.append("      }\r\n");
-              } else {
-                content.append("      visitor.").append(res.visitMethod).append("(SchemaLiterals.").append(Utils.schemaLiteralOf(field)).append(", ").append(res.fn.apply("v")).append(");\r\n");
-              }
-            } else {
-              content.append("      // Handle field name=").append(field.getName()).append(" type=").append(field.getType()).append("\r\n");
-            }
-            break;
+
+      List<FieldDescriptor> fields = new ArrayList<>();
+      for (Descriptors.FieldDescriptor fd : Utils.actualFields(d)) {
+        FieldDescriptor field = new FieldDescriptor();
+        field.identifier = Utils.schemaLiteralOf(fd);
+        field.typeTo = TYPE_TO.get(fd.getType());
+        field.javaType = Utils.javaTypeOf(fd);
+        field.javaTypeInternal = Utils.javaTypeOfInternal(fd);
+        field.getterMethod = Utils.getterOf(fd);
+        field.setterMethod = Utils.setterOf(fd);
+        field.repeated = fd.isRepeated();
+        field.protoWriterFqn = fd.getType() == Descriptors.FieldDescriptor.Type.MESSAGE ? Utils.extractJavaPkgFqn(fd.getMessageType().getFile()) + ".ProtoWriter" : null;
+
+        if (fd.isMapField()) {
+          field.map = true;
+          field.keyJavaType = Utils.javaTypeOf(fd.getMessageType().getFields().get(0));
+          field.keyTypeTo = TYPE_TO.get(fd.getMessageType().getFields().get(0).getType());
+          field.keyIdentifier = Utils.schemaLiteralOf(fd.getMessageType().getFields().get(0));
+          field.valueJavaType = Utils.javaTypeOf(fd.getMessageType().getFields().get(1));
+          field.valueTypeTo = TYPE_TO.get(fd.getMessageType().getFields().get(1).getType());
+          field.valueIdentifier = Utils.schemaLiteralOf(fd.getMessageType().getFields().get(1));
+        } else {
+          field.map = false;
         }
-        content.append("    }\r\n");
+
+        fields.add(field);
       }
-      content.append("  }\r\n");
+
+      content.println("  public static void visit(" + Utils.javaTypeOf(d) + " value, Visitor visitor) {");
+      for (FieldDescriptor field : fields) {
+        content.println("    if (value." + field.getterMethod + "() != null) {");
+        content.println("      ", field.javaType + " v = value." + field.getterMethod + "();");
+        if (field.typeTo == null) {
+          // Message
+          if (field.map) {
+            content.println("      for (java.util.Map.Entry<" + field.keyJavaType + ", " + field.valueJavaType + "> entry : v.entrySet()) {");
+            content.println("        visitor.enter(SchemaLiterals." + field.identifier + ");");
+            content.println("        visitor." + field.keyTypeTo.visitMethod + "(SchemaLiterals." + field.keyIdentifier + ", " + field.keyTypeTo.fn.apply("entry.getKey()") + ");");
+            if (field.valueTypeTo == null) {
+              // Message
+              content.println(
+                "        visitor.enter(SchemaLiterals." + field.valueIdentifier + ");",
+                "        visit(entry.getValue(), visitor);",
+                "        visitor.leave(SchemaLiterals." + field.valueIdentifier + ");");
+            } else {
+              content.println("        visitor." + field.valueTypeTo.visitMethod + "(SchemaLiterals." + field.valueIdentifier + ", " + field.valueTypeTo.fn.apply("entry.getValue()") + ");");
+            }
+            content.println(
+              "        visitor.leave(SchemaLiterals." + field.identifier + ");",
+              "      }");
+          } else {
+            if (field.repeated) {
+              content.println(
+                "      for (" + field.javaTypeInternal + " c : v) {",
+                "        visitor.enter(SchemaLiterals." + field.identifier + ");",
+                "        " + field.protoWriterFqn + ".visit(c, visitor);",
+                "        visitor.leave(SchemaLiterals." + field.identifier + ");",
+                "      }");
+            } else {
+              content.println(
+                "      visitor.enter(SchemaLiterals." + field.identifier + ");",
+                "      " + field.protoWriterFqn + ".visit(v, visitor);",
+                "      visitor.leave(SchemaLiterals." + field.identifier + ");");
+            }
+          }
+        } else {
+          if (field.repeated) {
+            content.println(
+              "      for (" + field.javaTypeInternal + " c : v) {",
+              "        visitor." + field.typeTo.visitMethod + "(SchemaLiterals." + field.identifier + ", " + field.typeTo.fn.apply("c") + ");",
+              "      }");
+          } else {
+            content.println("      visitor." + field.typeTo.visitMethod + "(SchemaLiterals." + field.identifier + ", " + field.typeTo.fn.apply("v") + ");");
+          }
+        }
+        content.println("    }");
+      }
+      content.println("  }");
     }
 
-    content.append("}\r\n");
+    content.println("}");
     return PluginProtos.CodeGeneratorResponse.File
       .newBuilder()
       .setName(Utils.absoluteFileName(javaPkgFqn, "ProtoWriter"))
