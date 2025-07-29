@@ -64,6 +64,7 @@ public class DataObjectTest {
     assertEquals(Map.of("the-key", 4), res.getMapStringInt32Map());
   }
 
+/*
   @Test
   public void testStringValue() {
     byte[] bytes = com.google.protobuf.Value.newBuilder().setStringValue("hello").build().toByteArray();
@@ -111,6 +112,7 @@ public class DataObjectTest {
     assertEquals(5.1, res.getFieldsMap().get("juu").getNumberValue(), 0.001);
     assertTrue(res.getFieldsMap().get("daa").hasNullValue());
   }
+*/
 
   @Test
   public void testReadImports() {

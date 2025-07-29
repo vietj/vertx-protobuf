@@ -5,11 +5,20 @@ import com.google.protobuf.DescriptorProtos;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.compiler.PluginProtos;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 public class Utils {
+
+  static List<Descriptors.FieldDescriptor> actualFields(Descriptors.Descriptor descriptor) {
+    List<Descriptors.FieldDescriptor> fields = new ArrayList<>(descriptor.getFields());
+    for (Descriptors.OneofDescriptor oneOf : descriptor.getOneofs()) {
+      fields.removeAll(oneOf.getFields());
+    }
+    return fields;
+  }
 
   static String setterOf(Descriptors.FieldDescriptor field) {
     return "set" + Character.toUpperCase(field.getJsonName().charAt(0)) + field.getJsonName().substring(1);
@@ -17,6 +26,14 @@ public class Utils {
 
   static String getterOf(Descriptors.FieldDescriptor field) {
     return "get" + Character.toUpperCase(field.getJsonName().charAt(0)) + field.getJsonName().substring(1);
+  }
+
+  static String setterOf(Descriptors.OneofDescriptor oneOf) {
+    return "set" + nameOf(oneOf);
+  }
+
+  static String getterOf(Descriptors.OneofDescriptor oneOf) {
+    return "get" + nameOf(oneOf);
   }
 
   static String schemaLiteralOf(Descriptors.FieldDescriptor field) {
@@ -54,6 +71,20 @@ public class Utils {
       return javaPackage;
     }
     return Strings.nullToEmpty(proto.getPackage());
+  }
+
+  static String nameOf(Descriptors.OneofDescriptor descriptor) {
+    String name = descriptor.getName();
+    return Character.toUpperCase(name.charAt(0)) + name.substring(1);
+  }
+
+  static String oneOfTypeName(Descriptors.FieldDescriptor descriptor) {
+    String name = descriptor.getJsonName();
+    return Character.toUpperCase(name.charAt(0)) + name.substring(1);
+  }
+
+  static String javaTypeOf(Descriptors.OneofDescriptor mt) {
+    return javaTypeOf(mt.getContainingType()) + "." + nameOf(mt);
   }
 
   static String javaTypeOf(Descriptors.Descriptor mt) {

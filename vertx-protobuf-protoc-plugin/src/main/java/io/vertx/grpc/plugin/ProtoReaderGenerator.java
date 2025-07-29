@@ -5,8 +5,10 @@ import com.google.protobuf.compiler.PluginProtos;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -47,13 +49,24 @@ class ProtoReaderGenerator {
     public String typePkgFqn;
     public Function<String, String> converter;
     public boolean imported;
+    public boolean oneOf;
   }
 
   public PluginProtos.CodeGeneratorResponse.File generate() {
 
     List<FieldDescriptor> collected = new ArrayList<>();
+
     for (Descriptors.Descriptor mt : fileDesc) {
-      for (Descriptors.FieldDescriptor fd : mt.getFields()) {
+
+      Map<Descriptors.FieldDescriptor, Descriptors.OneofDescriptor> oneOfMap = new HashMap<>();
+      List<Descriptors.FieldDescriptor> fields = mt.getFields();
+      mt.getOneofs().forEach(oneOf -> {
+        oneOf.getFields().forEach(field -> {
+          oneOfMap.put(field, oneOf);
+        });
+      });
+
+      for (Descriptors.FieldDescriptor fd : fields) {
 
         FieldDescriptor descriptor = new FieldDescriptor();
 
@@ -90,7 +103,7 @@ class ProtoReaderGenerator {
           default:
             continue;
         }
-        Function<String, String> converter = Function.identity();
+        final Function<String, String> converter;
         switch (fd.getType()) {
           case BOOL:
             converter = s -> "value == 1";
@@ -101,6 +114,9 @@ class ProtoReaderGenerator {
           case BYTES:
             converter = s -> "io.vertx.core.buffer.Buffer.buffer(" + s + ")";
             break;
+          default:
+            converter = Function.identity();
+            break;
         }
         descriptor.type = fd.getType();
         descriptor.kind = kind;
@@ -110,12 +126,23 @@ class ProtoReaderGenerator {
         descriptor.javaType = Utils.javaTypeOf(fd);
         descriptor.repeated = fd.isRepeated();
         descriptor.packed = fd.isPacked();
-        descriptor.getterMethod = Utils.getterOf(fd);
-        descriptor.setterMethod = Utils.setterOf(fd);
         descriptor.containingJavaType = Utils.javaTypeOf(fd.getContainingType());
         descriptor.typePkgFqn = fd.getType() == Descriptors.FieldDescriptor.Type.MESSAGE ? Utils.extractJavaPkgFqn(fd.getMessageType().getFile()) : null;
-        descriptor.converter = converter;
         descriptor.imported = fd.getType() == Descriptors.FieldDescriptor.Type.MESSAGE && !Utils.extractJavaPkgFqn(fd.getMessageType().getFile()).equals(javaPkgFqn);
+
+        Descriptors.OneofDescriptor oneOf = oneOfMap.get(fd);
+        if (oneOf != null) {
+          descriptor.oneOf = true;
+          descriptor.getterMethod = "/* TODO */";
+          descriptor.setterMethod = Utils.setterOf(oneOf);
+          descriptor.converter = s -> Utils.javaTypeOf(oneOf) + ".of" + Utils.oneOfTypeName(fd) + "(" + converter.apply(s) + ")";
+        } else {
+          descriptor.oneOf = false;
+          descriptor.getterMethod = Utils.getterOf(fd);
+          descriptor.setterMethod = Utils.setterOf(fd);
+          descriptor.converter = converter;
+        }
+
         collected.add(descriptor);
 //
 //        if (descriptor.packed) {
@@ -305,7 +332,7 @@ class ProtoReaderGenerator {
           }
           out.println(
             "      " + field.javaType + " v = (" + field.javaType + ")stack.pop();",
-            "      ((" + field.containingJavaType + ")stack.peek())." + field.setterMethod + "(v);");
+            "      ((" + field.containingJavaType + ")stack.peek())." + field.setterMethod + "(" + field.converter.apply("v") + ");");
         }
         out.print("    } else ");
     });

@@ -84,8 +84,14 @@ class ElementGenerator {
 
   class DataObjectElement extends Element<Descriptors.Descriptor> {
 
+    private List<Descriptors.FieldDescriptor> fields;
+    private List<Descriptors.OneofDescriptor> oneOfs = new ArrayList<>();
+
     public DataObjectElement(Descriptors.Descriptor descriptor) {
       super(descriptor);
+
+      fields = Utils.actualFields(descriptor);
+      oneOfs = descriptor.getOneofs();
     }
 
     @Override
@@ -95,33 +101,94 @@ class ElementGenerator {
 
     void generate2(GenWriter writer) {
       writer.println("public " + (container != null ? "static " : "") + "class " + descriptor.getName() + " {");
-      descriptor.getFields().forEach(fd -> {
+      fields.forEach(fd -> {
         String javaType = Utils.javaTypeOf(fd);
         if (javaType != null) {
           writer.println("  private " + javaType + " " + fd.getJsonName() + ";");
         }
       });
+      oneOfs.forEach(oneOf -> {
+        writer.println("  private " + Utils.nameOf(oneOf) + "<?> " + oneOf.getName() + ";");
+      });
       writer.println("  public " + descriptor.getName() + " init() {\r\n");
-      descriptor.getFields().forEach(field -> {
+      fields.forEach(field -> {
         if (field.getType() == Descriptors.FieldDescriptor.Type.ENUM && !field.isRepeated()) {
           writer.println("    this." + field.getJsonName() + " = " + Utils.javaTypeOf(field) + ".valueOf(0);");
         }
       });
       writer.println("    return this;");
       writer.println("  }");
-      descriptor.getFields().forEach(field -> {
+      fields.forEach(field -> {
         String javaType = Utils.javaTypeOf(field);
         if (javaType != null) {
           String getter = Utils.getterOf(field);
           String setter = Utils.setterOf(field);
           writer.println("  public " + javaType + " " + getter + "() {");
-          writer.println("    return " + field.getJsonName() + ";\r\n");
-          writer.println("  };\r\n");
+          writer.println("    return " + field.getJsonName() + ";");
+          writer.println("  };");
           writer.println("  public " + descriptor.getName() + " " + setter + "(" + javaType + " " + field.getJsonName() + ") {");
           writer.println("    this." + field.getJsonName() + " = " + field.getJsonName() + ";");
           writer.println("    return this;");
           writer.println("  };");
         }
+      });
+      oneOfs.forEach(oneOf -> {
+        String getter = Utils.getterOf(oneOf);
+        String setter = Utils.setterOf(oneOf);
+        writer.println("  public " + Utils.nameOf(oneOf) + "<?> " + getter + "() {");
+        writer.println("    return " + oneOf.getName() + ";");
+        writer.println("  };");
+        writer.println("  public " + descriptor.getName() + " " + setter + "(" + Utils.nameOf(oneOf) + "<?> " + oneOf.getName() + ") {");
+        writer.println("    this." + oneOf.getName() + " = " +  oneOf.getName() + ";");
+        writer.println("    return this;");
+        writer.println("  };");
+      });
+      oneOfs.forEach(oneOf -> {
+/*
+        writer.println("  public enum " + Utils.nameOf(oneOf) + " {");
+        for (Iterator<Descriptors.FieldDescriptor> it = oneOf.getFields().iterator(); it.hasNext();) {
+          Descriptors.FieldDescriptor field = it.next();
+          writer.println("    " + field.getJsonName() + (it.hasNext() ? ", " : ""));
+        }
+        writer.println("  }");
+*/
+        writer.println("  public static enum " + Utils.nameOf(oneOf) + "Discriminant {");
+        for (Iterator<Descriptors.FieldDescriptor> it = oneOf.getFields().iterator(); it.hasNext();) {
+          Descriptors.FieldDescriptor field = it.next();
+          writer.println("    " + field.getName().toUpperCase() + (it.hasNext() ? ", " : ""));
+        }
+        writer.println("  }");
+        writer.println("  public static abstract class " + Utils.nameOf(oneOf) + "<T> {");
+        writer.println("    public abstract " + Utils.nameOf(oneOf) + "Discriminant discriminant();");
+        writer.println("    public abstract T get();");
+        for (Descriptors.FieldDescriptor field : oneOf.getFields()) {
+          writer.println("    public java.util.Optional<" + Utils.javaTypeOf(field) + "> as" + Utils.oneOfTypeName(field) + "() {");
+          writer.println("      return java.util.Optional.empty();");
+          writer.println("    }");
+        }
+        for (Descriptors.FieldDescriptor field : oneOf.getFields()) {
+          writer.println("    public static " + Utils.nameOf(oneOf) + "<" + Utils.javaTypeOf(field) + "> of" + Utils.oneOfTypeName(field) + "(" + Utils.javaTypeOf(field) + " value) {");
+          writer.println("      return new " + Utils.oneOfTypeName(field) + "(value);");
+          writer.println("    }");
+        }
+        for (Descriptors.FieldDescriptor field : oneOf.getFields()) {
+          writer.println("    private static class " + Utils.oneOfTypeName(field) + " extends " + Utils.nameOf(oneOf) + "<" + Utils.javaTypeOf(field) + "> {");
+          writer.println("      private final java.util.Optional<" + Utils.javaTypeOf(field) + "> value;");
+          writer.println("      private " + Utils.oneOfTypeName(field) + "(" + Utils.javaTypeOf(field) + " value) {");
+          writer.println("        this.value = java.util.Optional.of(java.util.Objects.requireNonNull(value));");
+          writer.println("      }");
+          writer.println("      public " + Utils.nameOf(oneOf) + "Discriminant discriminant() {");
+          writer.println("        return " + Utils.nameOf(oneOf) + "Discriminant." + field.getName().toUpperCase() + ";");
+          writer.println("      }");
+          writer.println("      public java.util.Optional<" + Utils.javaTypeOf(field) + "> as" + Utils.oneOfTypeName(field) + "() {");
+          writer.println("        return value;");
+          writer.println("      }");
+          writer.println("      public " + Utils.javaTypeOf(field) + " get() {");
+          writer.println("        return value.get();");
+          writer.println("      }");
+          writer.println("    }");
+        }
+        writer.println("  }");
       });
       nested.forEach(n -> {
         n.generate2(writer);

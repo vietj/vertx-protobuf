@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package io.vertx.tests.oneof;
+
+option java_package = "io.vertx.tests.oneof";
+option java_outer_classname = "OneOfProto";
+
+message Container {
+  oneof fruit {
+    BananaMsg banana = 1;
+    AppleMsg apple = 2;
+    OrangeMsg orange = 3;
+  }
+}
+
+message BananaMsg {
+}
+message OrangeMsg {
+}
+message AppleMsg {
+}

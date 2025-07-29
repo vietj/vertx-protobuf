@@ -75,7 +75,7 @@ class ProtoWriterGenerator {
 
     for (Descriptors.Descriptor d : all) {
       content.append("  public static void visit(").append(Utils.javaTypeOf(d)).append(" value, Visitor visitor) {\r\n");
-      for (Descriptors.FieldDescriptor field : d.getFields()) {
+      for (Descriptors.FieldDescriptor field : Utils.actualFields(d)) {
         content.append("    if (value.").append(Utils.getterOf(field)).append("() != null) {\r\n");
         content.append("      ").append(Utils.javaTypeOf(field)).append(" v = value.").append(Utils.getterOf(field)).append("();\r\n");
         switch (field.getType()) {
