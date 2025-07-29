@@ -170,7 +170,9 @@ class ProtoWriterGenerator {
           oneof.fields.forEach(field -> {
             content.println("        case " + field.discriminant + ": {");
             content.println("          " + field.javaType + " v = value." + property.getterMethod + "().as" + field.typeName + "().get();");
+            content.margin(4);
             gen(content, field);
+            content.margin(0);
             content.println("          break;");
             content.println("        }");
           });

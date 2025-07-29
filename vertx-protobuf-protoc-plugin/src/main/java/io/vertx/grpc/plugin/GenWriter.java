@@ -1,17 +1,22 @@
 package io.vertx.grpc.plugin;
 
-import java.util.Spliterators;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
-
 public class GenWriter {
 
   private StringBuilder content = new StringBuilder();
+  private int margin = 0;
+  private int cols = 0;
 
   public GenWriter println() {
     content.append("\r\n");
+    cols = 0;
+    return this;
+  }
+
+  public GenWriter margin(int val) {
+    if (val < 0) {
+      throw new IllegalArgumentException();
+    }
+    margin = val;
     return this;
   }
 
@@ -29,7 +34,11 @@ public class GenWriter {
   }
 
   public GenWriter print(String s) {
+    if (cols == 0) {
+      content.append(" ".repeat(margin));
+    }
     content.append(s);
+    cols += s.length();
     return this;
   }
 
