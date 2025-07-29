@@ -142,7 +142,7 @@ public class ProtobufReader {
       int fieldNumber  = decoder.fieldNumber();
       Field field = type.field(fieldNumber);
       if (field == null) {
-        throw new DecodeException();
+        throw new DecodeException("Unknown field  " + fieldNumber + " for message " + type.name());
       }
       switch (decoder.wireType()) {
         case LEN:
