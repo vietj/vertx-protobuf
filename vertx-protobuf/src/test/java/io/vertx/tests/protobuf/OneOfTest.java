@@ -2,6 +2,8 @@ package io.vertx.tests.protobuf;
 
 import io.vertx.core.buffer.Buffer;
 import io.vertx.protobuf.ProtobufReader;
+import io.vertx.protobuf.ProtobufWriter;
+import io.vertx.tests.oneof.ProtoWriter;
 import io.vertx.tests.oneof.ProtoReader;
 import io.vertx.tests.oneof.SchemaLiterals;
 import io.vertx.tests.oneof.AppleMsg;
@@ -18,12 +20,16 @@ public class OneOfTest {
 
   @Test
   public void testOneOf() throws Exception {
-    byte[] bytes = OneOfProto.Container.newBuilder().setBanana(OneOfProto.BananaMsg.newBuilder().build()).build().toByteArray();
+    byte[] bytes = OneOfProto.Container.newBuilder().setBanana(OneOfProto.BananaMsg.newBuilder().setWeight(15).build()).build().toByteArray();
     ProtoReader reader = new ProtoReader();
     ProtobufReader.parse(SchemaLiterals.CONTAINER, reader, Buffer.buffer(bytes));
     Container msg = (Container) reader.stack.pop();
     assertNotNull(msg.getFruit());
     assertEquals(Container.FruitDiscriminant.BANANA, msg.getFruit().discriminant());
+    assertEquals(15, (int)msg.getFruit().asBanana().get().getWeight());
+    bytes = ProtobufWriter.encodeToByteArray(visitor -> ProtoWriter.emit(msg, visitor));
+    OneOfProto.Container c2 = OneOfProto.Container.parseFrom(bytes);
+    assertEquals(15, c2.getBanana().getWeight());
   }
 
   @Test

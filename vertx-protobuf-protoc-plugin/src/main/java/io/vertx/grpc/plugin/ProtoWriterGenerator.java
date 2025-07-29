@@ -56,7 +56,14 @@ class ProtoWriterGenerator {
     this.fileDesc = fileDesc;
   }
 
-  static class FieldDescriptor {
+  static class Property {
+    public String getterMethod;
+    public String setterMethod;
+    public String javaType;
+    public String javaTypeInternal;
+  }
+
+  static class FieldProperty extends Property {
     public Bilto typeTo;
     public boolean map;
     public String identifier;
@@ -66,12 +73,16 @@ class ProtoWriterGenerator {
     public String valueJavaType;
     public Bilto valueTypeTo;
     public String valueIdentifier;
-    public String getterMethod;
-    public String setterMethod;
-    public String javaType;
-    public String javaTypeInternal;
     public String protoWriterFqn;
     private boolean repeated;
+
+    // OneOf
+    public String discriminant;
+    public String typeName;
+  }
+
+  static class OneofProperty extends Property {
+    final List<FieldProperty> fields = new ArrayList<>();
   }
 
   PluginProtos.CodeGeneratorResponse.File generate() {
@@ -99,9 +110,15 @@ class ProtoWriterGenerator {
 
     for (Descriptors.Descriptor d : all) {
 
-      List<FieldDescriptor> fields = new ArrayList<>();
-      for (Descriptors.FieldDescriptor fd : Utils.actualFields(d)) {
-        FieldDescriptor field = new FieldDescriptor();
+      Map<Descriptors.OneofDescriptor, OneofProperty> blah = new HashMap<>();
+      Map<Descriptors.FieldDescriptor, OneofProperty> oneOfs__ = new HashMap<>();
+      d.getOneofs().forEach(oneOf -> oneOf.getFields().forEach(f -> {
+        oneOfs__.put(f, blah.computeIfAbsent(oneOf, k -> new OneofProperty()));
+      }));
+
+      List<Property> props = new ArrayList<>();
+      for (Descriptors.FieldDescriptor fd : d.getFields()) {
+        FieldProperty field = new FieldProperty();
         field.identifier = Utils.schemaLiteralOf(fd);
         field.typeTo = TYPE_TO.get(fd.getType());
         field.javaType = Utils.javaTypeOf(fd);
@@ -123,55 +140,43 @@ class ProtoWriterGenerator {
           field.map = false;
         }
 
-        fields.add(field);
+        OneofProperty oneOf = oneOfs__.get(fd);
+        if (oneOf != null) {
+          field.discriminant = fd.getName().toUpperCase();
+          field.typeName = Utils.oneOfTypeName(fd);
+          oneOf.fields.add((field));
+        } else {
+          props.add(field);
+        }
       }
+      blah.forEach((a, b) -> {
+        b.getterMethod = Utils.getterOf(a);
+        b.setterMethod = Utils.setterOf(a);
+        b.javaType = "";
+        b.javaTypeInternal = "";
+        props.add(b);
+      });
 
       content.println("  public static void visit(" + Utils.javaTypeOf(d) + " value, Visitor visitor) {");
-      for (FieldDescriptor field : fields) {
-        content.println("    if (value." + field.getterMethod + "() != null) {");
-        content.println("      ", field.javaType + " v = value." + field.getterMethod + "();");
-        if (field.typeTo == null) {
-          // Message
-          if (field.map) {
-            content.println("      for (java.util.Map.Entry<" + field.keyJavaType + ", " + field.valueJavaType + "> entry : v.entrySet()) {");
-            content.println("        visitor.enter(SchemaLiterals." + field.identifier + ");");
-            content.println("        visitor." + field.keyTypeTo.visitMethod + "(SchemaLiterals." + field.keyIdentifier + ", " + field.keyTypeTo.fn.apply("entry.getKey()") + ");");
-            if (field.valueTypeTo == null) {
-              // Message
-              content.println(
-                "        visitor.enter(SchemaLiterals." + field.valueIdentifier + ");",
-                "        visit(entry.getValue(), visitor);",
-                "        visitor.leave(SchemaLiterals." + field.valueIdentifier + ");");
-            } else {
-              content.println("        visitor." + field.valueTypeTo.visitMethod + "(SchemaLiterals." + field.valueIdentifier + ", " + field.valueTypeTo.fn.apply("entry.getValue()") + ");");
-            }
-            content.println(
-              "        visitor.leave(SchemaLiterals." + field.identifier + ");",
-              "      }");
-          } else {
-            if (field.repeated) {
-              content.println(
-                "      for (" + field.javaTypeInternal + " c : v) {",
-                "        visitor.enter(SchemaLiterals." + field.identifier + ");",
-                "        " + field.protoWriterFqn + ".visit(c, visitor);",
-                "        visitor.leave(SchemaLiterals." + field.identifier + ");",
-                "      }");
-            } else {
-              content.println(
-                "      visitor.enter(SchemaLiterals." + field.identifier + ");",
-                "      " + field.protoWriterFqn + ".visit(v, visitor);",
-                "      visitor.leave(SchemaLiterals." + field.identifier + ");");
-            }
-          }
+      for (Property property : props) {
+        content.println("    if (value." + property.getterMethod + "() != null) {");
+        if (property instanceof FieldProperty) {
+          FieldProperty field = (FieldProperty) property;
+          content.println("      " + field.javaType + " v = value." + field.getterMethod + "();");
+          gen(content, field);
         } else {
-          if (field.repeated) {
-            content.println(
-              "      for (" + field.javaTypeInternal + " c : v) {",
-              "        visitor." + field.typeTo.visitMethod + "(SchemaLiterals." + field.identifier + ", " + field.typeTo.fn.apply("c") + ");",
-              "      }");
-          } else {
-            content.println("      visitor." + field.typeTo.visitMethod + "(SchemaLiterals." + field.identifier + ", " + field.typeTo.fn.apply("v") + ");");
-          }
+          OneofProperty oneof = (OneofProperty)property;
+          content.println("      switch (value." + property.getterMethod + "().discriminant()) {");
+          oneof.fields.forEach(field -> {
+            content.println("        case " + field.discriminant + ": {");
+            content.println("          " + field.javaType + " v = value." + property.getterMethod + "().as" + field.typeName + "().get();");
+            gen(content, field);
+            content.println("          break;");
+            content.println("        }");
+          });
+          content.println("        default:");
+          content.println("          throw new AssertionError();");
+          content.println("        }");
         }
         content.println("    }");
       }
@@ -184,6 +189,52 @@ class ProtoWriterGenerator {
       .setName(Utils.absoluteFileName(javaPkgFqn, "ProtoWriter"))
       .setContent(content.toString())
       .build();
+  }
+
+  private void gen(GenWriter content, FieldProperty field) {
+    if (field.typeTo == null) {
+      // Message
+      if (field.map) {
+        content.println("      for (java.util.Map.Entry<" + field.keyJavaType + ", " + field.valueJavaType + "> entry : v.entrySet()) {");
+        content.println("        visitor.enter(SchemaLiterals." + field.identifier + ");");
+        content.println("        visitor." + field.keyTypeTo.visitMethod + "(SchemaLiterals." + field.keyIdentifier + ", " + field.keyTypeTo.fn.apply("entry.getKey()") + ");");
+        if (field.valueTypeTo == null) {
+          // Message
+          content.println(
+            "        visitor.enter(SchemaLiterals." + field.valueIdentifier + ");",
+            "        visit(entry.getValue(), visitor);",
+            "        visitor.leave(SchemaLiterals." + field.valueIdentifier + ");");
+        } else {
+          content.println("        visitor." + field.valueTypeTo.visitMethod + "(SchemaLiterals." + field.valueIdentifier + ", " + field.valueTypeTo.fn.apply("entry.getValue()") + ");");
+        }
+        content.println(
+          "        visitor.leave(SchemaLiterals." + field.identifier + ");",
+          "      }");
+      } else {
+        if (field.repeated) {
+          content.println(
+            "      for (" + field.javaTypeInternal + " c : v) {",
+            "        visitor.enter(SchemaLiterals." + field.identifier + ");",
+            "        " + field.protoWriterFqn + ".visit(c, visitor);",
+            "        visitor.leave(SchemaLiterals." + field.identifier + ");",
+            "      }");
+        } else {
+          content.println(
+            "      visitor.enter(SchemaLiterals." + field.identifier + ");",
+            "      " + field.protoWriterFqn + ".visit(v, visitor);",
+            "      visitor.leave(SchemaLiterals." + field.identifier + ");");
+        }
+      }
+    } else {
+      if (field.repeated) {
+        content.println(
+          "      for (" + field.javaTypeInternal + " c : v) {",
+          "        visitor." + field.typeTo.visitMethod + "(SchemaLiterals." + field.identifier + ", " + field.typeTo.fn.apply("c") + ");",
+          "      }");
+      } else {
+        content.println("      visitor." + field.typeTo.visitMethod + "(SchemaLiterals." + field.identifier + ", " + field.typeTo.fn.apply("v") + ");");
+      }
+    }
   }
 
 }
