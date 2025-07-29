@@ -2,6 +2,7 @@ package io.vertx.protobuf;
 
 import io.netty.handler.codec.CorruptedFrameException;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.json.DecodeException;
 import io.vertx.protobuf.schema.WireType;
 
 public class ProtobufDecoder {
@@ -150,10 +151,27 @@ public class ProtobufDecoder {
     return (wholeWithContinuations & 0x3FFF) | ((wholeWithContinuations & 0x3FFF0000) >> 2);
   }
 
+  private int readRawVarintOversize() {
+    int i = idx;
+    int l = idx + len;
+    long val = 0;
+    while (i < l) {
+      byte b = buffer.getByte(i);
+      val <<= 7;
+      val |= b & 0x7F;
+      if ((b & 0x80) == 0) {
+        idx = l;
+        return (int)val;
+      }
+      i++;
+    }
+    throw new DecodeException();
+  }
+
   private int readRawVarint40(int wholeOrMore) {
     byte lastByte;
     if (readableBytes() == 4 || (lastByte = buffer.getByte(idx + 4)) < 0) {
-      throw new CorruptedFrameException("malformed varint.");
+      return readRawVarintOversize();
     }
     idx += 5;
     // add it to wholeOrMore

@@ -4,6 +4,7 @@ import com.google.protobuf.ByteString;
 import com.google.protobuf.conformance.Conformance;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.json.DecodeException;
 import io.vertx.protobuf.ProtobufReader;
 import io.vertx.protobuf.ProtobufWriter;
 import io.vertx.protobuf.com.google.protobuf_test_messages.proto3.ProtoWriter;
@@ -67,7 +68,11 @@ public class Main {
         if (messageType.equals("protobuf_test_messages.proto3.TestAllTypesProto3")) {
 //          TestAllTypesProto3.
           ProtoReader reader = new ProtoReader();
-          ProtobufReader.parse(SchemaLiterals.TESTALLTYPESPROTO3, reader, Buffer.buffer(request.getProtobufPayload().toByteArray()));
+          try {
+            ProtobufReader.parse(SchemaLiterals.TESTALLTYPESPROTO3, reader, Buffer.buffer(request.getProtobufPayload().toByteArray()));
+          } catch (DecodeException | IndexOutOfBoundsException e) {
+            return Conformance.ConformanceResponse.newBuilder().setParseError(e.getMessage() != null ? e.getMessage() : e.getClass().getName()).build();
+          }
           testMessage = (TestAllTypesProto3) reader.stack.pop();
         } else {
           throw new UnsupportedOperationException();

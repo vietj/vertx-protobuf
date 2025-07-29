@@ -1,1 +1,1 @@
-Required.Proto3.ProtobufInput.ValidDataScalar.BOOL[0].ProtobufOutput # Output was not equivalent to reference message: added: oneof_null_value: NULL_VALUE
+Required.Proto3.ProtobufInput.PrematureEofBeforeKnownNonRepeatedValue.BOOL # Should have failed to parse, but didn't.
