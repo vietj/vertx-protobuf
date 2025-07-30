@@ -85,13 +85,13 @@ class ElementGenerator {
   class DataObjectElement extends Element<Descriptors.Descriptor> {
 
     private List<Descriptors.FieldDescriptor> fields;
-    private List<Descriptors.OneofDescriptor> oneOfs = new ArrayList<>();
+    private List<Descriptors.OneofDescriptor> oneOfs;
 
     public DataObjectElement(Descriptors.Descriptor descriptor) {
       super(descriptor);
 
       fields = Utils.actualFields(descriptor);
-      oneOfs = descriptor.getOneofs();
+      oneOfs = Utils.oneOfs(descriptor);
     }
 
     @Override
@@ -104,18 +104,25 @@ class ElementGenerator {
       fields.forEach(fd -> {
         String javaType = Utils.javaTypeOf(fd);
         if (javaType != null) {
-          writer.println("  private " + javaType + " " + fd.getJsonName() + ";");
+          writer.print("  " + javaType + " " + fd.getJsonName());
+          if (fd.isMapField()) {
+            writer.println(" = new java.util.HashMap<>();");
+          } else if (fd.isRepeated()) {
+            writer.println(" = new java.util.ArrayList<>();");
+          } else {
+            writer.println(";");
+          }
         }
       });
       oneOfs.forEach(oneOf -> {
         writer.println("  private " + Utils.nameOf(oneOf) + "<?> " + oneOf.getName() + ";");
       });
       writer.println("  public " + descriptor.getName() + " init() {\r\n");
-      fields.forEach(field -> {
-        if (field.getType() == Descriptors.FieldDescriptor.Type.ENUM && !field.isRepeated()) {
-          writer.println("    this." + field.getJsonName() + " = " + Utils.javaTypeOf(field) + ".valueOf(0);");
-        }
-      });
+//      fields.forEach(field -> {
+//        if (field.getType() == Descriptors.FieldDescriptor.Type.ENUM && !field.isRepeated()) {
+//          writer.println("    this." + field.getJsonName() + " = " + Utils.javaTypeOf(field) + ".valueOf(0);");
+//        }
+//      });
       writer.println("    return this;");
       writer.println("  }");
       fields.forEach(field -> {
@@ -124,7 +131,12 @@ class ElementGenerator {
           String getter = Utils.getterOf(field);
           String setter = Utils.setterOf(field);
           writer.println("  public " + javaType + " " + getter + "() {");
-          writer.println("    return " + field.getJsonName() + ";");
+          if (field.getType() != Descriptors.FieldDescriptor.Type.MESSAGE && !field.isRepeated()) {
+            writer.println("    " + javaType + " val = this." + field.getJsonName() + ";");
+            writer.println("    return val != null ? val : " + defaultValueOf(field) + ";");
+          } else {
+            writer.println("    return " + field.getJsonName() + ";");
+          }
           writer.println("  };");
           writer.println("  public " + descriptor.getName() + " " + setter + "(" + javaType + " " + field.getJsonName() + ") {");
           writer.println("    this." + field.getJsonName() + " = " + field.getJsonName() + ";");
@@ -194,6 +206,38 @@ class ElementGenerator {
         n.generate2(writer);
       });
       writer.println("}");
+    }
+  }
+
+  private static String defaultValueOf(Descriptors.FieldDescriptor field) {
+    switch (field.getType()) {
+      case ENUM:
+        return Utils.javaTypeOf(field) + "." + Utils.defaultEnumValue(field.getEnumType()).getName();
+      case BOOL:
+        return "false";
+      case BYTES:
+        // Not sure about that because it is mutable
+        return "io.vertx.core.buffer.Buffer.buffer()";
+      case STRING:
+        return "\"\"";
+      case FLOAT:
+        return "0F";
+      case DOUBLE:
+        return "0D";
+      case INT32:
+      case UINT32:
+      case SINT32:
+      case FIXED32:
+      case SFIXED32:
+        return "0";
+      case INT64:
+      case UINT64:
+      case SINT64:
+      case FIXED64:
+      case SFIXED64:
+        return "0L";
+      default:
+        throw new UnsupportedOperationException();
     }
   }
 

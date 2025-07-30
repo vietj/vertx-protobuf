@@ -15,9 +15,28 @@ public class Utils {
   static List<Descriptors.FieldDescriptor> actualFields(Descriptors.Descriptor descriptor) {
     List<Descriptors.FieldDescriptor> fields = new ArrayList<>(descriptor.getFields());
     for (Descriptors.OneofDescriptor oneOf : descriptor.getOneofs()) {
-      fields.removeAll(oneOf.getFields());
+      for (Descriptors.FieldDescriptor fd : oneOf.getFields()) {
+        if (!isOptional(fd)) {
+          fields.remove(fd);
+        }
+      }
     }
     return fields;
+  }
+
+  static boolean isOptional(Descriptors.FieldDescriptor field) {
+    return field.toProto().hasProto3Optional();
+  }
+
+  static List<Descriptors.OneofDescriptor> oneOfs(Descriptors.Descriptor descriptor) {
+    List<Descriptors.OneofDescriptor> oneOfs = new ArrayList<>();
+    for (Descriptors.OneofDescriptor oneOf : descriptor.getOneofs()) {
+      boolean optional = oneOf.getFields().stream().anyMatch(Utils::isOptional);
+      if (!optional) {
+        oneOfs.add(oneOf);
+      }
+    }
+    return oneOfs;
   }
 
   static String setterOf(Descriptors.FieldDescriptor field) {
@@ -90,6 +109,10 @@ public class Utils {
   static String javaTypeOf(Descriptors.Descriptor mt) {
     String pkg = extractJavaPkgFqn(mt.getFile());
     return pkg + "." + simpleNameOf(mt);
+  }
+
+  static Descriptors.EnumValueDescriptor defaultEnumValue(Descriptors.EnumDescriptor desc) {
+    return desc.getValues().stream().filter(vd -> vd.getIndex() == 0).findAny().get();
   }
 
   static String javaTypeOf(Descriptors.FieldDescriptor field) {

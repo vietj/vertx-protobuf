@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 class ProtoWriterGenerator {
@@ -59,8 +60,10 @@ class ProtoWriterGenerator {
   static class Property {
     public String getterMethod;
     public String setterMethod;
+    public String fieldName;
     public String javaType;
     public String javaTypeInternal;
+    public Function<String, String> defaultValueChecker = s -> s + "." + this.getterMethod + "()" + " != null";
   }
 
   static class FieldProperty extends Property {
@@ -112,7 +115,7 @@ class ProtoWriterGenerator {
 
       Map<Descriptors.OneofDescriptor, OneofProperty> blah = new HashMap<>();
       Map<Descriptors.FieldDescriptor, OneofProperty> oneOfs__ = new HashMap<>();
-      d.getOneofs().forEach(oneOf -> oneOf.getFields().forEach(f -> {
+      Utils.oneOfs(d).forEach(oneOf -> oneOf.getFields().forEach(f -> {
         oneOfs__.put(f, blah.computeIfAbsent(oneOf, k -> new OneofProperty()));
       }));
 
@@ -125,6 +128,7 @@ class ProtoWriterGenerator {
         field.javaTypeInternal = Utils.javaTypeOfInternal(fd);
         field.getterMethod = Utils.getterOf(fd);
         field.setterMethod = Utils.setterOf(fd);
+        field.fieldName = fd.getJsonName();
         field.repeated = fd.isRepeated();
         field.protoWriterFqn = fd.getType() == Descriptors.FieldDescriptor.Type.MESSAGE ? Utils.extractJavaPkgFqn(fd.getMessageType().getFile()) + ".ProtoWriter" : null;
 
@@ -138,6 +142,45 @@ class ProtoWriterGenerator {
           field.valueIdentifier = Utils.schemaLiteralOf(fd.getMessageType().getFields().get(1));
         } else {
           field.map = false;
+          if (fd.isRepeated()) {
+            field.defaultValueChecker = s -> "!" + s + "." + field.getterMethod + "().isEmpty()";
+          } else {
+            if (Utils.isOptional(fd)) {
+              field.defaultValueChecker = s -> s + "." + field.fieldName + " != null";
+            } else {
+              switch (fd.getType()) {
+                case INT32:
+                case UINT32:
+                case SINT32:
+                case FIXED32:
+                case SFIXED32:
+                  field.defaultValueChecker = s -> s + "." + field.getterMethod + "() != 0";
+                  break;
+                case INT64:
+                case UINT64:
+                case SINT64:
+                case FIXED64:
+                case SFIXED64:
+                  field.defaultValueChecker = s -> s + "." + field.getterMethod + "() != 0L";
+                  break;
+                case FLOAT:
+                  field.defaultValueChecker = s -> s + "." + field.getterMethod + "() != 0F";
+                  break;
+                case DOUBLE:
+                  field.defaultValueChecker = s -> s + "." + field.getterMethod + "() != 0D";
+                  break;
+                case STRING:
+                  field.defaultValueChecker = s -> "!" + s + "." + field.getterMethod + "().isEmpty()";
+                  break;
+                case ENUM:
+                  field.defaultValueChecker = s -> s + "." + field.getterMethod + "() != " + Utils.javaTypeOf(fd) + "." + Utils.defaultEnumValue(fd.getEnumType()).getName();
+                  break;
+                case BYTES:
+                  field.defaultValueChecker = s -> s + "." + field.getterMethod + "().length() != 0";
+                  break;
+              }
+            }
+          }
         }
 
         OneofProperty oneOf = oneOfs__.get(fd);
@@ -159,7 +202,7 @@ class ProtoWriterGenerator {
 
       content.println("  public static void visit(" + Utils.javaTypeOf(d) + " value, Visitor visitor) {");
       for (Property property : props) {
-        content.println("    if (value." + property.getterMethod + "() != null) {");
+        content.println("    if (" + property.defaultValueChecker.apply("value") + ") {");
         if (property instanceof FieldProperty) {
           FieldProperty field = (FieldProperty) property;
           content.println("      " + field.javaType + " v = value." + field.getterMethod + "();");

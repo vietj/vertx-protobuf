@@ -1,0 +1,65 @@
+syntax = "proto3";
+
+package io.vertx.tests.oneof;
+
+option java_package = "io.vertx.tests.presence";
+option java_outer_classname = "PresenceProto";
+
+message Default {
+  string string = 1;
+  bytes bytes = 2;
+  float _float = 3;
+  double _double = 4;
+  int32 int32 = 5;
+  int64 int64 = 6;
+  uint32 uint32 = 7;
+  uint64 uint64 = 8;
+  sint32 sint32 = 9;
+  sint64 sint64 = 10;
+  fixed32 fixed32 = 11;
+  fixed64 fixed64 = 12;
+  sfixed32 sfixed32 = 13;
+  sfixed64 sfixed64 = 14;
+  Enum _enum = 15;
+}
+
+message Repeated {
+  repeated string string = 1;
+  repeated bytes bytes = 2;
+  repeated float _float = 3;
+  repeated double _double = 4;
+  repeated int32 int32 = 5;
+  repeated int64 int64 = 6;
+  repeated uint32 uint32 = 7;
+  repeated uint64 uint64 = 8;
+  repeated sint32 sint32 = 9;
+  repeated sint64 sint64 = 10;
+  repeated fixed32 fixed32 = 11;
+  repeated fixed64 fixed64 = 12;
+  repeated sfixed32 sfixed32 = 13;
+  repeated sfixed64 sfixed64 = 14;
+  repeated Enum _enum = 15;
+}
+
+message Optional {
+  optional string string = 1;
+  optional bytes bytes = 2;
+  optional float _float = 3;
+  optional double _double = 4;
+  optional int32 int32 = 5;
+  optional int64 int64 = 6;
+  optional uint32 uint32 = 7;
+  optional uint64 uint64 = 8;
+  optional sint32 sint32 = 9;
+  optional sint64 sint64 = 10;
+  optional fixed32 fixed32 = 11;
+  optional fixed64 fixed64 = 12;
+  optional sfixed32 sfixed32 = 13;
+  optional sfixed64 sfixed64 = 14;
+  optional Enum _enum = 15;
+}
+
+enum Enum {
+  constant_0 = 0;
+  constant_1 = 1;
+}
