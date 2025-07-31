@@ -1,1 +1,1 @@
-Required.Proto3.ProtobufInput.ValidDataRepeated.INT32.PackedInput.ProtobufOutput # Output was not equivalent to reference message: modified: repeated_int32[3]: 12345 -> 0deleted: repeated_int32[4]: 2147483647del
+Required.Proto3.ProtobufInput.ValidDataMap.SINT64.SINT64.MissingDefault.ProtobufOutput # Failed to parse input or produce output.

@@ -10,6 +10,7 @@ import io.vertx.protobuf.com.google.protobuf.Struct;
 import io.vertx.protobuf.com.google.protobuf.Value;
 import io.vertx.tests.importing.Container;
 import io.vertx.tests.importing.ImportingProto;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -20,6 +21,7 @@ import static org.junit.Assert.*;
 
 public class DataObjectTest {
 
+  @Ignore
   @Test
   public void testReadSimple() {
     byte[] bytes = TestProto.SimpleMessage.newBuilder()

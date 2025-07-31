@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+package io.vertx.tests.map;
+
+option java_package = "io.vertx.tests.map";
+option java_outer_classname = "MapProto";
+
+message MapKeyVariant {
+  map<string, int32> string = 1;
+  map<int32, int32> int32 = 3;
+  map<int64, int32> int64 = 4;
+  map<uint32, int32> uint32 = 5;
+  map<uint64, int32> uint64 = 6;
+  map<sint32, int32> sint32 = 7;
+  map<sint64, int32> sint64 = 8;
+  map<bool, int32> bool = 9;
+  map<fixed64, int32> fixed64 = 11;
+  map<sfixed64, int32> sfixed64 = 12;
+  map<fixed32, int32> fixed32 = 14;
+  map<sfixed32, int32> sfixed32 = 15;
+}
+
+message MapValueVariant {
+  map<int32, string> string_v = 1;
+  map<int32, bytes> bytes_v = 2;
+  map<int32, int32> int32_v = 3;
+  map<int32, int64> int64_v = 4;
+  map<int32, uint32> uint32_v = 5;
+  map<int32, uint64> uint64_v = 6;
+  map<int32, sint32> sint32_v = 7;
+  map<int32, sint64> sint64_v = 8;
+  map<int32, bool> bool_v = 9;
+  map<int32, Enum> _enum_v = 10;
+  map<int32, fixed64> fixed64_v = 11;
+  map<int32, sfixed64> sfixed64_v = 12;
+  map<int32, double> _double_v = 13;
+  map<int32, fixed32> fixed32_v = 14;
+  map<int32, sfixed32> sfixed32_v = 15;
+  map<int32, float> _float_v = 16;
+}
+
+message Value {
+}
+
+enum Enum {
+  constant_0 = 0;
+  constant_1 = 1;
+}

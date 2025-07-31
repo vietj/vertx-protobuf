@@ -2,7 +2,7 @@ package io.vertx.protobuf.schema;
 
 public class Field {
 
-  private final MessageType owner;
+  public final MessageType owner;
   public final int number;
   public final Type type;
 

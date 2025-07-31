@@ -69,7 +69,8 @@ public class Main {
 //          TestAllTypesProto3.
           ProtoReader reader = new ProtoReader();
           try {
-            ProtobufReader.parse(SchemaLiterals.TESTALLTYPESPROTO3, reader, Buffer.buffer(request.getProtobufPayload().toByteArray()));
+            Buffer buffer = Buffer.buffer(request.getProtobufPayload().toByteArray());
+            ProtobufReader.parse(SchemaLiterals.TESTALLTYPESPROTO3, reader, buffer);
           } catch (DecodeException | IndexOutOfBoundsException e) {
             return Conformance.ConformanceResponse.newBuilder().setParseError(e.getMessage() != null ? e.getMessage() : e.getClass().getName()).build();
           }
