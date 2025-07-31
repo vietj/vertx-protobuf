@@ -8,55 +8,58 @@ option java_outer_classname = "PresenceProto";
 message Default {
   string string = 1;
   bytes bytes = 2;
-  float _float = 3;
-  double _double = 4;
-  int32 int32 = 5;
-  int64 int64 = 6;
-  uint32 uint32 = 7;
-  uint64 uint64 = 8;
-  sint32 sint32 = 9;
-  sint64 sint64 = 10;
-  fixed32 fixed32 = 11;
-  fixed64 fixed64 = 12;
-  sfixed32 sfixed32 = 13;
-  sfixed64 sfixed64 = 14;
-  Enum _enum = 15;
+  int32 int32 = 3;
+  int64 int64 = 4;
+  uint32 uint32 = 5;
+  uint64 uint64 = 6;
+  sint32 sint32 = 7;
+  sint64 sint64 = 8;
+  bool bool = 9;
+  Enum _enum = 10;
+  fixed64 fixed64 = 11;
+  sfixed64 sfixed64 = 12;
+  double _double = 13;
+  fixed32 fixed32 = 14;
+  sfixed32 sfixed32 = 15;
+  float _float = 16;
 }
 
 message Repeated {
   repeated string string = 1;
   repeated bytes bytes = 2;
-  repeated float _float = 3;
-  repeated double _double = 4;
-  repeated int32 int32 = 5;
-  repeated int64 int64 = 6;
-  repeated uint32 uint32 = 7;
-  repeated uint64 uint64 = 8;
-  repeated sint32 sint32 = 9;
-  repeated sint64 sint64 = 10;
-  repeated fixed32 fixed32 = 11;
-  repeated fixed64 fixed64 = 12;
-  repeated sfixed32 sfixed32 = 13;
-  repeated sfixed64 sfixed64 = 14;
-  repeated Enum _enum = 15;
+  repeated int32 int32 = 3;
+  repeated int64 int64 = 4;
+  repeated uint32 uint32 = 5;
+  repeated uint64 uint64 = 6;
+  repeated sint32 sint32 = 7;
+  repeated sint64 sint64 = 8;
+  repeated bool bool = 9;
+  repeated Enum _enum = 10;
+  repeated fixed64 fixed64 = 11;
+  repeated sfixed64 sfixed64 = 12;
+  repeated double _double = 13;
+  repeated fixed32 fixed32 = 14;
+  repeated sfixed32 sfixed32 = 15;
+  repeated float _float = 16;
 }
 
 message Optional {
   optional string string = 1;
   optional bytes bytes = 2;
-  optional float _float = 3;
-  optional double _double = 4;
-  optional int32 int32 = 5;
-  optional int64 int64 = 6;
-  optional uint32 uint32 = 7;
-  optional uint64 uint64 = 8;
-  optional sint32 sint32 = 9;
-  optional sint64 sint64 = 10;
-  optional fixed32 fixed32 = 11;
-  optional fixed64 fixed64 = 12;
-  optional sfixed32 sfixed32 = 13;
-  optional sfixed64 sfixed64 = 14;
-  optional Enum _enum = 15;
+  optional int32 int32 = 3;
+  optional int64 int64 = 4;
+  optional uint32 uint32 = 5;
+  optional uint64 uint64 = 6;
+  optional sint32 sint32 = 7;
+  optional sint64 sint64 = 8;
+  optional bool bool = 9;
+  optional Enum _enum = 10;
+  optional fixed64 fixed64 = 11;
+  optional sfixed64 sfixed64 = 12;
+  optional double _double = 13;
+  optional fixed32 fixed32 = 14;
+  optional sfixed32 sfixed32 = 15;
+  optional float _float = 16;
 }
 
 enum Enum {

@@ -29,7 +29,9 @@ class ProtoReaderGenerator {
     VarInt32,
     Double,
     Fixed64,
+    SFixed64,
     Fixed32,
+    SFixed32,
     Float,
     Message
   }
@@ -80,6 +82,11 @@ class ProtoReaderGenerator {
           case BOOL:
           case ENUM:
           case INT32:
+          case UINT32:
+          case SINT32:
+          case INT64:
+          case UINT64:
+          case SINT64:
             kind = VisitorKind.VarInt32;
             break;
           case STRING:
@@ -88,14 +95,20 @@ class ProtoReaderGenerator {
           case DOUBLE:
             kind = VisitorKind.Double;
             break;
-          case FIXED64:
-            kind = VisitorKind.Fixed64;
-            break;
           case FLOAT:
             kind = VisitorKind.Float;
             break;
+          case SFIXED32:
+            kind = VisitorKind.SFixed32;
+            break;
           case FIXED32:
             kind = VisitorKind.Fixed32;
+            break;
+          case FIXED64:
+            kind = VisitorKind.Fixed64;
+            break;
+          case SFIXED64:
+            kind = VisitorKind.SFixed64;
             break;
           case MESSAGE:
             kind = VisitorKind.Message;
@@ -113,6 +126,12 @@ class ProtoReaderGenerator {
             break;
           case BYTES:
             converter = s -> "io.vertx.core.buffer.Buffer.buffer(" + s + ")";
+            break;
+          // Temporary workaround
+          case INT64:
+          case UINT64:
+          case SINT64:
+            converter = s -> "(long)" + s;
             break;
           default:
             converter = Function.identity();
@@ -197,7 +216,7 @@ class ProtoReaderGenerator {
       "if (next != null) {",
       "      next.init(type);",
       "    } else {",
-      "      throw new UnsupportedOperationException();",
+      "      throw new IllegalArgumentException(\"\");",
       "    }",
       "  }");
 
@@ -218,13 +237,24 @@ class ProtoReaderGenerator {
     }
 
     VisitMethod[] visitMethods = {
-      new VisitMethod("visitBytes(Field field, byte[] value)", "visitBytes(field, value)", Descriptors.FieldDescriptor.Type.BYTES),
       new VisitMethod("visitString(Field field, String value)", "visitString(field, value)", Descriptors.FieldDescriptor.Type.STRING),
+      new VisitMethod("visitBytes(Field field, byte[] value)", "visitBytes(field, value)", Descriptors.FieldDescriptor.Type.BYTES),
       new VisitMethod("visitFixed32(Field field, int value)", "visitFixed32(field, value)", Descriptors.FieldDescriptor.Type.FIXED32),
+      new VisitMethod("visitFixed64(Field field, long value)", "visitFixed64(field, value)", Descriptors.FieldDescriptor.Type.FIXED64),
+      new VisitMethod("visitSFixed32(Field field, int value)", "visitSFixed32(field, value)", Descriptors.FieldDescriptor.Type.SFIXED32),
+      new VisitMethod("visitSFixed64(Field field, long value)", "visitSFixed64(field, value)", Descriptors.FieldDescriptor.Type.SFIXED64),
       new VisitMethod("visitFloat(Field field, float value)", "visitFloat(field, value)", Descriptors.FieldDescriptor.Type.FLOAT),
       new VisitMethod("visitDouble(Field field, double value)", "visitDouble(field, value)", Descriptors.FieldDescriptor.Type.DOUBLE),
-      new VisitMethod("visitFixed64(Field field, long value)", "visitFixed64(field, value)", Descriptors.FieldDescriptor.Type.FIXED64),
-      new VisitMethod("visitVarInt32(Field field, int value)", "visitVarInt32(field, value)", Descriptors.FieldDescriptor.Type.BOOL, Descriptors.FieldDescriptor.Type.ENUM, Descriptors.FieldDescriptor.Type.INT32)
+      new VisitMethod("visitVarInt32(Field field, int value)", "visitVarInt32(field, value)",
+        Descriptors.FieldDescriptor.Type.BOOL,
+        Descriptors.FieldDescriptor.Type.ENUM,
+        Descriptors.FieldDescriptor.Type.INT32,
+        Descriptors.FieldDescriptor.Type.SINT32,
+        Descriptors.FieldDescriptor.Type.UINT32,
+        Descriptors.FieldDescriptor.Type.INT64,
+        Descriptors.FieldDescriptor.Type.SINT64,
+        Descriptors.FieldDescriptor.Type.UINT64
+        )
     };
 
     for (VisitMethod visitMethod : visitMethods) {
@@ -252,7 +282,7 @@ class ProtoReaderGenerator {
         "if (next != null) {",
         "      next." + visitMethod.next + ";",
         "    } else {",
-        "      throw new UnsupportedOperationException();",
+        "      throw new IllegalArgumentException(\"Invalid field \" + field);",
         "    }",
         "  }");
     }

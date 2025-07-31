@@ -1,5 +1,6 @@
 package io.vertx.tests.protobuf;
 
+import com.google.protobuf.ByteString;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.protobuf.ProtobufReader;
 import io.vertx.protobuf.ProtobufWriter;
@@ -13,87 +14,116 @@ import io.vertx.tests.repetition.RepetitionProto;
 import org.junit.Test;
 
 import java.util.Arrays;
-import java.util.Collections;
 
 import static org.junit.Assert.assertEquals;
 
 public class RepetitionTest {
 
   @Test
-  public void testRepetition() throws Exception {
+  public void testParseRepetition() throws Exception {
     byte[] bytes = RepetitionProto.Repeated.newBuilder()
-      .addRepeatedInt(0)
-      .addRepeatedInt(1)
-      .addRepeatedInt(2)
-      .addRepeatedEnum(RepetitionProto.Enum.constant)
-      .addRepeatedDouble(0)
-      .addRepeatedDouble(1)
-      .addRepeatedDouble(2)
-      .addRepeatedFixed64(0)
-      .addRepeatedFixed64(1)
-      .addRepeatedFixed64(2)
-      .addRepeatedFloat(0)
-      .addRepeatedFloat(1)
-      .addRepeatedFloat(2)
-      .addRepeatedFixed32(0)
-      .addRepeatedFixed32(1)
-      .addRepeatedFixed32(2)
+      .addString("0")
+      .addString("1")
+      .addBytes(ByteString.copyFromUtf8("0"))
+      .addBytes(ByteString.copyFromUtf8("1"))
+      .addInt32(0)
+      .addInt32(1)
+      .addInt64(0)
+      .addInt64(1)
+      .addUint32(0)
+      .addUint32(1)
+      .addUint64(0)
+      .addUint64(1)
+      .addSint32(0)
+      .addSint32(1)
+      .addSint64(0)
+      .addSint64(1)
+      .addBool(true)
+      .addBool(false)
+      .addEnum(RepetitionProto.Enum.constant_0)
+      .addEnum(RepetitionProto.Enum.constant_1)
+      .addFixed64(0)
+      .addFixed64(1)
+      .addSfixed64(0)
+      .addSfixed64(1)
+      .addDouble(0D)
+      .addDouble(1D)
+      .addFixed32(0)
+      .addFixed32(1)
+      .addSfixed32(0)
+      .addSfixed32(1)
+      .addFloat(0F)
+      .addFloat(1F)
       .build().toByteArray();
     ProtoReader reader = new ProtoReader();
     ProtobufReader.parse(SchemaLiterals.REPEATED, reader, Buffer.buffer(bytes));
     Repeated msg = (Repeated) reader.stack.pop();
-    assertEquals(Arrays.asList(0, 1, 2), msg.getRepeatedInt());
-    assertEquals(Collections.singletonList(Enum.constant), msg.getRepeatedEnum());
-    assertEquals(Arrays.asList(0D, 1D, 2D), msg.getRepeatedDouble());
-    assertEquals(Arrays.asList(0L, 1L, 2L), msg.getRepeatedFixed64());
-    assertEquals(Arrays.asList(0F, 1F, 2F), msg.getRepeatedFloat());
-    assertEquals(Arrays.asList(0, 1, 2), msg.getRepeatedFixed32());
-    bytes = ProtobufWriter.encodeToByteArray(visitor -> ProtoWriter.emit(msg, visitor));
-    RepetitionProto.Repeated container = RepetitionProto.Repeated.parseFrom(bytes);
-    assertEquals(Arrays.asList(0, 1, 2), container.getRepeatedIntList());
-    assertEquals(Collections.singletonList(RepetitionProto.Enum.constant), container.getRepeatedEnumList());
-    assertEquals(Arrays.asList(0D, 1D, 2D), container.getRepeatedDoubleList());
-    assertEquals(Arrays.asList(0L, 1L, 2L), container.getRepeatedFixed64List());
-    assertEquals(Arrays.asList(0F, 1F, 2F), container.getRepeatedFloatList());
-    assertEquals(Arrays.asList(0, 1, 2), container.getRepeatedFixed32List());
+    assertEquals(Arrays.asList("0", "1"), msg.getString());
+    assertEquals(Arrays.asList(Buffer.buffer("0"), Buffer.buffer("1")), msg.getBytes());
+    assertEquals(Arrays.asList(0, 1), msg.getInt32());
+    assertEquals(Arrays.asList(0L, 1L), msg.getInt64());
+    assertEquals(Arrays.asList(0, 1), msg.getUint32());
+    assertEquals(Arrays.asList(0L, 1L), msg.getUint64());
+    assertEquals(Arrays.asList(0L, 1L), msg.getSint64());
+    assertEquals(Arrays.asList(0, 1), msg.getFixed32());
+    assertEquals(Arrays.asList(true, false), msg.getBool());
+    assertEquals(Arrays.asList(Enum.constant_0, Enum.constant_1), msg.getEnum());
+    assertEquals(Arrays.asList(0L, 1L), msg.getFixed64());
+    assertEquals(Arrays.asList(0L, 1L), msg.getSfixed64());
+    assertEquals(Arrays.asList(0d, 1d), msg.getDouble());
+    assertEquals(Arrays.asList(0, 1), msg.getSint32());
+    assertEquals(Arrays.asList(0, 1), msg.getSfixed32());
+    assertEquals(Arrays.asList(0f, 1f), msg.getFloat());
   }
 
   @Test
-  public void testPackedRepetition() throws Exception {
+  public void testParsePackedRepetition() throws Exception {
     byte[] bytes = RepetitionProto.Packed.newBuilder()
-      .addRepeatedInt(0)
-      .addRepeatedInt(1)
-      .addRepeatedInt(2)
-      .addRepeatedEnum(RepetitionProto.Enum.constant)
-      .addRepeatedDouble(0)
-      .addRepeatedDouble(1)
-      .addRepeatedDouble(2)
-      .addRepeatedFixed64(0)
-      .addRepeatedFixed64(1)
-      .addRepeatedFixed64(2)
-      .addRepeatedFloat(0)
-      .addRepeatedFloat(1)
-      .addRepeatedFloat(2)
-      .addRepeatedFixed32(0)
-      .addRepeatedFixed32(1)
-      .addRepeatedFixed32(2)
+      .addInt32(0)
+      .addInt32(1)
+      .addInt64(0)
+      .addInt64(1)
+      .addUint32(0)
+      .addUint32(1)
+      .addUint64(0)
+      .addUint64(1)
+      .addSint32(0)
+      .addSint32(1)
+      .addSint64(0)
+      .addSint64(1)
+      .addBool(true)
+      .addBool(false)
+      .addEnum(RepetitionProto.Enum.constant_0)
+      .addEnum(RepetitionProto.Enum.constant_1)
+      .addFixed64(0)
+      .addFixed64(1)
+      .addSfixed64(0)
+      .addSfixed64(1)
+      .addDouble(0D)
+      .addDouble(1D)
+      .addFixed32(0)
+      .addFixed32(1)
+      .addSfixed32(0)
+      .addSfixed32(1)
+      .addFloat(0F)
+      .addFloat(1F)
       .build().toByteArray();
     ProtoReader reader = new ProtoReader();
     ProtobufReader.parse(SchemaLiterals.PACKED, reader, Buffer.buffer(bytes));
     Packed msg = (Packed) reader.stack.pop();
-    assertEquals(Arrays.asList(0, 1, 2), msg.getRepeatedInt());
-    assertEquals(Collections.singletonList(Enum.constant), msg.getRepeatedEnum());
-    assertEquals(Arrays.asList(0D, 1D, 2D), msg.getRepeatedDouble());
-    assertEquals(Arrays.asList(0L, 1L, 2L), msg.getRepeatedFixed64());
-    assertEquals(Arrays.asList(0F, 1F, 2F), msg.getRepeatedFloat());
-    assertEquals(Arrays.asList(0, 1, 2), msg.getRepeatedFixed32());
-    bytes = ProtobufWriter.encodeToByteArray(visitor -> ProtoWriter.emit(msg, visitor));
-    RepetitionProto.Repeated container = RepetitionProto.Repeated.parseFrom(bytes);
-    assertEquals(Arrays.asList(0, 1, 2), container.getRepeatedIntList());
-    assertEquals(Collections.singletonList(RepetitionProto.Enum.constant), container.getRepeatedEnumList());
-    assertEquals(Arrays.asList(0D, 1D, 2D), container.getRepeatedDoubleList());
-    assertEquals(Arrays.asList(0L, 1L, 2L), container.getRepeatedFixed64List());
-    assertEquals(Arrays.asList(0F, 1F, 2F), container.getRepeatedFloatList());
-    assertEquals(Arrays.asList(0, 1, 2), container.getRepeatedFixed32List());
+    assertEquals(Arrays.asList(0, 1), msg.getInt32());
+    assertEquals(Arrays.asList(0L, 1L), msg.getInt64());
+    assertEquals(Arrays.asList(0, 1), msg.getUint32());
+    assertEquals(Arrays.asList(0L, 1L), msg.getUint64());
+    assertEquals(Arrays.asList(0L, 1L), msg.getSint64());
+    assertEquals(Arrays.asList(0, 1), msg.getFixed32());
+    assertEquals(Arrays.asList(true, false), msg.getBool());
+    assertEquals(Arrays.asList(Enum.constant_0, Enum.constant_1), msg.getEnum());
+    assertEquals(Arrays.asList(0L, 1L), msg.getFixed64());
+    assertEquals(Arrays.asList(0L, 1L), msg.getSfixed64());
+    assertEquals(Arrays.asList(0d, 1d), msg.getDouble());
+    assertEquals(Arrays.asList(0, 1), msg.getSint32());
+    assertEquals(Arrays.asList(0, 1), msg.getSfixed32());
+    assertEquals(Arrays.asList(0f, 1f), msg.getFloat());
   }
 }

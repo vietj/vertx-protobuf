@@ -6,6 +6,7 @@ import io.vertx.protobuf.schema.EnumType;
 import io.vertx.protobuf.schema.Field;
 import io.vertx.protobuf.schema.MessageType;
 import io.vertx.protobuf.schema.ScalarType;
+import io.vertx.protobuf.schema.TypeID;
 import io.vertx.protobuf.schema.WireType;
 
 public class ProtobufReader {
@@ -120,6 +121,11 @@ public class ProtobufReader {
     while (decoder.index() < to) {
       assertTrue(decoder.readVarInt());
       int v = decoder.intValue();
+      if (field.type.id() == TypeID.SINT32) {
+        v = decodeSint32(v);
+      } else if (field.type.id() == TypeID.SINT64) {
+        v = (int)decodeSint64((long)v);
+      }
       visitor.visitVarInt32(field, v);
     }
   }

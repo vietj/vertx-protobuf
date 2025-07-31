@@ -172,6 +172,9 @@ class ProtoWriterGenerator {
                 case STRING:
                   field.defaultValueChecker = s -> "!" + s + "." + field.getterMethod + "().isEmpty()";
                   break;
+                case BOOL:
+                  field.defaultValueChecker = s -> s + "." + field.getterMethod + "()";
+                  break;
                 case ENUM:
                   field.defaultValueChecker = s -> s + "." + field.getterMethod + "() != " + Utils.javaTypeOf(fd) + "." + Utils.defaultEnumValue(fd.getEnumType()).getName();
                   break;

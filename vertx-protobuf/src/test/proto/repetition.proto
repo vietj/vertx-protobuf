@@ -6,23 +6,42 @@ option java_package = "io.vertx.tests.repetition";
 option java_outer_classname = "RepetitionProto";
 
 message Repeated {
-  repeated int32 repeated_int = 1;
-  repeated Enum repeated_enum = 2;
-  repeated double repeated_double = 3;
-  repeated fixed64 repeated_fixed64 = 4;
-  repeated float repeated_float = 5;
-  repeated fixed32 repeated_fixed32 = 6;
+  repeated string string = 1;
+  repeated bytes bytes = 2;
+  repeated int32 int32 = 3;
+  repeated int64 int64 = 4;
+  repeated uint32 uint32 = 5;
+  repeated uint64 uint64 = 6;
+  repeated sint32 sint32 = 7;
+  repeated sint64 sint64 = 8;
+  repeated bool bool = 9;
+  repeated Enum _enum = 10;
+  repeated fixed64 fixed64 = 11;
+  repeated sfixed64 sfixed64 = 12;
+  repeated double _double = 13;
+  repeated fixed32 fixed32 = 14;
+  repeated sfixed32 sfixed32 = 15;
+  repeated float _float = 16;
 }
 
 message Packed {
-  repeated int32 repeated_int = 1 [packed = true];
-  repeated Enum repeated_enum = 2 [packed = true];
-  repeated double repeated_double = 3 [packed = true];
-  repeated fixed64 repeated_fixed64 = 4 [packed = true];
-  repeated float repeated_float = 5 [packed = true];
-  repeated fixed32 repeated_fixed32 = 6 [packed = true];
+  repeated int32 int32 = 3 [packed = true];
+  repeated int64 int64 = 4 [packed = true];
+  repeated uint32 uint32 = 5 [packed = true];
+  repeated uint64 uint64 = 6 [packed = true];
+  repeated sint32 sint32 = 7 [packed = true];
+  repeated sint64 sint64 = 8 [packed = true];
+  repeated bool bool = 9 [packed = true];
+  repeated Enum _enum = 10 [packed = true];
+  repeated fixed64 fixed64 = 11 [packed = true];
+  repeated sfixed64 sfixed64 = 12 [packed = true];
+  repeated double _double = 13 [packed = true];
+  repeated fixed32 fixed32 = 14 [packed = true];
+  repeated sfixed32 sfixed32 = 15 [packed = true];
+  repeated float _float = 16 [packed = true];
 }
 
 enum Enum {
-  constant = 0;
+  constant_0 = 0;
+  constant_1 = 1;
 }
