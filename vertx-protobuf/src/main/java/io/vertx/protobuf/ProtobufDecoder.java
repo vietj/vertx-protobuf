@@ -113,89 +113,27 @@ public class ProtobufDecoder {
    * @return decoded int if buffers readerIndex has been forwarded else nonsense value
    */
   public int readRawVarint32() {
-    if (readableBytes() < 4) {
-      return readRawVarint24();
-    }
-    int wholeOrMore = buffer.getIntLE(idx);
-    int firstOneOnStop = ~wholeOrMore & 0x80808080;
-    if (firstOneOnStop == 0) {
-      return readRawVarint40(wholeOrMore);
-    }
-    int bitsToKeep = Integer.numberOfTrailingZeros(firstOneOnStop) + 1;
-    idx += bitsToKeep >> 3;
-    int thisVarintMask = firstOneOnStop ^ (firstOneOnStop - 1);
-    int wholeWithContinuations = wholeOrMore & thisVarintMask;
-    // mix them up as per varint spec while dropping the continuation bits:
-    // 0x7F007F isolate the first byte and the third byte dropping the continuation bits
-    // 0x7F007F00 isolate the second byte and the fourth byte dropping the continuation bits
-    // the second and fourth byte are shifted to the right by 1, filling the gaps left by the first and third byte
-    // it means that the first and second bytes now occupy the first 14 bits (7 bits each)
-    // and the third and fourth bytes occupy the next 14 bits (7 bits each), with a gap between the 2s of 2 bytes
-    // and another gap of 2 bytes after the forth and third.
-    wholeWithContinuations = (wholeWithContinuations & 0x7F007F) | ((wholeWithContinuations & 0x7F007F00) >> 1);
-    // 0x3FFF isolate the first 14 bits i.e. the first and second bytes
-    // 0x3FFF0000 isolate the next 14 bits i.e. the third and forth bytes
-    // the third and forth bytes are shifted to the right by 2, filling the gaps left by the first and second bytes
-    return (wholeWithContinuations & 0x3FFF) | ((wholeWithContinuations & 0x3FFF0000) >> 2);
+    return readRawVarintOversize();
   }
 
   private int readRawVarintOversize() {
     int i = idx;
     int l = idx + len;
-    long val = 0;
     while (i < l) {
       byte b = buffer.getByte(i);
-      val <<= 7;
-      val |= b & 0x7F;
+      i++;
       if ((b & 0x80) == 0) {
-        idx = l;
+        long val = 0;
+        int to = idx;
+        idx = i;
+        int from = idx - 1;
+        while (from >= to) {
+          val <<= 7;
+          val += (buffer.getByte(from--) & 0x7F);
+        }
         return (int)val;
       }
-      i++;
     }
     throw new DecodeException();
-  }
-
-  private int readRawVarint40(int wholeOrMore) {
-    byte lastByte;
-    if (readableBytes() == 4 || (lastByte = buffer.getByte(idx + 4)) < 0) {
-      return readRawVarintOversize();
-    }
-    idx += 5;
-    // add it to wholeOrMore
-    return wholeOrMore & 0x7F |
-      (((wholeOrMore >> 8) & 0x7F) << 7) |
-      (((wholeOrMore >> 16) & 0x7F) << 14) |
-      (((wholeOrMore >> 24) & 0x7F) << 21) |
-      (lastByte << 28);
-  }
-
-  private int readRawVarint24() {
-    if (!isReadable()) {
-      return 0;
-    }
-    int mark = idx;
-
-    byte tmp = buffer.getByte(idx++);
-    if (tmp >= 0) {
-      return tmp;
-    }
-    int result = tmp & 127;
-    if (!isReadable()) {
-      idx = mark;
-      return 0;
-    }
-    if ((tmp = buffer.getByte(idx++)) >= 0) {
-      return result | tmp << 7;
-    }
-    result |= (tmp & 127) << 7;
-    if (!isReadable()) {
-      idx = mark;
-      return 0;
-    }
-    if ((tmp = buffer.getByte(idx++)) >= 0) {
-      return result | tmp << 14;
-    }
-    return result | (tmp & 127) << 14;
   }
 }
