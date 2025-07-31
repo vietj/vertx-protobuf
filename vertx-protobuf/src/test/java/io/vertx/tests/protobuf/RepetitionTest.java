@@ -4,6 +4,7 @@ import com.google.protobuf.ByteString;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.protobuf.ProtobufReader;
 import io.vertx.protobuf.ProtobufWriter;
+import io.vertx.tests.protobuf.datatypes.DataTypesProto;
 import io.vertx.tests.repetition.Enum;
 import io.vertx.tests.repetition.Packed;
 import io.vertx.tests.repetition.ProtoReader;
@@ -15,6 +16,7 @@ import org.junit.Test;
 
 import java.util.Arrays;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
 public class RepetitionTest {
@@ -125,5 +127,23 @@ public class RepetitionTest {
     assertEquals(Arrays.asList(0, 1), msg.getSint32());
     assertEquals(Arrays.asList(0, 1), msg.getSfixed32());
     assertEquals(Arrays.asList(0f, 1f), msg.getFloat());
+  }
+
+  @Test
+  public void testWritePackedRepetition() throws Exception {
+    byte[] expected = RepetitionProto.Packed.newBuilder()
+      .addInt32(0)
+      .addInt32(1)
+      .addInt32(2)
+      .addInt32(3)
+      .addInt32(4)
+      .build().toByteArray();
+    ProtoReader reader = new ProtoReader();
+    ProtobufReader.parse(SchemaLiterals.PACKED, reader, Buffer.buffer(expected));
+    Packed msg = (Packed) reader.stack.pop();
+    assertEquals(Arrays.asList(0, 1, 2, 3, 4), msg.getInt32());
+    byte[] actual = ProtobufWriter.encode(visitor -> ProtoWriter.emit(msg, visitor)).getBytes();
+    RepetitionProto.Packed blah = RepetitionProto.Packed.parseFrom(actual);
+    assertEquals(Arrays.asList(0, 1, 2, 3, 4), blah.getInt32List());
   }
 }

@@ -49,13 +49,19 @@ public class ProtobufWriter {
     int depth;
     int ptr;
     int string_ptr;
+    boolean packed;
+
+    private int sizeOf(Field field) {
+      return ProtobufEncoder.computeRawVarint32Size(field.number);
+    }
 
     @Override
     public void visitVarInt32(Field field, int v) {
       if (field.type == ScalarType.SINT32) {
         v = encodeSint32(v);
       }
-      lengths[depth] += 1 + ProtobufEncoder.computeRawVarint32Size(v);
+      int delta = (packed ? 0 : sizeOf(field)) + ProtobufEncoder.computeRawVarint32Size(v);
+      lengths[depth] += delta;
     }
 
     @Override
@@ -63,23 +69,23 @@ public class ProtobufWriter {
       if (field.type.id() == TypeID.SINT64) {
         v = encodeSint32((int) v);
       }
-      lengths[depth] += 1 + ProtobufEncoder.computeRawVarint32Size((int)v);
+      lengths[depth] +=  (packed ? sizeOf(field) : 0) + ProtobufEncoder.computeRawVarint32Size((int)v);
     }
 
     @Override
     public void visitI32(Field field, int value) {
-      lengths[depth] += 1 + 4;
+      lengths[depth] += (packed ? sizeOf(field) : 0) + 4;
     }
 
     @Override
     public void visitI64(Field field, long value) {
-      lengths[depth] += 1 + 8;
+      lengths[depth] +=  (packed ? sizeOf(field) : 0) + 8;
     }
 
     @Override
     public void visitBytes(Field field, byte[] bytes) {
       int length = bytes.length;
-      lengths[depth] += 1 + ProtobufEncoder.computeRawVarint32Size(length) + length;
+      lengths[depth] += sizeOf(field) + ProtobufEncoder.computeRawVarint32Size(length) + length;
     }
 
     @Override
@@ -96,7 +102,7 @@ public class ProtobufWriter {
         }
       }
       state.strings[string_ptr++] = length;
-      lengths[depth] += 1 + ProtobufEncoder.computeRawVarint32Size(length) + length;
+      lengths[depth] += sizeOf(field) + ProtobufEncoder.computeRawVarint32Size(length) + length;
     }
 
     @Override
@@ -109,6 +115,7 @@ public class ProtobufWriter {
 
     @Override
     public void enter(Field field) {
+      packed = field.type.wireType() != WireType.LEN;
       numbers[depth] = field.number;
       depth++;
       indices[depth] = ptr++;
@@ -117,6 +124,7 @@ public class ProtobufWriter {
 
     @Override
     public void leave(Field field) {
+      packed = false;
       int l = lengths[depth];
       lengths[depth] = 0;
       int index = indices[depth];
@@ -139,6 +147,8 @@ public class ProtobufWriter {
     ProtobufEncoder encoder;
     int ptr_;
     int string_ptr;
+    boolean packed;
+
 
     @Override
     public void init(MessageType type) {
@@ -152,7 +162,9 @@ public class ProtobufWriter {
       if (field.type == ScalarType.SINT32) {
         v = encodeSint32(v);
       }
-      encoder.writeTag(field.number, WireType.VARINT.id);
+      if (!packed) {
+        encoder.writeTag(field.number, WireType.VARINT.id);
+      }
       encoder.writeVarInt32(v);
     }
 
@@ -161,19 +173,25 @@ public class ProtobufWriter {
       if (field.type.id() == TypeID.SINT64) {
         v = encodeSint32((int) v);
       }
-      encoder.writeTag(field.number, WireType.VARINT.id);
+      if (!packed) {
+        encoder.writeTag(field.number, WireType.VARINT.id);
+      }
       encoder.writeVarInt32((int)v);
     }
 
     @Override
     public void visitI32(Field field, int value) {
-      encoder.writeTag(field.number, WireType.I32.id);
+      if (!packed) {
+        encoder.writeTag(field.number, WireType.I32.id);
+      }
       encoder.writeInt(value);
     }
 
     @Override
     public void visitI64(Field field, long value) {
-      encoder.writeTag(field.number, WireType.I64.id);
+      if (!packed) {
+        encoder.writeTag(field.number, WireType.I64.id);
+      }
       encoder.writeLong(value);
     }
 
@@ -195,12 +213,14 @@ public class ProtobufWriter {
 
     @Override
     public void enter(Field field) {
-      encoder.writeTag(field.number, field.type.wireType().id);
+      packed = field.type.wireType() != WireType.LEN;
+      encoder.writeTag(field.number, WireType.LEN.id);
       encoder.writeVarInt32(state.capture[ptr_++]);
     }
 
     @Override
     public void leave(Field field) {
+      packed = false;
     }
 
     @Override

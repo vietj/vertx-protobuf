@@ -78,6 +78,7 @@ class ProtoWriterGenerator {
     public String valueIdentifier;
     public String protoWriterFqn;
     private boolean repeated;
+    private boolean packed;
 
     // OneOf
     public String discriminant;
@@ -130,6 +131,7 @@ class ProtoWriterGenerator {
         field.setterMethod = Utils.setterOf(fd);
         field.fieldName = fd.getJsonName();
         field.repeated = fd.isRepeated();
+        field.packed = fd.isPacked();
         field.protoWriterFqn = fd.getType() == Descriptors.FieldDescriptor.Type.MESSAGE ? Utils.extractJavaPkgFqn(fd.getMessageType().getFile()) + ".ProtoWriter" : null;
 
         if (fd.isMapField()) {
@@ -275,10 +277,16 @@ class ProtoWriterGenerator {
       }
     } else {
       if (field.repeated) {
+        if (field.packed) {
+          content.println("visitor.enter(SchemaLiterals." + field.identifier + ");");
+        }
         content.println(
           "      for (" + field.javaTypeInternal + " c : v) {",
           "        visitor." + field.typeTo.visitMethod + "(SchemaLiterals." + field.identifier + ", " + field.typeTo.fn.apply("c") + ");",
           "      }");
+        if (field.packed) {
+          content.println("visitor.leave(SchemaLiterals." + field.identifier + ");");
+        }
       } else {
         content.println("      visitor." + field.typeTo.visitMethod + "(SchemaLiterals." + field.identifier + ", " + field.typeTo.fn.apply("v") + ");");
       }

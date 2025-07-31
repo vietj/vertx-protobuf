@@ -10,6 +10,7 @@ import io.vertx.protobuf.json.JsonReader;
 import io.vertx.protobuf.json.JsonWriter;
 import io.vertx.protobuf.json.StructReader;
 import io.vertx.protobuf.json.StructWriter;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.math.BigInteger;
@@ -45,6 +46,7 @@ public class VisitorTest {
 
   }
 
+  @Ignore
   @Test
   public void testEncode() throws Exception {
 

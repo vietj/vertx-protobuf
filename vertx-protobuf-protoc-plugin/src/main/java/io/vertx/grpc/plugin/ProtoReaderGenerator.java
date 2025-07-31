@@ -171,11 +171,6 @@ class ProtoReaderGenerator {
       }
     }
 
-    List<FieldDescriptor> messageFields = collected
-      .stream()
-      .filter(field -> field.type == Descriptors.FieldDescriptor.Type.MESSAGE)
-      .collect(Collectors.toList());
-
     GenWriter out = new GenWriter();
 
     out.println(
@@ -296,33 +291,39 @@ class ProtoReaderGenerator {
       "  public void enter(Field field) {");
     out.print("    ");
 
-    messageFields
+    collected
+      .stream()
+      .filter(field -> field.type == Descriptors.FieldDescriptor.Type.MESSAGE || field.packed)
       .forEach(field -> {
         out.println("if (field == SchemaLiterals." + field.identifier + ") {");
-        if (field.map) {
-          out.println(
-            "      " + field.containingJavaType + " container = (" + field.containingJavaType + ")stack.peek();",
-            "      " + field.javaType + " map = container." + field.getterMethod + "();",
-            "      if (map == null) {",
-            "        map = new java.util.HashMap<>();",
-            "        container." + field.setterMethod + "(map);",
-            "      }",
-            "      stack.push(map);");
+        if (field.packed) {
+          out.println("      //");
         } else {
-          if (field.imported) {
+          if (field.map) {
             out.println(
-              "      Visitor v = new " + field.typePkgFqn + ".ProtoReader(stack);",
-              "      v.init((MessageType)field.type);",
-              "      next = v;");
+              "      " + field.containingJavaType + " container = (" + field.containingJavaType + ")stack.peek();",
+              "      " + field.javaType + " map = container." + field.getterMethod + "();",
+              "      if (map == null) {",
+              "        map = new java.util.HashMap<>();",
+              "        container." + field.setterMethod + "(map);",
+              "      }",
+              "      stack.push(map);");
           } else {
-            String initExpression;
-            if (field.repeated) {
-              initExpression = "new java.util.ArrayList<>()";
+            if (field.imported) {
+              out.println(
+                "      Visitor v = new " + field.typePkgFqn + ".ProtoReader(stack);",
+                "      v.init((MessageType)field.type);",
+                "      next = v;");
             } else {
-              initExpression = "new " + field.javaType + "().init()";
+              String initExpression;
+              if (field.repeated) {
+                initExpression = "new java.util.ArrayList<>()";
+              } else {
+                initExpression = "new " + field.javaType + "().init()";
+              }
+              out.println("      " + field.javaType + " v = " + initExpression + ";");
+              out.println("      stack.push(v);");
             }
-            out.println("      " + field.javaType + " v = " + initExpression + ";");
-            out.println("      stack.push(v);");
           }
         }
         out.print("    } else ");
@@ -343,26 +344,32 @@ class ProtoReaderGenerator {
       "",
       "  public void leave(Field field) {");
     out.print("    ");
-    messageFields
+    collected
+      .stream()
+      .filter(field -> field.type == Descriptors.FieldDescriptor.Type.MESSAGE || field.packed)
       .forEach(field -> {
         out.println("if (field == SchemaLiterals." + field.identifier + ") {");
-        if (field.map) {
-          out.println(
-            "      Object value = stack.pop();",
-            "      Object key = stack.pop();",
-            "      java.util.Map entries = (java.util.Map)stack.pop();",
-            "      entries.put(key, value);");
-        } else if (field.entry) {
+        if (field.packed) {
           out.println("      //");
         } else {
-          if (field.imported) {
+          if (field.map) {
             out.println(
-              "      next.destroy();",
-              "      next = null;");
+              "      Object value = stack.pop();",
+              "      Object key = stack.pop();",
+              "      java.util.Map entries = (java.util.Map)stack.pop();",
+              "      entries.put(key, value);");
+          } else if (field.entry) {
+            out.println("      //");
+          } else {
+            if (field.imported) {
+              out.println(
+                "      next.destroy();",
+                "      next = null;");
+            }
+            out.println(
+              "      " + field.javaType + " v = (" + field.javaType + ")stack.pop();",
+              "      ((" + field.containingJavaType + ")stack.peek())." + field.setterMethod + "(" + field.converter.apply("v") + ");");
           }
-          out.println(
-            "      " + field.javaType + " v = (" + field.javaType + ")stack.pop();",
-            "      ((" + field.containingJavaType + ")stack.peek())." + field.setterMethod + "(" + field.converter.apply("v") + ");");
         }
         out.print("    } else ");
     });
