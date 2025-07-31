@@ -127,12 +127,6 @@ class ProtoReaderGenerator {
           case BYTES:
             converter = s -> "io.vertx.core.buffer.Buffer.buffer(" + s + ")";
             break;
-          // Temporary workaround
-          case INT64:
-          case UINT64:
-          case SINT64:
-            converter = s -> "(long)" + s;
-            break;
           default:
             converter = Function.identity();
             break;
@@ -245,11 +239,11 @@ class ProtoReaderGenerator {
         Descriptors.FieldDescriptor.Type.ENUM,
         Descriptors.FieldDescriptor.Type.INT32,
         Descriptors.FieldDescriptor.Type.SINT32,
-        Descriptors.FieldDescriptor.Type.UINT32,
+        Descriptors.FieldDescriptor.Type.UINT32),
+      new VisitMethod("visitVarInt64(Field field, long value)", "visitVarInt64(field, value)",
         Descriptors.FieldDescriptor.Type.INT64,
         Descriptors.FieldDescriptor.Type.SINT64,
-        Descriptors.FieldDescriptor.Type.UINT64
-        )
+        Descriptors.FieldDescriptor.Type.UINT64)
     };
 
     for (VisitMethod visitMethod : visitMethods) {

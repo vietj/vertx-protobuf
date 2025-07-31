@@ -123,14 +123,7 @@ public class ProtobufReader {
   private static void parsePackedVarInt32(ProtobufDecoder decoder, Field field, int len, Visitor visitor) {
     int to = decoder.index() + len;
     while (decoder.index() < to) {
-      assertTrue(decoder.readVarInt());
-      int v = decoder.intValue();
-      if (field.type.id() == TypeID.SINT32) {
-        v = decodeSint32(v);
-      } else if (field.type.id() == TypeID.SINT64) {
-        v = (int)decodeSint64((long)v);
-      }
-      visitor.visitVarInt32(field, v);
+      parseVarInt(decoder, field, visitor);
     }
   }
 
