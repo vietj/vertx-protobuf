@@ -75,7 +75,7 @@ public class Main {
           }
           testMessage = (TestAllTypesProto3) reader.stack.pop();
         } else {
-          throw new UnsupportedOperationException();
+          throw new UnsupportedOperationException("Invalid " + messageType);
         }
 
         String s = "";
