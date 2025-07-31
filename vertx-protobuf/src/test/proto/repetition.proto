@@ -5,15 +5,22 @@ package io.vertx.tests.repetition;
 option java_package = "io.vertx.tests.repetition";
 option java_outer_classname = "RepetitionProto";
 
-message Container {
-
+message Repeated {
   repeated int32 repeated_int = 1;
   repeated Enum repeated_enum = 2;
   repeated double repeated_double = 3;
   repeated fixed64 repeated_fixed64 = 4;
   repeated float repeated_float = 5;
   repeated fixed32 repeated_fixed32 = 6;
+}
 
+message Packed {
+  repeated int32 repeated_int = 1 [packed = true];
+  repeated Enum repeated_enum = 2 [packed = true];
+  repeated double repeated_double = 3 [packed = true];
+  repeated fixed64 repeated_fixed64 = 4 [packed = true];
+  repeated float repeated_float = 5 [packed = true];
+  repeated fixed32 repeated_fixed32 = 6 [packed = true];
 }
 
 enum Enum {
