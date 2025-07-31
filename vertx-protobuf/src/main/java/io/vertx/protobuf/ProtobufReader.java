@@ -6,8 +6,21 @@ import io.vertx.protobuf.schema.EnumType;
 import io.vertx.protobuf.schema.Field;
 import io.vertx.protobuf.schema.MessageType;
 import io.vertx.protobuf.schema.ScalarType;
+import io.vertx.protobuf.schema.WireType;
 
 public class ProtobufReader {
+
+  private static final WireType[] wireTypes = {
+    WireType.VARINT,
+    WireType.I64,
+    WireType.LEN,
+    null,
+    null,
+    WireType.I32,
+    null,
+    null,
+    null
+  };
 
   private static void parseI64(ProtobufDecoder decoder, Field field, Visitor visitor) {
     assertTrue(decoder.readI64());
@@ -144,7 +157,12 @@ public class ProtobufReader {
       if (field == null) {
         throw new DecodeException("Unknown field  " + fieldNumber + " for message " + type.name());
       }
-      switch (decoder.wireType()) {
+      int decodedWireType = decoder.wireType();
+      WireType wireType = wireTypes[decodedWireType];
+      if (wireType == null) {
+        throw new DecodeException("Invalid wire type: " + decodedWireType);
+      }
+      switch (wireType) {
         case LEN:
           parseLen(decoder, field, visitor);
           break;

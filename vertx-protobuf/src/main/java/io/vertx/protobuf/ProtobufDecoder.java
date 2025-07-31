@@ -11,7 +11,7 @@ public class ProtobufDecoder {
   private int idx;
   private int len;
   private int fieldNumber;
-  private WireType wireType;
+  private int wireType;
   private int intValue;
   private long longValue;
 
@@ -50,25 +50,13 @@ public class ProtobufDecoder {
     return str;
   }
 
-  private static final WireType[] wireTypes = {
-    WireType.VARINT,
-    WireType.I64,
-    WireType.LEN,
-    null,
-    null,
-    WireType.I32,
-    null,
-    null,
-    null
-  };
-
   public boolean readTag() {
     int c = idx;
     int e = readRawVarint32();
     // Can be branch-less
     if (idx > c) {
       fieldNumber = e >> 3;
-      wireType = wireTypes[e & 0b0111];
+      wireType = e & 0b0111;
       return true;
     } else {
       return false;
@@ -79,7 +67,7 @@ public class ProtobufDecoder {
     return fieldNumber;
   }
 
-  public WireType wireType() {
+  public int wireType() {
     return wireType;
   }
 
