@@ -4,6 +4,7 @@ import com.google.protobuf.Descriptors;
 import com.google.protobuf.compiler.PluginProtos;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 class SchemaGenerator {
@@ -30,13 +31,13 @@ class SchemaGenerator {
   public static class FieldDeclaration {
 
     public final String identifier;
-    public final String messageTypeRef;
+    public final String messageTypeIdentifier;
     public final int number;
     public final String typeExpr;
 
-    public FieldDeclaration(String identifier, String messageTypeRef, int number, String typeExpr) {
+    public FieldDeclaration(String identifier, String messageTypeIdentifier, int number, String typeExpr) {
       this.identifier = identifier;
-      this.messageTypeRef = messageTypeRef;
+      this.messageTypeIdentifier = messageTypeIdentifier;
       this.number = number;
       this.typeExpr = typeExpr;
     }
@@ -127,6 +128,43 @@ class SchemaGenerator {
       "  public static final Schema SCHEMA = new Schema();",
       "");
 
+    writer.println("  public enum Messages {");
+    for (Iterator<MessageTypeDeclaration> it  = list.iterator();it.hasNext();) {
+      MessageTypeDeclaration decl = it.next();
+      writer.print("    " + decl.identifier + "(\"" + decl.name +  "\")");
+      if (it.hasNext()) {
+        writer.println(",");
+      } else {
+        writer.println(";");
+      }
+    }
+    writer.println("    public final MessageType type;");
+    writer.println("    Messages(String name) {");
+    writer.println("      this.type = SCHEMA.of(name);");
+    writer.println("    }");
+    writer.println("  }");
+
+    writer.println("  public enum Fields {");
+    for (Iterator<FieldDeclaration> it  = list2.iterator();it.hasNext();) {
+      FieldDeclaration decl = it.next();
+      writer.print("    " + decl.identifier + "(Messages." + decl.messageTypeIdentifier + ", " + decl.number + ", " + decl.typeExpr + ")");
+      if (it.hasNext()) {
+        writer.println(",");
+      } else {
+        writer.println(";");
+      }
+    }
+    writer.println("    public final Messages owner;");
+    writer.println("    public final int number;");
+    writer.println("    public final io.vertx.protobuf.schema.Type type;");
+    writer.println("    Fields(Messages owner, int number, io.vertx.protobuf.schema.Type type) {");
+    writer.println("      this.owner = owner;");
+    writer.println("      this.number = number;");
+    writer.println("      this.type = type;");
+    writer.println("    }");
+    writer.println("  }");
+
+
     list.forEach(decl -> {
       writer.println("  public static final MessageType " + decl.identifier + " = SCHEMA.of(\"" + decl.name +  "\");");
     });
@@ -134,7 +172,7 @@ class SchemaGenerator {
     writer.println();
 
     list2.forEach(decl -> {
-      writer.println("  public static final Field " + decl.identifier + " = " + decl.messageTypeRef + ".addField(" + decl.number + ", " + decl.typeExpr + ");");
+      writer.println("  public static final Field " + decl.identifier + " = " + decl.messageTypeIdentifier + ".addField(" + decl.number + ", " + decl.typeExpr + ");");
     });
 
     writer.println(
