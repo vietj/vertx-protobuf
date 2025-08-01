@@ -67,7 +67,7 @@ class SchemaGenerator {
             typeExpr = "ScalarType.STRING";
             break;
           case ENUM:
-            typeExpr = "new EnumType()";
+            typeExpr = "new DefaultEnumType()";
             break;
           case BYTES:
             typeExpr = "ScalarType.BYTES";
@@ -118,14 +118,17 @@ class SchemaGenerator {
       "package " + javaPkgFqn + ";",
       "",
       "import io.vertx.protobuf.schema.Schema;",
+      "import io.vertx.protobuf.schema.DefaultSchema;",
       "import io.vertx.protobuf.schema.MessageType;",
+      "import io.vertx.protobuf.schema.DefaultMessageType;",
       "import io.vertx.protobuf.schema.ScalarType;",
       "import io.vertx.protobuf.schema.EnumType;",
+      "import io.vertx.protobuf.schema.DefaultEnumType;",
       "import io.vertx.protobuf.schema.Field;",
       "",
       "public class SchemaLiterals {",
       "",
-      "  public static final Schema SCHEMA = new Schema();",
+      "  public static final DefaultSchema SCHEMA = new DefaultSchema();",
       "");
 
     writer.println("  public enum Messages {");
@@ -138,7 +141,7 @@ class SchemaGenerator {
         writer.println(";");
       }
     }
-    writer.println("    public final MessageType type;");
+    writer.println("    public final DefaultMessageType type;");
     writer.println("    Messages(String name) {");
     writer.println("      this.type = SCHEMA.of(name);");
     writer.println("    }");
@@ -166,7 +169,7 @@ class SchemaGenerator {
 
 
     list.forEach(decl -> {
-      writer.println("  public static final MessageType " + decl.identifier + " = SCHEMA.of(\"" + decl.name +  "\");");
+      writer.println("  public static final DefaultMessageType " + decl.identifier + " = SCHEMA.of(\"" + decl.name +  "\");");
     });
 
     writer.println();

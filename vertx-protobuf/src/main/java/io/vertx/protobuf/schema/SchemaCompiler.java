@@ -6,7 +6,7 @@ import java.util.List;
 
 public class SchemaCompiler {
 
-  private Schema schema = new Schema();
+  private DefaultSchema schema = new DefaultSchema();
 
   public MessageType compile(Descriptors.Descriptor descriptor) {
     return compile(schema, descriptor);
@@ -16,9 +16,9 @@ public class SchemaCompiler {
     return schema;
   }
 
-  private static MessageType compile(Schema schema, Descriptors.Descriptor descriptor) {
+  private static MessageType compile(DefaultSchema schema, Descriptors.Descriptor descriptor) {
 
-    MessageType mt = schema.peek(descriptor.getName());
+    DefaultMessageType mt = schema.peek(descriptor.getName());
     if (mt != null) {
       return mt;
     }
@@ -33,7 +33,7 @@ public class SchemaCompiler {
           mt.addField(field.getNumber(), ScalarType.STRING);
           break;
         case ENUM:
-          mt.addField(field.getNumber(), new EnumType());
+          mt.addField(field.getNumber(), new DefaultEnumType());
           break;
         case DOUBLE:
           mt.addField(field.getNumber(), ScalarType.DOUBLE);

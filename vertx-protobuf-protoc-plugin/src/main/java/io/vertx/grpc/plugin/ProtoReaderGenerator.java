@@ -395,7 +395,7 @@ class ProtoReaderGenerator {
             if (field.imported) {
               out.println(
                 "      Visitor v = new " + field.typePkgFqn + ".ProtoReader(stack);",
-                "      v.init((MessageType)field.type);",
+                "      v.init((MessageType)field.type());",
                 "      next = v;");
             } else {
               String initExpression;

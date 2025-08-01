@@ -21,7 +21,7 @@ public interface Visitor {
   }
 
   default void visitI64(Field field, long value) {
-    switch (field.type.id()) {
+    switch (field.type().id()) {
       case DOUBLE:
         visitDouble(field, Double.longBitsToDouble(value));
         break;
@@ -49,7 +49,7 @@ public interface Visitor {
   }
 
   default void visitI32(Field field, int value) {
-    switch (field.type.id()) {
+    switch (field.type().id()) {
       case FLOAT:
         visitFloat(field, Float.intBitsToFloat(value));
         break;

@@ -52,12 +52,12 @@ public class ProtobufWriter {
     boolean packed;
 
     private int sizeOf(Field field) {
-      return ProtobufEncoder.computeRawVarint32Size(field.number);
+      return ProtobufEncoder.computeRawVarint32Size(field.number());
     }
 
     @Override
     public void visitVarInt32(Field field, int v) {
-      if (field.type == ScalarType.SINT32) {
+      if (field.type() == ScalarType.SINT32) {
         v = encodeSint32(v);
       }
       int delta = (packed ? 0 : sizeOf(field)) + ProtobufEncoder.computeRawVarint32Size(v);
@@ -66,7 +66,7 @@ public class ProtobufWriter {
 
     @Override
     public void visitVarInt64(Field field, long v) {
-      if (field.type.id() == TypeID.SINT64) {
+      if (field.type().id() == TypeID.SINT64) {
         v = encodeSint32((int) v);
       }
       lengths[depth] +=  (packed ? sizeOf(field) : 0) + ProtobufEncoder.computeRawVarint32Size((int)v);
@@ -115,8 +115,8 @@ public class ProtobufWriter {
 
     @Override
     public void enter(Field field) {
-      packed = field.type.wireType() != WireType.LEN;
-      numbers[depth] = field.number;
+      packed = field.type().wireType() != WireType.LEN;
+      numbers[depth] = field.number();
       depth++;
       indices[depth] = ptr++;
       lengths[depth] = 0;
@@ -159,22 +159,22 @@ public class ProtobufWriter {
 
     @Override
     public void visitVarInt32(Field field, int v) {
-      if (field.type == ScalarType.SINT32) {
+      if (field.type() == ScalarType.SINT32) {
         v = encodeSint32(v);
       }
       if (!packed) {
-        encoder.writeTag(field.number, WireType.VARINT.id);
+        encoder.writeTag(field.number(), WireType.VARINT.id);
       }
       encoder.writeVarInt32(v);
     }
 
     @Override
     public void visitVarInt64(Field field, long v) {
-      if (field.type.id() == TypeID.SINT64) {
+      if (field.type().id() == TypeID.SINT64) {
         v = encodeSint32((int) v);
       }
       if (!packed) {
-        encoder.writeTag(field.number, WireType.VARINT.id);
+        encoder.writeTag(field.number(), WireType.VARINT.id);
       }
       encoder.writeVarInt32((int)v);
     }
@@ -182,7 +182,7 @@ public class ProtobufWriter {
     @Override
     public void visitI32(Field field, int value) {
       if (!packed) {
-        encoder.writeTag(field.number, WireType.I32.id);
+        encoder.writeTag(field.number(), WireType.I32.id);
       }
       encoder.writeInt(value);
     }
@@ -190,7 +190,7 @@ public class ProtobufWriter {
     @Override
     public void visitI64(Field field, long value) {
       if (!packed) {
-        encoder.writeTag(field.number, WireType.I64.id);
+        encoder.writeTag(field.number(), WireType.I64.id);
       }
       encoder.writeLong(value);
     }
@@ -198,7 +198,7 @@ public class ProtobufWriter {
     @Override
     public void visitBytes(Field field, byte[] bytes) {
       int length = bytes.length;
-      encoder.writeTag(field.number, WireType.LEN.id);
+      encoder.writeTag(field.number(), WireType.LEN.id);
       encoder.writeVarInt32(length);
       encoder.writeBytes(bytes);
     }
@@ -206,15 +206,15 @@ public class ProtobufWriter {
     @Override
     public void visitString(Field field, String s) {
       int length = state.strings[string_ptr++];
-      encoder.writeTag(field.number, WireType.LEN.id);
+      encoder.writeTag(field.number(), WireType.LEN.id);
       encoder.writeVarInt32(length);
       encoder.writeString(s);
     }
 
     @Override
     public void enter(Field field) {
-      packed = field.type.wireType() != WireType.LEN;
-      encoder.writeTag(field.number, WireType.LEN.id);
+      packed = field.type().wireType() != WireType.LEN;
+      encoder.writeTag(field.number(), WireType.LEN.id);
       encoder.writeVarInt32(state.capture[ptr_++]);
     }
 

@@ -80,7 +80,7 @@ public class JsonReader {
 
     @Override
     public void enter(Field field) {
-      MessageType mt = (MessageType) field.type;
+      MessageType mt = (MessageType) field.type();
       current.add(mt);
       if (mt == SchemaLiterals.Struct.TYPE) {
         stack.add(new JsonObject());

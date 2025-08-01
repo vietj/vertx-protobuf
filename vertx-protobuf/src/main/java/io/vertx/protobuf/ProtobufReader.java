@@ -54,7 +54,7 @@ public class ProtobufReader {
   private static void parseVarInt(ProtobufDecoder decoder, Field field, Visitor visitor) {
     assertTrue(decoder.readVarInt());
     int value = decoder.intValue();
-    switch (field.type.id()) {
+    switch (field.type().id()) {
       case SINT32:
         value = decodeSint32(value);
       case BOOL:
@@ -70,26 +70,26 @@ public class ProtobufReader {
         visitor.visitVarInt64(field, value);
         break;
       default:
-        throw new UnsupportedOperationException("" + field.type);
+        throw new UnsupportedOperationException("" + field.type());
     }
   }
 
   private static void parseLen(ProtobufDecoder decoder, Field field, Visitor visitor) {
     assertTrue(decoder.readVarInt());
     int len = decoder.intValue();
-    if (field.type instanceof MessageType) {
+    if (field.type() instanceof MessageType) {
       int to = decoder.len();
       decoder.len(decoder.index() + len);
       visitor.enter(field);
-      parse(decoder, (MessageType) field.type, visitor);
+      parse(decoder, (MessageType) field.type(), visitor);
       visitor.leave(field);
       decoder.len(to);
-    } else if (field.type instanceof EnumType) {
+    } else if (field.type() instanceof EnumType) {
       visitor.enter(field);
       parsePackedVarInt32(decoder, field, len, visitor);
       visitor.leave(field);
     } else {
-      ScalarType builtInType = (ScalarType) field.type;
+      ScalarType builtInType = (ScalarType) field.type();
       switch (builtInType.id()) {
         case STRING:
           String s = decoder.readString(len);
@@ -113,7 +113,7 @@ public class ProtobufReader {
               parsePackedI32(decoder, field, len, visitor);
               break;
             default:
-              throw new UnsupportedOperationException("" + field.type);
+              throw new UnsupportedOperationException("" + field.type());
           }
           visitor.leave(field);
       }
@@ -179,7 +179,7 @@ public class ProtobufReader {
           parseVarInt(decoder, field, visitor);
           break;
         default:
-          throw new UnsupportedOperationException("Implement me " + field.type.wireType());
+          throw new UnsupportedOperationException("Implement me " + field.type().wireType());
       }
     }
   }

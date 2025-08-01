@@ -1,5 +1,8 @@
 package io.vertx.tests.protobuf;
 
+import io.vertx.protobuf.schema.DefaultEnumType;
+import io.vertx.protobuf.schema.DefaultMessageType;
+import io.vertx.protobuf.schema.DefaultSchema;
 import io.vertx.protobuf.schema.EnumType;
 import io.vertx.protobuf.schema.MessageType;
 import io.vertx.protobuf.schema.ScalarType;
@@ -11,16 +14,16 @@ public class DescriptorTest {
   @Test
   public void testSome() {
 
-    Schema schema = new Schema();
+    DefaultSchema schema = new DefaultSchema();
 
-    MessageType field = schema.of("entry");
-    MessageType struct = schema.of("Struct");
+    DefaultMessageType field = schema.of("entry");
+    DefaultMessageType struct = schema.of("Struct");
     struct.addField(1, field);
 
-    MessageType list = schema.of("ListValue");
+    DefaultMessageType list = schema.of("ListValue");
 
-    MessageType value = schema.of("Value");
-    value.addField(1, new EnumType());
+    DefaultMessageType value = schema.of("Value");
+    value.addField(1, new DefaultEnumType());
     value.addField(2, ScalarType.DOUBLE);
     value.addField(3, ScalarType.STRING);
     value.addField(4, ScalarType.BOOL);

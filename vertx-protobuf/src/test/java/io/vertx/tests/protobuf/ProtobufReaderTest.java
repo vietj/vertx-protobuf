@@ -5,6 +5,7 @@ import io.vertx.core.json.DecodeException;
 import io.vertx.protobuf.ProtobufDecoder;
 import io.vertx.protobuf.ProtobufReader;
 import io.vertx.protobuf.Visitor;
+import io.vertx.protobuf.schema.DefaultMessageType;
 import io.vertx.protobuf.schema.Field;
 import io.vertx.protobuf.schema.MessageType;
 import io.vertx.protobuf.schema.ScalarType;
@@ -18,7 +19,7 @@ public class ProtobufReaderTest {
   public void testReadInvalidTagWireType() {
 
     byte[] data = { 8 + 4 };
-    MessageType msg = new MessageType("whatever");
+    DefaultMessageType msg = new DefaultMessageType("whatever");
     msg.addField(1, ScalarType.STRING);
     Visitor visitor = new Visitor() {
       @Override

@@ -1,6 +1,6 @@
 package io.vertx.protobuf.schema;
 
-public class ScalarType implements Type {
+public final class ScalarType implements Type {
 
   public static final ScalarType DOUBLE = new ScalarType(TypeID.DOUBLE, WireType.I64);
   public static final ScalarType FLOAT = new ScalarType(TypeID.FLOAT, WireType.I32);

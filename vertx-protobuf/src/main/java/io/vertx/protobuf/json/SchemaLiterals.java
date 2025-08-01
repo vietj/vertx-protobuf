@@ -65,7 +65,7 @@ class SchemaLiterals {
     static final Field value;
 
     static {
-      TYPE = (MessageType) Struct.TYPE.field(1).type;
+      TYPE = (MessageType) Struct.TYPE.field(1).type();
       key = TYPE.field(1);
       value = TYPE.field(2);
     }

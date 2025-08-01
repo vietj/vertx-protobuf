@@ -1,18 +1,7 @@
 package io.vertx.protobuf.schema;
 
-public class Field {
-
-  public final MessageType owner;
-  public final int number;
-  public final Type type;
-
-  public Field(MessageType owner, int number, Type type) {
-    this.owner = owner;
-    this.number = number;
-    this.type = type;
-  }
-
-  public String toString() {
-    return "Field[number=" + number + ",type=" + type + ",owner=" + owner.name() + "]";
-  }
+public interface Field {
+  MessageType owner();
+  int number();
+  Type type();
 }

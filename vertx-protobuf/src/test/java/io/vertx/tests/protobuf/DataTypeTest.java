@@ -3,10 +3,10 @@ package io.vertx.tests.protobuf;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.protobuf.ProtobufReader;
 import io.vertx.protobuf.ProtobufWriter;
+import io.vertx.protobuf.schema.DefaultMessageType;
+import io.vertx.protobuf.schema.DefaultSchema;
 import io.vertx.protobuf.schema.Field;
-import io.vertx.protobuf.schema.MessageType;
 import io.vertx.protobuf.schema.ScalarType;
-import io.vertx.protobuf.schema.Schema;
 import io.vertx.tests.protobuf.datatypes.DataTypesProto;
 import org.junit.Test;
 
@@ -15,8 +15,8 @@ import static org.junit.Assert.assertTrue;
 
 public class DataTypeTest {
 
-  private static final Schema SCHEMA = new Schema();
-  private static final MessageType DATA_TYPE = SCHEMA.of("DataType");
+  private static final DefaultSchema SCHEMA = new DefaultSchema();
+  private static final DefaultMessageType DATA_TYPE = SCHEMA.of("DataType");
   private static final Field FLOAT = DATA_TYPE.addField(3, ScalarType.FLOAT);
   private static final Field DOUBLE = DATA_TYPE.addField(4, ScalarType.DOUBLE);
   private static final Field INT32 = DATA_TYPE.addField(5, ScalarType.INT32);
