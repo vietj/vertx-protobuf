@@ -5,7 +5,6 @@ import com.google.protobuf.compiler.PluginProtos;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 class SchemaGenerator {
 
@@ -47,10 +46,10 @@ class SchemaGenerator {
     List<MessageTypeDeclaration> list = new ArrayList<>();
     List<FieldDeclaration> list2 = new ArrayList<>();
     fileDesc.forEach(messageType -> {
-      list.add(new MessageTypeDeclaration(Utils.schemaLiteralOf(messageType), messageType.getName()));
+      list.add(new MessageTypeDeclaration(Utils.schemaIdentifier(messageType), messageType.getName()));
       messageType.getFields().forEach(field -> {
-        String identifier = Utils.schemaLiteralOf(field);
-        String messageTypeRef = Utils.schemaLiteralOf(messageType);
+        String identifier = Utils.schemaIdentifier(field);
+        String messageTypeRef = Utils.schemaIdentifier(messageType);
         int number = field.getNumber();
         String typeExpr;
         switch (field.getType()) {
@@ -103,7 +102,7 @@ class SchemaGenerator {
             typeExpr = "ScalarType.SFIXED64";
             break;
           case MESSAGE:
-            typeExpr = Utils.extractJavaPkgFqn(field.getMessageType().getFile()) + ".SchemaLiterals." + Utils.schemaLiteralOf(field.getMessageType());
+            typeExpr = Utils.extractJavaPkgFqn(field.getMessageType().getFile()) + ".SchemaLiterals." + Utils.schemaIdentifier(field.getMessageType());
             break;
           default:
             return;

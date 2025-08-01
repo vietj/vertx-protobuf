@@ -139,7 +139,7 @@ class ProtoReaderGenerator {
         descriptor.type = fd.getType();
         descriptor.kind = kind;
         descriptor.entry = fd.getContainingType().toProto().getOptions().getMapEntry();
-        descriptor.identifier = Utils.schemaLiteralOf(fd);
+        descriptor.identifier = Utils.schemaIdentifier(fd);
         descriptor.javaType = Utils.javaTypeOf(fd);
         descriptor.javaTypeInternal = Utils.javaTypeOfInternal(fd);
         descriptor.repeated = fd.isRepeated();
@@ -155,7 +155,7 @@ class ProtoReaderGenerator {
           descriptor.mapValueType = mapValueType;
           switch (mapValueType) {
             case MESSAGE:
-              descriptor.mapValueMessageIdentifier = Utils.schemaLiteralOf(blah.getMessageType());
+              descriptor.mapValueMessageIdentifier = Utils.schemaIdentifier(blah.getMessageType());
               break;
             case ENUM:
               descriptor.mapValueEnumJavaType = Utils.javaTypeOf(blah);
@@ -222,7 +222,7 @@ class ProtoReaderGenerator {
     out.print("    ");
     for (Descriptors.Descriptor messageType : fileDesc) {
       out.println(
-        "if (type == SchemaLiterals." + Utils.schemaLiteralOf(messageType) + ") {",
+        "if (type == SchemaLiterals." + Utils.schemaIdentifier(messageType) + ") {",
         "      stack.push(new " + Utils.javaTypeOf(messageType) + "().init());",
         "    } else ");
     }

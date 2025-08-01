@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 
 class ProtoWriterGenerator {
@@ -106,7 +105,7 @@ class ProtoWriterGenerator {
     for (Descriptors.Descriptor d : all) {
       content.println(
         "  public static void emit(" + Utils.javaTypeOf(d) + " value, Visitor visitor) {",
-        "    visitor.init(SchemaLiterals." + Utils.schemaLiteralOf(d) + ");",
+        "    visitor.init(SchemaLiterals." + Utils.schemaIdentifier(d) + ");",
         "    visit(value, visitor);",
         "    visitor.destroy();",
         "  }");
@@ -123,7 +122,7 @@ class ProtoWriterGenerator {
       List<Property> props = new ArrayList<>();
       for (Descriptors.FieldDescriptor fd : d.getFields()) {
         FieldProperty field = new FieldProperty();
-        field.identifier = Utils.schemaLiteralOf(fd);
+        field.identifier = Utils.schemaIdentifier(fd);
         field.typeTo = TYPE_TO.get(fd.getType());
         field.javaType = Utils.javaTypeOf(fd);
         field.javaTypeInternal = Utils.javaTypeOfInternal(fd);
@@ -138,10 +137,10 @@ class ProtoWriterGenerator {
           field.map = true;
           field.keyJavaType = Utils.javaTypeOf(fd.getMessageType().getFields().get(0));
           field.keyTypeTo = TYPE_TO.get(fd.getMessageType().getFields().get(0).getType());
-          field.keyIdentifier = Utils.schemaLiteralOf(fd.getMessageType().getFields().get(0));
+          field.keyIdentifier = Utils.schemaIdentifier(fd.getMessageType().getFields().get(0));
           field.valueJavaType = Utils.javaTypeOf(fd.getMessageType().getFields().get(1));
           field.valueTypeTo = TYPE_TO.get(fd.getMessageType().getFields().get(1).getType());
-          field.valueIdentifier = Utils.schemaLiteralOf(fd.getMessageType().getFields().get(1));
+          field.valueIdentifier = Utils.schemaIdentifier(fd.getMessageType().getFields().get(1));
         } else {
           field.map = false;
           if (fd.isRepeated()) {

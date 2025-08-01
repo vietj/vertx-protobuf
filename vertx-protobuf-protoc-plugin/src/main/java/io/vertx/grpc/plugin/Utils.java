@@ -55,11 +55,11 @@ public class Utils {
     return "get" + nameOf(oneOf);
   }
 
-  static String schemaLiteralOf(Descriptors.FieldDescriptor field) {
-    return schemaLiteralOf(field.getContainingType()) + "_" + field.getName().toUpperCase();
+  static String schemaIdentifier(Descriptors.FieldDescriptor field) {
+    return schemaIdentifier(field.getContainingType()) + "_" + field.getName().toUpperCase();
   }
 
-  static String schemaLiteralOf(Descriptors.Descriptor field) {
+  static String schemaIdentifier(Descriptors.Descriptor field) {
     return field.getName().toUpperCase();
   }
 
