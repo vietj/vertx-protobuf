@@ -6,6 +6,7 @@ import io.vertx.protobuf.ProtobufWriter;
 import io.vertx.tests.nesting.Container;
 import io.vertx.tests.nesting.NestingProto;
 import io.vertx.tests.nesting.ProtoWriter;
+import io.vertx.tests.nesting.Repeated;
 import io.vertx.tests.nesting.SchemaLiterals;
 import io.vertx.tests.nesting.ProtoReader;
 import org.junit.Test;
@@ -34,5 +35,22 @@ public class NestingTest {
     bytes = ProtobufWriter.encodeToByteArray(visitor -> ProtoWriter.emit(msg, visitor));
     NestingProto.Container container = NestingProto.Container.parseFrom(bytes);
     assertEquals("the-string", container.getNestedMessage().getNestedMessage().getValue());
+  }
+
+  @Test
+  public void testRepetition() {
+    byte[] bytes = NestingProto.Repeated.newBuilder()
+      .addNestedMessages(NestingProto.Repeated.NestedMessage.getDefaultInstance())
+      .addNestedMessages(NestingProto.Repeated.NestedMessage.newBuilder().setVal(3).build())
+      .addNestedMessages(NestingProto.Repeated.NestedMessage.newBuilder().setVal(5).build())
+      .build()
+      .toByteArray();
+    ProtoReader reader = new ProtoReader();
+    ProtobufReader.parse(SchemaLiterals.REPEATED, reader, Buffer.buffer(bytes));
+    Repeated msg = (Repeated) reader.stack.pop();
+    assertEquals(3, msg.getNestedMessages().size());
+    assertEquals(0, (int)msg.getNestedMessages().get(0).getVal());
+    assertEquals(3, (int)msg.getNestedMessages().get(1).getVal());
+    assertEquals(5, (int)msg.getNestedMessages().get(2).getVal());
   }
 }

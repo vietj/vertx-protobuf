@@ -1,1 +1,1 @@
-Required.Proto3.ProtobufInput.ValidDataMap.SINT64.SINT64.MissingDefault.ProtobufOutput # Failed to parse input or produce output.
+Required.Proto3.ProtobufInput.ValidDataRepeated.MESSAGE.ProtobufOutput # Failed to parse input or produce output.

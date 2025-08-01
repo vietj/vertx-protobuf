@@ -25,3 +25,10 @@ message Container {
   NestedMessage1 nestedMessage = 1;
   NestedEnum1 nestedEnum = 2;
 }
+
+message Repeated {
+  message NestedMessage {
+    int32 val = 1;
+  }
+  repeated NestedMessage nestedMessages = 1;
+}

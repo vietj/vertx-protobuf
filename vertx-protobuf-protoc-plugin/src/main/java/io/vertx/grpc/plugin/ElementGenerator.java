@@ -251,7 +251,7 @@ class ElementGenerator {
       constants = new ArrayList<>();
 
       for (Descriptors.EnumValueDescriptor enumValue : descriptor.getValues()) {
-        Constant constant = new Constant(enumValue.getName(), enumValue.getIndex());
+        Constant constant = new Constant(enumValue.getName(), enumValue.getNumber());
         constants.add(constant);
       }
     }
@@ -269,31 +269,31 @@ class ElementGenerator {
       for (Iterator<Constant> it = constants.iterator(); it.hasNext();) {
         Constant constant = it.next();
         writer.println(
-          "  " + constant.identifier + "(" + constant.index + ")" + (it.hasNext() ? "," : ";"));
+          "  " + constant.identifier + "(" + constant.number + ")" + (it.hasNext() ? "," : ";"));
       }
 
       writer.println(
         "",
-        "  private static final java.util.Map<Integer, " + descriptor.getName() + "> BY_INDEX = new java.util.HashMap<>();",
+        "  private static final java.util.Map<Integer, " + descriptor.getName() + "> BY_NUMBER = new java.util.HashMap<>();",
         "",
-        "  public static " + descriptor.getName() + " valueOf(int index) {",
-        "    return BY_INDEX.get(index);",
+        "  public static " + descriptor.getName() + " valueOf(int number) {",
+        "    return BY_NUMBER.get(number);",
         "  }",
         "",
         "  static {",
         "    for (" + descriptor.getName() + " value : values()) {",
-        "      BY_INDEX.put(value.index, value);",
+        "      BY_NUMBER.put(value.number, value);",
         "    }",
         "  }",
         "",
-        "  private final int index;",
+        "  private final int number;",
         "",
-        "  " + descriptor.getName() + "(int index) {",
-        "    this.index = index;",
+        "  " + descriptor.getName() + "(int number) {",
+        "    this.number = number;",
         "  }",
         "",
-        "  public int index() {",
-        "    return index;",
+        "  public int number() {",
+        "    return number;",
         "  }",
         "}"
       );
@@ -301,10 +301,10 @@ class ElementGenerator {
 
     private class Constant {
       public final String identifier;
-      public final int index;
-      public Constant(String identifier, int index) {
+      public final int number;
+      public Constant(String identifier, int number) {
         this.identifier = identifier;
-        this.index = index;
+        this.number = number;
       }
     }
   }

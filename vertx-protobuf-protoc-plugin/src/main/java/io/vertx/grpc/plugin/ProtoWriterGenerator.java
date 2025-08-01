@@ -36,7 +36,7 @@ class ProtoWriterGenerator {
     TYPE_TO.put(Descriptors.FieldDescriptor.Type.DOUBLE, new Bilto("visitDouble", Descriptors.FieldDescriptor.Type.DOUBLE));
     TYPE_TO.put(Descriptors.FieldDescriptor.Type.STRING, new Bilto("visitString", Descriptors.FieldDescriptor.Type.STRING));
     TYPE_TO.put(Descriptors.FieldDescriptor.Type.BOOL, new Bilto("visitVarInt32", s -> s + "? 1 : 0", Descriptors.FieldDescriptor.Type.BOOL));
-    TYPE_TO.put(Descriptors.FieldDescriptor.Type.ENUM, new Bilto("visitVarInt32", s -> s + ".index()", Descriptors.FieldDescriptor.Type.ENUM));
+    TYPE_TO.put(Descriptors.FieldDescriptor.Type.ENUM, new Bilto("visitVarInt32", s -> s + ".number()", Descriptors.FieldDescriptor.Type.ENUM));
     TYPE_TO.put(Descriptors.FieldDescriptor.Type.INT32, new Bilto("visitVarInt32", Descriptors.FieldDescriptor.Type.INT32));
     TYPE_TO.put(Descriptors.FieldDescriptor.Type.UINT32, new Bilto("visitVarInt32", Descriptors.FieldDescriptor.Type.UINT32));
     TYPE_TO.put(Descriptors.FieldDescriptor.Type.INT64, new Bilto("visitVarInt64", Descriptors.FieldDescriptor.Type.INT64));

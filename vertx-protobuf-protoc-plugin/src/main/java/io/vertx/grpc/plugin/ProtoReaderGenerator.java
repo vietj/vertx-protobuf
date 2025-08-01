@@ -48,8 +48,8 @@ class ProtoReaderGenerator {
     public boolean entry;
     public String identifier;
     public String javaType;
+    public String javaTypeInternal;
     public boolean repeated;
-    public boolean packed;
     public String getterMethod;
     public String setterMethod;
     public String containingJavaType;
@@ -141,8 +141,8 @@ class ProtoReaderGenerator {
         descriptor.entry = fd.getContainingType().toProto().getOptions().getMapEntry();
         descriptor.identifier = Utils.schemaLiteralOf(fd);
         descriptor.javaType = Utils.javaTypeOf(fd);
+        descriptor.javaTypeInternal = Utils.javaTypeOfInternal(fd);
         descriptor.repeated = fd.isRepeated();
-        descriptor.packed = fd.isPacked();
         descriptor.containingJavaType = Utils.javaTypeOf(fd.getContainingType());
         descriptor.typePkgFqn = fd.getType() == Descriptors.FieldDescriptor.Type.MESSAGE ? Utils.extractJavaPkgFqn(fd.getMessageType().getFile()) : null;
         descriptor.imported = fd.getType() == Descriptors.FieldDescriptor.Type.MESSAGE && !Utils.extractJavaPkgFqn(fd.getMessageType().getFile()).equals(javaPkgFqn);
@@ -312,11 +312,9 @@ class ProtoReaderGenerator {
     out.print("    ");
 
     collected
-      .stream()
-      .filter(field -> field.type == Descriptors.FieldDescriptor.Type.MESSAGE || field.packed)
       .forEach(field -> {
         out.println("if (field == SchemaLiterals." + field.identifier + ") {");
-        if (field.packed) {
+        if (field.type != Descriptors.FieldDescriptor.Type.MESSAGE) {
           out.println("      //");
         } else {
           if (field.map) {
@@ -402,14 +400,14 @@ class ProtoReaderGenerator {
             } else {
               String initExpression;
               if (field.repeated) {
-                initExpression = "new java.util.ArrayList<>()";
+                initExpression = field.javaTypeInternal;
               } else {
-                initExpression = "new " + field.javaType + "().init()";
+                initExpression = field.javaType;
               }
               if (field.entry) {
                 out.println("      stack.pop();");
               }
-              out.println("      " + field.javaType + " v = " + initExpression + ";");
+              out.println("      " + initExpression + " v = " + "new " + initExpression + "().init()" + ";");
               out.println("      stack.push(v);");
             }
           }
@@ -433,11 +431,9 @@ class ProtoReaderGenerator {
       "  public void leave(Field field) {");
     out.print("    ");
     collected
-      .stream()
-      .filter(field -> field.type == Descriptors.FieldDescriptor.Type.MESSAGE || field.packed)
       .forEach(field -> {
         out.println("if (field == SchemaLiterals." + field.identifier + ") {");
-        if (field.packed) {
+        if (field.type != Descriptors.FieldDescriptor.Type.MESSAGE) {
           out.println("      //");
         } else {
           if (field.map) {
@@ -454,9 +450,17 @@ class ProtoReaderGenerator {
                 "      next.destroy();",
                 "      next = null;");
             }
-            out.println(
-              "      " + field.javaType + " v = (" + field.javaType + ")stack.pop();",
-              "      ((" + field.containingJavaType + ")stack.peek())." + field.setterMethod + "(" + field.converter.apply("v") + ");");
+            if (field.repeated) {
+              out.println(
+                "      " + field.javaTypeInternal + " value = (" + field.javaTypeInternal + ") stack.pop();",
+                "      " + field.containingJavaType + " container = (" + field.containingJavaType + ")stack.peek();",
+                "      container." + field.getterMethod + "().add(value);"
+              );
+            } else {
+              out.println(
+                "      " + field.javaType + " v = (" + field.javaType + ")stack.pop();",
+                "      ((" + field.containingJavaType + ")stack.peek())." + field.setterMethod + "(" + field.converter.apply("v") + ");");
+            }
           }
         }
         out.print("    } else ");
