@@ -59,8 +59,16 @@ public class Utils {
     return schemaIdentifier(field.getContainingType()) + "_" + field.getName().toUpperCase();
   }
 
+  static String literalIdentifier(Descriptors.FieldDescriptor field) {
+    return literalIdentifier(field.getContainingType()) + "_" + field.getName();
+  }
+
   static String schemaIdentifier(Descriptors.Descriptor field) {
     return field.getName().toUpperCase();
+  }
+
+  static String literalIdentifier(Descriptors.Descriptor field) {
+    return field.getName();
   }
 
   static Map<String, Descriptors.Descriptor> transitiveClosure(List<Descriptors.Descriptor> descriptors) {

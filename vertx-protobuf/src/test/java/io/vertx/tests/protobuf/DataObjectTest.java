@@ -4,7 +4,6 @@ import com.google.protobuf.ByteString;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.protobuf.ProtobufReader;
 import io.vertx.protobuf.ProtobufWriter;
-import io.vertx.protobuf.com.google.protobuf.SchemaLiterals;
 import io.vertx.protobuf.com.google.protobuf.NullValue;
 import io.vertx.protobuf.com.google.protobuf.Struct;
 import io.vertx.protobuf.com.google.protobuf.Value;
@@ -35,7 +34,7 @@ public class DataObjectTest {
       .putMapStringInt32("the-key-2", 5)
       .build().toByteArray();
     io.vertx.tests.protobuf.ProtoReader reader = new io.vertx.tests.protobuf.ProtoReader();
-    ProtobufReader.parse(io.vertx.tests.protobuf.SchemaLiterals.SIMPLEMESSAGE, reader, Buffer.buffer(bytes));
+    ProtobufReader.parse(SchemaLiterals.MessageLiteral.SimpleMessage, reader, Buffer.buffer(bytes));
     SimpleMessage msg = (SimpleMessage) reader.stack.pop();
     assertEquals("hello", msg.getStringField());
     assertEquals("hello", msg.getBytesField().toString());
@@ -121,7 +120,7 @@ public class DataObjectTest {
     byte[] bytes = ImportingProto.Container.newBuilder().setSimpleMessage(TestProto.SimpleMessage.newBuilder().setStringField("the-string").build()).build().toByteArray();
     io.vertx.tests.importing.ProtoReader reader = new io.vertx.tests.importing.ProtoReader();
     Buffer buffer = Buffer.buffer(bytes);
-    ProtobufReader.parse(io.vertx.tests.importing.SchemaLiterals.CONTAINER, reader, buffer);
+    ProtobufReader.parse(io.vertx.tests.importing.SchemaLiterals.MessageLiteral.Container, reader, buffer);
     Container msg = (Container) reader.stack.pop();
     assertEquals("the-string", msg.getSimpleMessage().getStringField());
   }

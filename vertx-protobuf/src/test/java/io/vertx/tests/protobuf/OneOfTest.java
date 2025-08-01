@@ -22,7 +22,7 @@ public class OneOfTest {
   public void testOneOf() throws Exception {
     byte[] bytes = OneOfProto.Container.newBuilder().setBanana(OneOfProto.BananaMsg.newBuilder().setWeight(15).build()).build().toByteArray();
     ProtoReader reader = new ProtoReader();
-    ProtobufReader.parse(SchemaLiterals.CONTAINER, reader, Buffer.buffer(bytes));
+    ProtobufReader.parse(SchemaLiterals.MessageLiteral.Container, reader, Buffer.buffer(bytes));
     Container msg = (Container) reader.stack.pop();
     assertNotNull(msg.getFruit());
     assertEquals(Container.FruitDiscriminant.BANANA, msg.getFruit().discriminant());

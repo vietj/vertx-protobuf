@@ -58,7 +58,7 @@ public class RepetitionTest {
       .addFloat(1F)
       .build().toByteArray();
     ProtoReader reader = new ProtoReader();
-    ProtobufReader.parse(SchemaLiterals.REPEATED, reader, Buffer.buffer(bytes));
+    ProtobufReader.parse(SchemaLiterals.MessageLiteral.Repeated, reader, Buffer.buffer(bytes));
     Repeated msg = (Repeated) reader.stack.pop();
     assertEquals(Arrays.asList("0", "1"), msg.getString());
     assertEquals(Arrays.asList(Buffer.buffer("0"), Buffer.buffer("1")), msg.getBytes());
@@ -111,7 +111,7 @@ public class RepetitionTest {
       .addFloat(1F)
       .build().toByteArray();
     ProtoReader reader = new ProtoReader();
-    ProtobufReader.parse(SchemaLiterals.PACKED, reader, Buffer.buffer(bytes));
+    ProtobufReader.parse(SchemaLiterals.MessageLiteral.Packed, reader, Buffer.buffer(bytes));
     Packed msg = (Packed) reader.stack.pop();
     assertEquals(Arrays.asList(0, 1), msg.getInt32());
     assertEquals(Arrays.asList(0L, 1L), msg.getInt64());
@@ -139,7 +139,7 @@ public class RepetitionTest {
       .addInt32(4)
       .build().toByteArray();
     ProtoReader reader = new ProtoReader();
-    ProtobufReader.parse(SchemaLiterals.PACKED, reader, Buffer.buffer(expected));
+    ProtobufReader.parse(SchemaLiterals.MessageLiteral.Packed, reader, Buffer.buffer(expected));
     Packed msg = (Packed) reader.stack.pop();
     assertEquals(Arrays.asList(0, 1, 2, 3, 4), msg.getInt32());
     byte[] actual = ProtobufWriter.encode(visitor -> ProtoWriter.emit(msg, visitor)).getBytes();

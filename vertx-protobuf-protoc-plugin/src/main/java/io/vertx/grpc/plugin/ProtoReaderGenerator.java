@@ -139,7 +139,7 @@ class ProtoReaderGenerator {
         descriptor.type = fd.getType();
         descriptor.kind = kind;
         descriptor.entry = fd.getContainingType().toProto().getOptions().getMapEntry();
-        descriptor.identifier = Utils.schemaIdentifier(fd);
+        descriptor.identifier = Utils.literalIdentifier(fd);
         descriptor.javaType = Utils.javaTypeOf(fd);
         descriptor.javaTypeInternal = Utils.javaTypeOfInternal(fd);
         descriptor.repeated = fd.isRepeated();
@@ -155,7 +155,7 @@ class ProtoReaderGenerator {
           descriptor.mapValueType = mapValueType;
           switch (mapValueType) {
             case MESSAGE:
-              descriptor.mapValueMessageIdentifier = Utils.schemaIdentifier(blah.getMessageType());
+              descriptor.mapValueMessageIdentifier = Utils.literalIdentifier(blah.getMessageType());
               break;
             case ENUM:
               descriptor.mapValueEnumJavaType = Utils.javaTypeOf(blah);
@@ -222,7 +222,7 @@ class ProtoReaderGenerator {
     out.print("    ");
     for (Descriptors.Descriptor messageType : fileDesc) {
       out.println(
-        "if (type == SchemaLiterals." + Utils.schemaIdentifier(messageType) + ") {",
+        "if (type == SchemaLiterals.MessageLiteral." + Utils.literalIdentifier(messageType) + ") {",
         "      stack.push(new " + Utils.javaTypeOf(messageType) + "().init());",
         "    } else ");
     }
@@ -277,7 +277,7 @@ class ProtoReaderGenerator {
         "  public void " + visitMethod.methodStart + " {");
       out.print("    ");
       for (FieldDescriptor fd : collected.stream().filter(f -> visitMethod.types.contains(f.type)).collect(Collectors.toList())) {
-        out.println("if (field == SchemaLiterals." + fd.identifier + ") {");
+        out.println("if (field == SchemaLiterals.FieldLiteral." + fd.identifier + ") {");
         if (fd.entry) {
           out.println("      stack.pop();");
           out.println("      stack.push(value);");
@@ -313,7 +313,7 @@ class ProtoReaderGenerator {
 
     collected
       .forEach(field -> {
-        out.println("if (field == SchemaLiterals." + field.identifier + ") {");
+        out.println("if (field == SchemaLiterals.FieldLiteral." + field.identifier + ") {");
         if (field.type != Descriptors.FieldDescriptor.Type.MESSAGE) {
           out.println("      //");
         } else {
@@ -382,7 +382,7 @@ class ProtoReaderGenerator {
                 out.println("      stack.push(io.vertx.core.buffer.Buffer.buffer());");
                 break;
               case MESSAGE:
-                out.println("      init(SchemaLiterals." + field.mapValueMessageIdentifier + ");");
+                out.println("      init(SchemaLiterals.MessageLiteral." + field.mapValueMessageIdentifier + ");");
                 break;
               case ENUM:
                 out.println("      stack.push(" + field.mapValueEnumJavaType + "." + field.mapValueEnumConstant + ");");
@@ -432,7 +432,7 @@ class ProtoReaderGenerator {
     out.print("    ");
     collected
       .forEach(field -> {
-        out.println("if (field == SchemaLiterals." + field.identifier + ") {");
+        out.println("if (field == SchemaLiterals.FieldLiteral." + field.identifier + ") {");
         if (field.type != Descriptors.FieldDescriptor.Type.MESSAGE) {
           out.println("      //");
         } else {

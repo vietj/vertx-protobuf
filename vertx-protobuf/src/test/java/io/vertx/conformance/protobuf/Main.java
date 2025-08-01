@@ -70,7 +70,7 @@ public class Main {
           ProtoReader reader = new ProtoReader();
           try {
             Buffer buffer = Buffer.buffer(request.getProtobufPayload().toByteArray());
-            ProtobufReader.parse(SchemaLiterals.TESTALLTYPESPROTO3, reader, buffer);
+            ProtobufReader.parse(SchemaLiterals.MessageLiteral.TestAllTypesProto3, reader, buffer);
           } catch (DecodeException | IndexOutOfBoundsException e) {
             return Conformance.ConformanceResponse.newBuilder().setParseError(e.getMessage() != null ? e.getMessage() : e.getClass().getName()).build();
           }

@@ -31,13 +31,17 @@ class SchemaGenerator {
   public static class FieldDeclaration {
 
     public final String identifier;
+    public final String name;
     public final String messageTypeIdentifier;
+    public final String messageName;
     public final int number;
     public final String typeExpr;
 
-    public FieldDeclaration(String identifier, String messageTypeIdentifier, int number, String typeExpr) {
+    public FieldDeclaration(String identifier, String name, String messageTypeIdentifier, int number, String messageName, String typeExpr) {
       this.identifier = identifier;
+      this.name = name;
       this.messageTypeIdentifier = messageTypeIdentifier;
+      this.messageName = messageName;
       this.number = number;
       this.typeExpr = typeExpr;
     }
@@ -103,12 +107,12 @@ class SchemaGenerator {
             typeExpr = "ScalarType.SFIXED64";
             break;
           case MESSAGE:
-            typeExpr = Utils.extractJavaPkgFqn(field.getMessageType().getFile()) + ".SchemaLiterals." + Utils.schemaIdentifier(field.getMessageType());
+            typeExpr = Utils.extractJavaPkgFqn(field.getMessageType().getFile()) + ".SchemaLiterals.MessageLiteral." + Utils.literalIdentifier(field.getMessageType());
             break;
           default:
             return;
         }
-        list2.add(new FieldDeclaration(identifier, messageTypeRef, number, typeExpr));
+        list2.add(new FieldDeclaration(identifier, field.getName(), messageTypeRef, number, field.getContainingType().getName(), typeExpr));
       });
     });
 
@@ -127,56 +131,68 @@ class SchemaGenerator {
       "import io.vertx.protobuf.schema.Field;",
       "",
       "public class SchemaLiterals {",
-      "",
-      "  public static final DefaultSchema SCHEMA = new DefaultSchema();",
       "");
 
-    writer.println("  public enum Messages {");
+    writer.println("  public enum MessageLiteral implements MessageType {");
     for (Iterator<MessageTypeDeclaration> it  = list.iterator();it.hasNext();) {
       MessageTypeDeclaration decl = it.next();
-      writer.print("    " + decl.identifier + "(\"" + decl.name +  "\")");
+      writer.print("    " + decl.name + "(\"" + decl.name +  "\")");
       if (it.hasNext()) {
         writer.println(",");
       } else {
         writer.println(";");
       }
     }
-    writer.println("    public final DefaultMessageType type;");
-    writer.println("    Messages(String name) {");
-    writer.println("      this.type = SCHEMA.of(name);");
+    writer.println("    private final java.util.Map<Integer, FieldLiteral> fields;");
+    writer.println("    MessageLiteral(String name) {");
+    writer.println("      this.fields = new java.util.HashMap<>();");
+    writer.println("    }");
+    writer.println("    public Field field(int number) {");
+    writer.println("      return fields.get(number);");
+    writer.println("    }");
+    writer.println("    static {");
+    for (FieldDeclaration decl : list2) {
+      // Force init
+      writer.println("      Object o = FieldLiteral." + decl.messageName + "_" + decl.name + ";");
+      break;
+    }
     writer.println("    }");
     writer.println("  }");
 
-    writer.println("  public enum Fields {");
+    writer.println("  public enum FieldLiteral implements Field {");
     for (Iterator<FieldDeclaration> it  = list2.iterator();it.hasNext();) {
       FieldDeclaration decl = it.next();
-      writer.print("    " + decl.identifier + "(Messages." + decl.messageTypeIdentifier + ", " + decl.number + ", " + decl.typeExpr + ")");
+      writer.print("    " + decl.messageName + "_" + decl.name + "(MessageLiteral." + decl.messageName + ", " + decl.number + ", " + decl.typeExpr + ")");
       if (it.hasNext()) {
         writer.println(",");
       } else {
         writer.println(";");
       }
     }
-    writer.println("    public final Messages owner;");
-    writer.println("    public final int number;");
-    writer.println("    public final io.vertx.protobuf.schema.Type type;");
-    writer.println("    Fields(Messages owner, int number, io.vertx.protobuf.schema.Type type) {");
+
+    writer.println("    private final MessageLiteral owner;");
+    writer.println("    private final int number;");
+    writer.println("    private final io.vertx.protobuf.schema.Type type;");
+    writer.println("    FieldLiteral(MessageLiteral owner, int number, io.vertx.protobuf.schema.Type type) {");
     writer.println("      this.owner = owner;");
     writer.println("      this.number = number;");
     writer.println("      this.type = type;");
     writer.println("    }");
+    writer.println("    public MessageType owner() {");
+    writer.println("      return owner;");
+    writer.println("    }");
+    writer.println("    public int number() {");
+    writer.println("      return number;");
+    writer.println("    }");
+    writer.println("    public io.vertx.protobuf.schema.Type type() {");
+    writer.println("      return type;");
+    writer.println("    }");
+    writer.println("    static {");
+    for (FieldDeclaration decl : list2) {
+      writer.println("      MessageLiteral." + decl.messageName + ".fields.put(" + decl.number + ", FieldLiteral." + decl.messageName + "_" + decl.name + ");");
+    }
+    writer.println("    }");
     writer.println("  }");
-
-
-    list.forEach(decl -> {
-      writer.println("  public static final DefaultMessageType " + decl.identifier + " = SCHEMA.of(\"" + decl.name +  "\");");
-    });
-
-    writer.println();
-
-    list2.forEach(decl -> {
-      writer.println("  public static final Field " + decl.identifier + " = " + decl.messageTypeIdentifier + ".addField(" + decl.number + ", " + decl.typeExpr + ");");
-    });
 
     writer.println(
       "",

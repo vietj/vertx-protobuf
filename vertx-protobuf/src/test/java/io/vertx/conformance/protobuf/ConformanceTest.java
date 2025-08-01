@@ -26,7 +26,7 @@ public class ConformanceTest {
     Buffer buffer = Buffer.buffer(bytes);
 //    TestMessagesProto3.TestAllTypesProto3 d = TestMessagesProto3.TestAllTypesProto3.parseFrom(bytes);
 //    System.out.println("d = " + d);
-    ProtobufReader.parse(SchemaLiterals.TESTALLTYPESPROTO3, reader, buffer);
+    ProtobufReader.parse(SchemaLiterals.MessageLiteral.TestAllTypesProto3, reader, buffer);
     TestAllTypesProto3 testMessage = (TestAllTypesProto3) reader.stack.pop();
     Buffer result = ProtobufWriter.encode(visitor -> {
       ProtoWriter.emit(testMessage, visitor);
