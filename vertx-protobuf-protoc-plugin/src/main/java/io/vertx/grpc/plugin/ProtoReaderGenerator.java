@@ -348,14 +348,6 @@ class ProtoReaderGenerator {
           //
         } else {
           if (field.map) {
-            out.println(
-              "          " + field.containingJavaType + " container = (" + field.containingJavaType + ")stack.peek();",
-              "          " + field.javaType + " map = container." + field.getterMethod + "();",
-              "          if (map == null) {",
-              "            map = new java.util.HashMap<>();",
-              "            container." + field.setterMethod + "(map);",
-              "          }",
-              "          stack.push(map);");
             out.println("          " + field.mapJavaType + " entry = new " + field.mapJavaType + "();");
             out.println("          stack.push(entry);");
           } else {
@@ -409,7 +401,12 @@ class ProtoReaderGenerator {
           if (field.map) {
             out.println(
               "          " + field.mapJavaType + " entry = (" + field.mapJavaType + ")stack.pop();",
-              "          java.util.Map entries = (java.util.Map)stack.pop();",
+              "          " + field.containingJavaType + " container = (" + field.containingJavaType + ")stack.peek();",
+              "          " + field.javaType + " entries = container." + field.getterMethod + "();",
+              "          if (entries == null) {",
+              "            entries = new java.util.HashMap<>();",
+              "            container." + field.setterMethod + "(entries);",
+              "          }",
               "          entries.put(entry.getKey(), entry.getValue());");
           } else if (field.keyEntry) {
             out.println(
