@@ -275,7 +275,10 @@ class ProtoReaderGenerator {
       out.println(
         "",
         "  public void " + visitMethod.methodStart + " {");
-      out.print("    ");
+      out.println(
+        "if (next != null) {",
+        "      next." + visitMethod.next + ";",
+        " } else ");
       for (FieldDescriptor fd : collected.stream().filter(f -> visitMethod.types.contains(f.type)).collect(Collectors.toList())) {
         out.println("if (field == SchemaLiterals.FieldLiteral." + fd.identifier + ") {");
         if (fd.entry) {
@@ -294,9 +297,7 @@ class ProtoReaderGenerator {
         out.print("    } else ");
       }
       out.println(
-        "if (next != null) {",
-        "      next." + visitMethod.next + ";",
-        "    } else {",
+        " {",
         "      throw new IllegalArgumentException(\"Invalid field \" + field);",
         "    }",
         "  }");
