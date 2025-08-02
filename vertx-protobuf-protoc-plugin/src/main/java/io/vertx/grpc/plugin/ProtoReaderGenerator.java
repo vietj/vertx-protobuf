@@ -41,13 +41,14 @@ class ProtoReaderGenerator {
     public VisitorKind kind;
     public boolean map;
     public String mapJavaType;
+    public boolean mapKeyEntry;
     public Descriptors.FieldDescriptor.Type mapKeyType;
+    public boolean mapValueEntry;
     public Descriptors.FieldDescriptor.Type mapValueType;
     public String mapValueMessageIdentifier;
     public String mapValueEnumJavaType;
     public String mapValueEnumConstant;
-    public boolean keyEntry;
-    public boolean valueEntry;
+    public String mapValueJavaType;
     public String identifier;
     public String javaType;
     public String javaTypeInternal;
@@ -155,6 +156,7 @@ class ProtoReaderGenerator {
           descriptor.mapJavaType = Utils.javaTypeOfInternal(fd);
           descriptor.mapKeyType = fd.getMessageType().getFields().get(0).getType();
           descriptor.mapValueType = mapValueType;
+          descriptor.mapValueJavaType = Utils.javaTypeOf(blah);
           switch (mapValueType) {
             case MESSAGE:
               descriptor.mapValueMessageIdentifier = Utils.literalIdentifier(blah.getMessageType());
@@ -173,9 +175,9 @@ class ProtoReaderGenerator {
         if (fd.getContainingType().toProto().getOptions().getMapEntry()) {
           descriptor.mapJavaType = Utils.javaTypeOf(fd.getContainingType());
           if (fd.getContainingType().getFields().get(0) == fd) {
-            descriptor.keyEntry = true;
+            descriptor.mapKeyEntry = true;
           } else if (fd.getContainingType().getFields().get(1) == fd) {
-            descriptor.valueEntry = true;
+            descriptor.mapValueEntry = true;
           }
         }
 
@@ -298,10 +300,10 @@ class ProtoReaderGenerator {
       out.println("      switch (fieldLiteral) {");
       for (FieldDescriptor fd : collected.stream().filter(f -> visitMethod.types.contains(f.type)).collect(Collectors.toList())) {
         out.println("        case " + fd.identifier + ": {");
-        if (fd.keyEntry) {
+        if (fd.mapKeyEntry) {
           out.println("          " + fd.mapJavaType + " entry = (" + fd.mapJavaType + ")stack.peek();");
           out.println("          entry.setKey(" + fd.converter.apply("value") + ");");
-        } else if (fd.valueEntry) {
+        } else if (fd.mapValueEntry) {
           out.println("          " + fd.mapJavaType + " entry = (" + fd.mapJavaType + ")stack.peek();");
           out.println("          entry.setValue(" + fd.converter.apply("value") + ");");
         } else if (fd.repeated) {
@@ -401,19 +403,26 @@ class ProtoReaderGenerator {
           if (field.map) {
             out.println(
               "          " + field.mapJavaType + " entry = (" + field.mapJavaType + ")stack.pop();",
-              "          " + field.containingJavaType + " container = (" + field.containingJavaType + ")stack.peek();",
+              "          " + field.mapValueJavaType + " value = entry.getValue();");
+            if (field.mapValueType == Descriptors.FieldDescriptor.Type.MESSAGE) {
+              out.println(
+                "          if (value == null) {",
+                "            value = new " + field.mapValueJavaType + "().init();",
+                "}");
+            }
+            out.println("          " + field.containingJavaType + " container = (" + field.containingJavaType + ")stack.peek();",
               "          " + field.javaType + " entries = container." + field.getterMethod + "();",
               "          if (entries == null) {",
               "            entries = new java.util.HashMap<>();",
               "            container." + field.setterMethod + "(entries);",
               "          }",
-              "          entries.put(entry.getKey(), entry.getValue());");
-          } else if (field.keyEntry) {
+              "          entries.put(entry.getKey(), value);");
+          } else if (field.mapKeyEntry) {
             out.println(
               "          " + field.javaType + " v = (" + field.javaType + ")stack.pop();",
               "          " + field.mapJavaType + " entry = (" + field.mapJavaType + ")stack.peek();",
               "          entry.setKey(v);");
-          } else if (field.valueEntry) {
+          } else if (field.mapValueEntry) {
             out.println(
               "          " + field.javaType + " v = (" + field.javaType + ")stack.pop();",
               "          " + field.mapJavaType + " entry = (" + field.mapJavaType + ")stack.peek();",

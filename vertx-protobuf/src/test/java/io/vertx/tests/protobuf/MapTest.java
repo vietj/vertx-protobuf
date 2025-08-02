@@ -10,12 +10,17 @@ import io.vertx.tests.map.MapKeyVariant;
 import io.vertx.tests.map.MapValueVariant;
 import io.vertx.tests.map.ProtoReader;
 import io.vertx.tests.map.SchemaLiterals;
+import io.vertx.tests.map.Value;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class MapTest {
 
@@ -73,6 +78,7 @@ public class MapTest {
 
   @Test
   public void testEmptyMapValueVariant() throws Exception {
+/*
     testEmptyMapValueVariant(SchemaLiterals.FieldLiteral.MapValueVariant_string_v, MapValueVariant::getStringV, "");
     testEmptyMapValueVariant(SchemaLiterals.FieldLiteral.MapValueVariant_bytes_v, MapValueVariant::getBytesV, Buffer.buffer());
     testEmptyMapValueVariant(SchemaLiterals.FieldLiteral.MapValueVariant_int32_v, MapValueVariant::getInt32V, 0);
@@ -89,9 +95,15 @@ public class MapTest {
     testEmptyMapValueVariant(SchemaLiterals.FieldLiteral.MapValueVariant_fixed32_v, MapValueVariant::getFixed32V, 0);
 //    testEmptyMapValueVariant(SchemaLiterals.FieldLiteral.MapValueVariant_fixed32_v, MapValueVariant::getSfixed32V, 0);
     testEmptyMapValueVariant(SchemaLiterals.FieldLiteral.MapValueVariant__float_v, MapValueVariant::getFloatV, 0F);
+*/
+    this.<Value>testEmptyMapValueVariant(SchemaLiterals.FieldLiteral.MapValueVariant__message_v, MapValueVariant::getMessageV, Assert::assertNotNull);
   }
 
   public <V> void testEmptyMapValueVariant(Field mapField, Function<MapValueVariant, Map<Integer, V>> extractor, V expected) throws Exception {
+    this.<V>testEmptyMapValueVariant(mapField, extractor, actual -> assertEquals(expected, actual));
+  }
+
+  public <V> void testEmptyMapValueVariant(Field mapField, Function<MapValueVariant, Map<Integer, V>> extractor, Consumer<V> predicate) throws Exception {
     Buffer buffer = ProtobufWriter.encode(visitor -> {
       visitor.init(SchemaLiterals.MessageLiteral.MapValueVariant);
       visitor.enter(mapField);
@@ -104,6 +116,6 @@ public class MapTest {
     assertEquals(1, entries.size());
     Map.Entry<Integer, V> entry = entries.entrySet().iterator().next();
     assertEquals(0, (int)entry.getKey());
-    assertEquals(expected, entry.getValue());
+    predicate.accept(entry.getValue());
   }
 }

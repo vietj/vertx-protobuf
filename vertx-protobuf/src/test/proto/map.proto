@@ -37,9 +37,11 @@ message MapValueVariant {
   map<int32, fixed32> fixed32_v = 14;
   map<int32, sfixed32> sfixed32_v = 15;
   map<int32, float> _float_v = 16;
+  map<int32, Value> _message_v = 17;
 }
 
 message Value {
+  int32 value = 1;
 }
 
 enum Enum {
