@@ -17,14 +17,11 @@ public class ConformanceTest {
   @Test
   public void testConformance() throws Exception {
     byte[] bytes = {
-      -126, 3,
-      0,
-      -126, 3,
-      3, 8, -46, 9
+       -110, 4, 7, 21, 0, 0, -128, 63, 8, 1
     };
     ProtoReader reader = new ProtoReader();
     Buffer buffer = Buffer.buffer(bytes);
-//    TestMessagesProto3.TestAllTypesProto3 d = TestMessagesProto3.TestAllTypesProto3.parseFrom(bytes);
+    TestMessagesProto3.TestAllTypesProto3 d = TestMessagesProto3.TestAllTypesProto3.parseFrom(bytes);
 //    System.out.println("d = " + d);
     ProtobufReader.parse(SchemaLiterals.MessageLiteral.TestAllTypesProto3, reader, buffer);
     TestAllTypesProto3 testMessage = (TestAllTypesProto3) reader.stack.pop();
