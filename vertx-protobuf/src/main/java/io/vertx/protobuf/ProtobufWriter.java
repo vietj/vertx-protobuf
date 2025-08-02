@@ -69,17 +69,17 @@ public class ProtobufWriter {
       if (field.type().id() == TypeID.SINT64) {
         v = encodeSint32((int) v);
       }
-      lengths[depth] +=  (packed ? sizeOf(field) : 0) + ProtobufEncoder.computeRawVarint32Size((int)v);
+      lengths[depth] +=  (packed ? 0 : sizeOf(field)) + ProtobufEncoder.computeRawVarint32Size((int)v);
     }
 
     @Override
     public void visitI32(Field field, int value) {
-      lengths[depth] += (packed ? sizeOf(field) : 0) + 4;
+      lengths[depth] += (packed ? 0 : sizeOf(field)) + 4;
     }
 
     @Override
     public void visitI64(Field field, long value) {
-      lengths[depth] +=  (packed ? sizeOf(field) : 0) + 8;
+      lengths[depth] +=  (packed ? 0 : sizeOf(field)) + 8;
     }
 
     @Override

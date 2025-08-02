@@ -7,8 +7,10 @@ import io.vertx.protobuf.schema.Field;
 import io.vertx.protobuf.schema.MessageType;
 import io.vertx.tests.map.Enum;
 import io.vertx.tests.map.MapKeyVariant;
+import io.vertx.tests.map.MapProto;
 import io.vertx.tests.map.MapValueVariant;
 import io.vertx.tests.map.ProtoReader;
+import io.vertx.tests.map.ProtoWriter;
 import io.vertx.tests.map.SchemaLiterals;
 import io.vertx.tests.map.Value;
 import org.junit.Assert;
@@ -57,7 +59,7 @@ public class MapTest {
   }
 
   @Test
-  public void testReorderedMapKeyVariant() {
+  public void testReorderedMapKeyVariant() throws Exception {
     Field mapField = SchemaLiterals.FieldLiteral.MapKeyVariant_string;
     Buffer buffer = ProtobufWriter.encode(visitor -> {
       visitor.init(SchemaLiterals.MessageLiteral.MapKeyVariant);
@@ -74,11 +76,12 @@ public class MapTest {
     Map.Entry<String, Integer> entry = entries.entrySet().iterator().next();
     assertEquals("string-value", entry.getKey());
     assertEquals(4, (int)entry.getValue());
+    byte[] serialized = ProtobufWriter.encodeToByteArray(v -> ProtoWriter.emit(map, v));
+    MapProto.MapKeyVariant.parseFrom(serialized);
   }
 
   @Test
   public void testEmptyMapValueVariant() throws Exception {
-/*
     testEmptyMapValueVariant(SchemaLiterals.FieldLiteral.MapValueVariant_string_v, MapValueVariant::getStringV, "");
     testEmptyMapValueVariant(SchemaLiterals.FieldLiteral.MapValueVariant_bytes_v, MapValueVariant::getBytesV, Buffer.buffer());
     testEmptyMapValueVariant(SchemaLiterals.FieldLiteral.MapValueVariant_int32_v, MapValueVariant::getInt32V, 0);
@@ -95,7 +98,6 @@ public class MapTest {
     testEmptyMapValueVariant(SchemaLiterals.FieldLiteral.MapValueVariant_fixed32_v, MapValueVariant::getFixed32V, 0);
 //    testEmptyMapValueVariant(SchemaLiterals.FieldLiteral.MapValueVariant_fixed32_v, MapValueVariant::getSfixed32V, 0);
     testEmptyMapValueVariant(SchemaLiterals.FieldLiteral.MapValueVariant__float_v, MapValueVariant::getFloatV, 0F);
-*/
     this.<Value>testEmptyMapValueVariant(SchemaLiterals.FieldLiteral.MapValueVariant__message_v, MapValueVariant::getMessageV, Assert::assertNotNull);
   }
 

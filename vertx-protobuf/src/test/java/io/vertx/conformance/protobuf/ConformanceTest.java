@@ -12,6 +12,11 @@ import io.vertx.protobuf.com.google.protobuf_test_messages.proto3.SchemaLiterals
 import io.vertx.protobuf.com.google.protobuf_test_messages.proto3.TestAllTypesProto3;
 import org.junit.Test;
 
+import java.util.Map;
+
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+
 public class ConformanceTest {
 
   @Test
@@ -19,14 +24,32 @@ public class ConformanceTest {
     byte[] bytes = {
        -110, 4, 7, 21, 0, 0, -128, 63, 8, 1
     };
+
+    // Input :     [-110, 4, 7, 21, 0, 0, -128, 63, 8, 1]
+    // Actual :    [-110, 4, 6, 8, 1, 21, 0, 0, -128, 63]
+    // Expected  : [-110, 4, 7, 8, 1, 21, 0, 0, -128, 63]
+
+    // Decomp  : [
+    // -110, 4,
+    // 7,
+    //   8, 1,
+    //   21, 0, 0, -128, 63]
+
     ProtoReader reader = new ProtoReader();
     Buffer buffer = Buffer.buffer(bytes);
     TestMessagesProto3.TestAllTypesProto3 d = TestMessagesProto3.TestAllTypesProto3.parseFrom(bytes);
+    Map.Entry<Integer, Float> entry = d.getMapInt32FloatMap().entrySet().iterator().next();
+    System.out.println(entry.getKey());
+    System.out.println(entry.getValue());
+    byte[] expected = d.toByteArray();
 //    System.out.println("d = " + d);
     ProtobufReader.parse(SchemaLiterals.MessageLiteral.TestAllTypesProto3, reader, buffer);
     TestAllTypesProto3 testMessage = (TestAllTypesProto3) reader.stack.pop();
     Buffer result = ProtobufWriter.encode(visitor -> {
       ProtoWriter.emit(testMessage, visitor);
     });
+    byte[] actual = result.getBytes();
+    TestMessagesProto3.TestAllTypesProto3.parseFrom(actual);
+//    assertArrayEquals(expected, actual);
   }
 }

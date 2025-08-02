@@ -1,1 +1,1 @@
-Required.Proto3.ProtobufInput.ValidDataMap.INT32.FLOAT.Unordered.ProtobufOutput # Failed to parse input or produce output.
+Required.Proto3.ProtobufInput.ValidDataMap.INT32.FLOAT.Unordered.ProtobufOutput # Protobuf output we received from test was unparseable.
