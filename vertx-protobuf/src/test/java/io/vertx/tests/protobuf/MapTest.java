@@ -52,15 +52,27 @@ public class MapTest {
   }
 
   @Test
+  public void testReorderedMapKeyVariant() {
+    Field mapField = SchemaLiterals.FieldLiteral.MapKeyVariant_string;
+    Buffer buffer = ProtobufWriter.encode(visitor -> {
+      visitor.init(SchemaLiterals.MessageLiteral.MapKeyVariant);
+      visitor.enter(mapField);
+      visitor.visitVarInt32(((MessageType)mapField.type()).field(2), 4);
+      visitor.visitString(((MessageType)mapField.type()).field(1), "string-value");
+      visitor.leave(mapField);
+    });
+    ProtoReader reader = new ProtoReader();
+    ProtobufReader.parse(SchemaLiterals.MessageLiteral.MapKeyVariant, reader, buffer);
+    MapKeyVariant map = (MapKeyVariant) reader.stack.pop();
+    Map<String, Integer> entries = map.getString();
+    assertEquals(1, entries.size());
+    Map.Entry<String, Integer> entry = entries.entrySet().iterator().next();
+    assertEquals("string-value", entry.getKey());
+    assertEquals(4, (int)entry.getValue());
+  }
+
+  @Test
   public void testEmptyMapValueVariant() throws Exception {
-
-    System.out.println("A");
-    MessageType owner = SchemaLiterals.FieldLiteral.MapValueVariant_string_v.owner();
-    System.out.println("B");
-    System.out.println(owner.field(SchemaLiterals.FieldLiteral.MapValueVariant_string_v.number()));
-    System.out.println("C");
-
-/*
     testEmptyMapValueVariant(SchemaLiterals.FieldLiteral.MapValueVariant_string_v, MapValueVariant::getStringV, "");
     testEmptyMapValueVariant(SchemaLiterals.FieldLiteral.MapValueVariant_bytes_v, MapValueVariant::getBytesV, Buffer.buffer());
     testEmptyMapValueVariant(SchemaLiterals.FieldLiteral.MapValueVariant_int32_v, MapValueVariant::getInt32V, 0);
@@ -72,12 +84,11 @@ public class MapTest {
     testEmptyMapValueVariant(SchemaLiterals.FieldLiteral.MapKeyVariant_bool, MapValueVariant::getBoolV, false);
     testEmptyMapValueVariant(SchemaLiterals.FieldLiteral.MapValueVariant__enum_v, MapValueVariant::getEnumV, Enum.constant_0);
     testEmptyMapValueVariant(SchemaLiterals.FieldLiteral.MapValueVariant_fixed64_v, MapValueVariant::getFixed64V, 0L);
-    testEmptyMapValueVariant(SchemaLiterals.FieldLiteral.MapValueVariant_fixed64_v, MapValueVariant::getSfixed64V, 0L);
+//    testEmptyMapValueVariant(SchemaLiterals.FieldLiteral.MapValueVariant_fixed64_v, MapValueVariant::getSfixed64V, 0L);
     testEmptyMapValueVariant(SchemaLiterals.FieldLiteral.MapValueVariant__double_v, MapValueVariant::getDoubleV, 0D);
     testEmptyMapValueVariant(SchemaLiterals.FieldLiteral.MapValueVariant_fixed32_v, MapValueVariant::getFixed32V, 0);
-    testEmptyMapValueVariant(SchemaLiterals.FieldLiteral.MapValueVariant_fixed32_v, MapValueVariant::getSfixed32V, 0);
+//    testEmptyMapValueVariant(SchemaLiterals.FieldLiteral.MapValueVariant_fixed32_v, MapValueVariant::getSfixed32V, 0);
     testEmptyMapValueVariant(SchemaLiterals.FieldLiteral.MapValueVariant__float_v, MapValueVariant::getFloatV, 0F);
-*/
   }
 
   public <V> void testEmptyMapValueVariant(Field mapField, Function<MapValueVariant, Map<Integer, V>> extractor, V expected) throws Exception {

@@ -40,6 +40,7 @@ class ProtoReaderGenerator {
     public Descriptors.FieldDescriptor.Type type;
     public VisitorKind kind;
     public boolean map;
+    public String mapJavaType;
     public Descriptors.FieldDescriptor.Type mapKeyType;
     public Descriptors.FieldDescriptor.Type mapValueType;
     public String mapValueMessageIdentifier;
@@ -139,8 +140,6 @@ class ProtoReaderGenerator {
         }
         descriptor.type = fd.getType();
         descriptor.kind = kind;
-        descriptor.keyEntry = fd.getContainingType().toProto().getOptions().getMapEntry() && fd.getContainingType().getFields().get(0) == fd;
-        descriptor.keyEntry = fd.getContainingType().toProto().getOptions().getMapEntry() && fd.getContainingType().getFields().get(1) == fd;
         descriptor.identifier = Utils.literalIdentifier(fd);
         descriptor.javaType = Utils.javaTypeOf(fd);
         descriptor.javaTypeInternal = Utils.javaTypeOfInternal(fd);
@@ -153,6 +152,7 @@ class ProtoReaderGenerator {
           Descriptors.FieldDescriptor blah = fd.getMessageType().getFields().get(1);
           Descriptors.FieldDescriptor.Type mapValueType = blah.getType();
           descriptor.map = true;
+          descriptor.mapJavaType = Utils.javaTypeOfInternal(fd);
           descriptor.mapKeyType = fd.getMessageType().getFields().get(0).getType();
           descriptor.mapValueType = mapValueType;
           switch (mapValueType) {
@@ -168,6 +168,15 @@ class ProtoReaderGenerator {
           }
         } else {
           descriptor.map = false;
+        }
+
+        if (fd.getContainingType().toProto().getOptions().getMapEntry()) {
+          descriptor.mapJavaType = Utils.javaTypeOf(fd.getContainingType());
+          if (fd.getContainingType().getFields().get(0) == fd) {
+            descriptor.keyEntry = true;
+          } else if (fd.getContainingType().getFields().get(1) == fd) {
+            descriptor.valueEntry = true;
+          }
         }
 
         Descriptors.OneofDescriptor oneOf = oneOfMap.get(fd);
@@ -290,11 +299,11 @@ class ProtoReaderGenerator {
       for (FieldDescriptor fd : collected.stream().filter(f -> visitMethod.types.contains(f.type)).collect(Collectors.toList())) {
         out.println("        case " + fd.identifier + ": {");
         if (fd.keyEntry) {
-          out.println("          Object[] entry = (Object[])stack.peek();");
-          out.println("          entry[0] = value;");
+          out.println("          " + fd.mapJavaType + " entry = (" + fd.mapJavaType + ")stack.peek();");
+          out.println("          entry.setKey(" + fd.converter.apply("value") + ");");
         } else if (fd.valueEntry) {
-          out.println("          Object[] entry = (Object[])stack.peek();");
-          out.println("          entry[1] = value;");
+          out.println("          " + fd.mapJavaType + " entry = (" + fd.mapJavaType + ")stack.peek();");
+          out.println("          entry.setValue(" + fd.converter.apply("value") + ");");
         } else if (fd.repeated) {
           out.println(
             "          " + fd.containingJavaType + " messageFields = (" + fd.containingJavaType + ")stack.peek()" + ";",
@@ -347,73 +356,8 @@ class ProtoReaderGenerator {
               "            container." + field.setterMethod + "(map);",
               "          }",
               "          stack.push(map);");
-            switch (field.mapKeyType) {
-              case INT32:
-              case UINT32:
-              case SINT32:
-              case FIXED32:
-              case SFIXED32:
-                out.println("          Object key = 0;");
-                break;
-              case INT64:
-              case UINT64:
-              case SINT64:
-              case FIXED64:
-              case SFIXED64:
-                out.println("          Object key = 0L;");
-                break;
-              case BOOL:
-                out.println("          Object key = false;");
-                break;
-              case STRING:
-                out.println("          Object key = \"\";");
-                break;
-              default:
-                out.println("          Object key = new Object();");
-                break;
-            }
-            switch (field.mapValueType) {
-              case INT32:
-              case UINT32:
-              case SINT32:
-              case FIXED32:
-              case SFIXED32:
-                out.println("          Object value = 0;");
-                break;
-              case FLOAT:
-                out.println("          Object value = 0F;");
-                break;
-              case INT64:
-              case UINT64:
-              case SINT64:
-              case FIXED64:
-              case SFIXED64:
-                out.println("          Object value = 0L;");
-                break;
-              case DOUBLE:
-                out.println("          Object value = 0D;");
-                break;
-              case BOOL:
-                out.println("          Object value = false;");
-                break;
-              case STRING:
-                out.println("          Object value = \"\";");
-                break;
-              case BYTES:
-                out.println("          Object value = io.vertx.core.buffer.Buffer.buffer();");
-                break;
-              case MESSAGE:
-                out.println("          init(SchemaLiterals.MessageLiteral." + field.mapValueMessageIdentifier + ");");
-                out.println("          Object value = stack.pop();");
-                break;
-              case ENUM:
-                out.println("          Object value = " + field.mapValueEnumJavaType + "." + field.mapValueEnumConstant + ";");
-                break;
-              default:
-                out.println("          Object value = new Object();");
-                break;
-            }
-            out.println("          stack.push(new Object[] { key, value });");
+            out.println("          " + field.mapJavaType + " entry = new " + field.mapJavaType + "();");
+            out.println("          stack.push(entry);");
           } else {
             if (field.imported) {
               out.println(
@@ -464,19 +408,19 @@ class ProtoReaderGenerator {
         } else {
           if (field.map) {
             out.println(
-              "          Object[] entry = (Object[])stack.pop();",
+              "          " + field.mapJavaType + " entry = (" + field.mapJavaType + ")stack.pop();",
               "          java.util.Map entries = (java.util.Map)stack.pop();",
-              "          entries.put(entry[0], entry[1]);");
+              "          entries.put(entry.getKey(), entry.getValue());");
           } else if (field.keyEntry) {
             out.println(
-              "          Object v = stack.pop();",
-              "          Object[] entry = (Object[])stack.pop();",
-              "          entry[0] = v;");
+              "          " + field.javaType + " v = (" + field.javaType + ")stack.pop();",
+              "          " + field.mapJavaType + " entry = (" + field.mapJavaType + ")stack.peek();",
+              "          entry.setKey(v);");
           } else if (field.valueEntry) {
             out.println(
-              "          Object v = stack.pop();",
-              "          Object[] entry = (Object[])stack.pop();",
-              "          entry[1] = v;");
+              "          " + field.javaType + " v = (" + field.javaType + ")stack.pop();",
+              "          " + field.mapJavaType + " entry = (" + field.mapJavaType + ")stack.peek();",
+              "          entry.setValue(v);");
           } else {
             if (field.imported) {
               out.println(
