@@ -218,16 +218,23 @@ class ProtoReaderGenerator {
 
     out.println(
       "",
-      "  public void init(MessageType type) {");
-    out.print("    ");
+      "  public void init(MessageType type) {",
+      "    if (type instanceof SchemaLiterals.MessageLiteral) {",
+      "      SchemaLiterals.MessageLiteral literal = (SchemaLiterals.MessageLiteral)type;",
+      "      switch (literal) {"
+    );
     for (Descriptors.Descriptor messageType : fileDesc) {
       out.println(
-        "if (type == SchemaLiterals.MessageLiteral." + Utils.literalIdentifier(messageType) + ") {",
-        "      stack.push(new " + Utils.javaTypeOf(messageType) + "().init());",
-        "    } else ");
+        "        case " + Utils.literalIdentifier(messageType) + ": {",
+        "          stack.push(new " + Utils.javaTypeOf(messageType) + "().init());",
+        "          break;",
+        "        }");
     }
     out.println(
-      "if (next != null) {",
+      "        default:",
+      "          throw new UnsupportedOperationException();",
+      "        }",
+      "    } else if (next != null) {",
       "      next.init(type);",
       "    } else {",
       "      throw new IllegalArgumentException(\"\");",
@@ -274,33 +281,39 @@ class ProtoReaderGenerator {
     for (VisitMethod visitMethod : visitMethods) {
       out.println(
         "",
-        "  public void " + visitMethod.methodStart + " {");
-      out.println(
-        "if (next != null) {",
-        "      next." + visitMethod.next + ";",
-        " } else ");
+        "  public void " + visitMethod.methodStart + " {",
+        "    if (field instanceof SchemaLiterals.FieldLiteral) {");
+      out.println("      SchemaLiterals.FieldLiteral fieldLiteral = (SchemaLiterals.FieldLiteral)field;");
+      out.println("      switch (fieldLiteral) {");
       for (FieldDescriptor fd : collected.stream().filter(f -> visitMethod.types.contains(f.type)).collect(Collectors.toList())) {
-        out.println("if (field == SchemaLiterals.FieldLiteral." + fd.identifier + ") {");
+        out.println("        case " + fd.identifier + ": {");
         if (fd.entry) {
-          out.println("      stack.pop();");
-          out.println("      stack.push(value);");
+          out.println("          stack.pop();");
+          out.println("          stack.push(value);");
         } else if (fd.repeated) {
           out.println(
-            "      " + fd.containingJavaType + " messageFields = (" + fd.containingJavaType + ")stack.peek()" + ";",
-            "      if (messageFields." + fd.getterMethod + "() == null) {",
-            "        messageFields." + fd.setterMethod + "(new java.util.ArrayList<>());",
-            "      }",
-            "      messageFields." + fd.getterMethod + "().add(" + fd.converter.apply("value") + ");");
+            "          " + fd.containingJavaType + " messageFields = (" + fd.containingJavaType + ")stack.peek()" + ";",
+            "          if (messageFields." + fd.getterMethod + "() == null) {",
+            "            messageFields." + fd.setterMethod + "(new java.util.ArrayList<>());",
+            "          }",
+            "          messageFields." + fd.getterMethod + "().add(" + fd.converter.apply("value") + ");");
         } else {
-          out.println("      ((" + fd.containingJavaType + ")stack.peek())." + fd.setterMethod + "(" + fd.converter.apply("value") + ");");
+          out.println("          ((" + fd.containingJavaType + ")stack.peek())." + fd.setterMethod + "(" + fd.converter.apply("value") + ");");
         }
-        out.print("    } else ");
+        out.println("          break;");
+        out.println("        }");
       }
       out.println(
-        " {",
-        "      throw new IllegalArgumentException(\"Invalid field \" + field);",
-        "    }",
-        "  }");
+        "        default:",
+        "          throw new IllegalArgumentException(\"Invalid field \" + field);",
+        "      }");
+      out.println(
+        "    } else if (next != null) {",
+        "      next." + visitMethod.next + ";",
+        "    } else {",
+        "      throw new UnsupportedOperationException();",
+        "    }");
+      out.println("  }");
     }
 
     // **************
@@ -309,47 +322,49 @@ class ProtoReaderGenerator {
 
     out.println(
       "",
-      "  public void enter(Field field) {");
-    out.print("    ");
+      "  public void enter(Field field) {",
+      "    if (field instanceof SchemaLiterals.FieldLiteral) {",
+      "      SchemaLiterals.FieldLiteral literal = (SchemaLiterals.FieldLiteral)field;",
+      "      switch (literal) {");
 
     collected
       .forEach(field -> {
-        out.println("if (field == SchemaLiterals.FieldLiteral." + field.identifier + ") {");
+        out.println("        case " + field.identifier + ": {");
         if (field.type != Descriptors.FieldDescriptor.Type.MESSAGE) {
-          out.println("      //");
+          //
         } else {
           if (field.map) {
             out.println(
-              "      " + field.containingJavaType + " container = (" + field.containingJavaType + ")stack.peek();",
-              "      " + field.javaType + " map = container." + field.getterMethod + "();",
-              "      if (map == null) {",
-              "        map = new java.util.HashMap<>();",
-              "        container." + field.setterMethod + "(map);",
-              "      }",
-              "      stack.push(map);");
+              "          " + field.containingJavaType + " container = (" + field.containingJavaType + ")stack.peek();",
+              "          " + field.javaType + " map = container." + field.getterMethod + "();",
+              "          if (map == null) {",
+              "            map = new java.util.HashMap<>();",
+              "            container." + field.setterMethod + "(map);",
+              "          }",
+              "          stack.push(map);");
             switch (field.mapKeyType) {
               case INT32:
               case UINT32:
               case SINT32:
               case FIXED32:
               case SFIXED32:
-                out.println("      stack.push(0);");
+                out.println("          stack.push(0);");
                 break;
               case INT64:
               case UINT64:
               case SINT64:
               case FIXED64:
               case SFIXED64:
-                out.println("      stack.push(0L);");
+                out.println("          stack.push(0L);");
                 break;
               case BOOL:
-                out.println("      stack.push(false);");
+                out.println("          stack.push(false);");
                 break;
               case STRING:
-                out.println("      stack.push(\"\");");
+                out.println("          stack.push(\"\");");
                 break;
               default:
-                out.println("      stack.push(new Object());");
+                out.println("          stack.push(new Object());");
                 break;
             }
             switch (field.mapValueType) {
@@ -358,46 +373,46 @@ class ProtoReaderGenerator {
               case SINT32:
               case FIXED32:
               case SFIXED32:
-                out.println("      stack.push(0);");
+                out.println("          stack.push(0);");
                 break;
               case FLOAT:
-                out.println("      stack.push(0F);");
+                out.println("          stack.push(0F);");
                 break;
               case INT64:
               case UINT64:
               case SINT64:
               case FIXED64:
               case SFIXED64:
-                out.println("      stack.push(0L);");
+                out.println("           stack.push(0L);");
                 break;
               case DOUBLE:
-                out.println("      stack.push(0D);");
+                out.println("          stack.push(0D);");
                 break;
               case BOOL:
-                out.println("      stack.push(false);");
+                out.println("          stack.push(false);");
                 break;
               case STRING:
-                out.println("      stack.push(\"\");");
+                out.println("          stack.push(\"\");");
                 break;
               case BYTES:
-                out.println("      stack.push(io.vertx.core.buffer.Buffer.buffer());");
+                out.println("          stack.push(io.vertx.core.buffer.Buffer.buffer());");
                 break;
               case MESSAGE:
-                out.println("      init(SchemaLiterals.MessageLiteral." + field.mapValueMessageIdentifier + ");");
+                out.println("          init(SchemaLiterals.MessageLiteral." + field.mapValueMessageIdentifier + ");");
                 break;
               case ENUM:
-                out.println("      stack.push(" + field.mapValueEnumJavaType + "." + field.mapValueEnumConstant + ");");
+                out.println("          stack.push(" + field.mapValueEnumJavaType + "." + field.mapValueEnumConstant + ");");
                 break;
               default:
-                out.println("      stack.push(new Object());");
+                out.println("          stack.push(new Object());");
                 break;
             }
           } else {
             if (field.imported) {
               out.println(
-                "      Visitor v = new " + field.typePkgFqn + ".ProtoReader(stack);",
-                "      v.init((MessageType)field.type());",
-                "      next = v;");
+                "          Visitor v = new " + field.typePkgFqn + ".ProtoReader(stack);",
+                "          v.init((MessageType)field.type());",
+                "          next = v;");
             } else {
               String initExpression;
               if (field.repeated) {
@@ -406,17 +421,21 @@ class ProtoReaderGenerator {
                 initExpression = field.javaType;
               }
               if (field.entry) {
-                out.println("      stack.pop();");
+                out.println("          stack.pop();");
               }
-              out.println("      " + initExpression + " v = " + "new " + initExpression + "().init()" + ";");
-              out.println("      stack.push(v);");
+              out.println("          " + initExpression + " v = " + "new " + initExpression + "().init()" + ";");
+              out.println("          stack.push(v);");
             }
           }
         }
-        out.print("    } else ");
+        out.println("          break;");
+        out.println("        }");
       });
+    out.println("        default:");
+    out.println("          throw new UnsupportedOperationException();");
+    out.println("      }");
     out.println(
-      "if (next != null) {",
+      "    } else if (next != null) {",
       "      next.enter(field);",
       "    } else {",
       "      throw new UnsupportedOperationException();",
@@ -429,45 +448,51 @@ class ProtoReaderGenerator {
 
     out.println(
       "",
-      "  public void leave(Field field) {");
-    out.print("    ");
+      "  public void leave(Field field) {",
+      "    if (field instanceof SchemaLiterals.FieldLiteral) {",
+      "      SchemaLiterals.FieldLiteral literal = (SchemaLiterals.FieldLiteral)field;",
+      "      switch (literal) {");
     collected
       .forEach(field -> {
-        out.println("if (field == SchemaLiterals.FieldLiteral." + field.identifier + ") {");
+        out.println("        case " + field.identifier + ": {");
         if (field.type != Descriptors.FieldDescriptor.Type.MESSAGE) {
-          out.println("      //");
+          //
         } else {
           if (field.map) {
             out.println(
-              "      Object value = stack.pop();",
-              "      Object key = stack.pop();",
-              "      java.util.Map entries = (java.util.Map)stack.pop();",
-              "      entries.put(key, value);");
+              "          Object value = stack.pop();",
+              "          Object key = stack.pop();",
+              "          java.util.Map entries = (java.util.Map)stack.pop();",
+              "          entries.put(key, value);");
           } else if (field.entry) {
-            out.println("      //");
+            //
           } else {
             if (field.imported) {
               out.println(
-                "      next.destroy();",
-                "      next = null;");
+                "          next.destroy();",
+                "          next = null;");
             }
             if (field.repeated) {
               out.println(
-                "      " + field.javaTypeInternal + " value = (" + field.javaTypeInternal + ") stack.pop();",
-                "      " + field.containingJavaType + " container = (" + field.containingJavaType + ")stack.peek();",
-                "      container." + field.getterMethod + "().add(value);"
+                "          " + field.javaTypeInternal + " value = (" + field.javaTypeInternal + ") stack.pop();",
+                "          " + field.containingJavaType + " container = (" + field.containingJavaType + ")stack.peek();",
+                "          container." + field.getterMethod + "().add(value);"
               );
             } else {
               out.println(
-                "      " + field.javaType + " v = (" + field.javaType + ")stack.pop();",
-                "      ((" + field.containingJavaType + ")stack.peek())." + field.setterMethod + "(" + field.converter.apply("v") + ");");
+                "          " + field.javaType + " v = (" + field.javaType + ")stack.pop();",
+                "          ((" + field.containingJavaType + ")stack.peek())." + field.setterMethod + "(" + field.converter.apply("v") + ");");
             }
           }
         }
-        out.print("    } else ");
+        out.println("          break;");
+        out.println("        }");
     });
     out.println(
-      "if (next != null) {",
+      "        default:",
+      "          throw new UnsupportedOperationException();",
+      "      }",
+      "    } else if (next != null) {",
       "      next.leave(field);",
       "    } else {",
       "      throw new UnsupportedOperationException();",
@@ -482,7 +507,8 @@ class ProtoReaderGenerator {
       "",
       "  public void destroy() {",
       "    if (next != null) {",
-      "      next.destroy();", "    }",
+      "      next.destroy();",
+      "    }",
       "  }");
 
     out.println("}");
