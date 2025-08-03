@@ -63,14 +63,40 @@ public class ProtobufReader {
     }
   }
 
-  private static void parseLen(ProtobufDecoder decoder, Field field, Visitor visitor) {
+  private static void parseLen(ProtobufDecoder decoder, MessageType messageType, int fieldNumber, UnknownRecordVisitor unknownFieldHandler) {
+    assertTrue(decoder.readVarInt32());
+    int len = decoder.intValue();
+    byte[] data = decoder.readBytes(len);
+    unknownFieldHandler.visitUnknownLengthDelimited(messageType, fieldNumber, Buffer.buffer(data));
+    decoder.skip(len);
+  }
+
+  private static void parseI32(ProtobufDecoder decoder, MessageType messageType, int fieldNumber, UnknownRecordVisitor unknownFieldHandler) {
+    assertTrue(decoder.readI32());
+    int v = decoder.intValue();
+    unknownFieldHandler.visitUnknownI32(messageType, fieldNumber, v);
+  }
+
+  private static void parseI64(ProtobufDecoder decoder, MessageType messageType, int fieldNumber, UnknownRecordVisitor unknownFieldHandler) {
+    assertTrue(decoder.readI64());
+    long v = decoder.longValue();
+    unknownFieldHandler.visitUnknownI64(messageType, fieldNumber, v);
+  }
+
+  private static void parseVarInt(ProtobufDecoder decoder, MessageType messageType, int fieldNumber, UnknownRecordVisitor unknownFieldHandler) {
+    assertTrue(decoder.readVarInt64());
+    long v = decoder.longValue();
+    unknownFieldHandler.visitUnknownVarInt(messageType, fieldNumber, v);
+  }
+
+  private static void parseLen(ProtobufDecoder decoder, Field field, Visitor visitor, UnknownRecordVisitor unknownFieldHandler) {
     assertTrue(decoder.readVarInt32());
     int len = decoder.intValue();
     if (field.type() instanceof MessageType) {
       int to = decoder.len();
       decoder.len(decoder.index() + len);
       visitor.enter(field);
-      parse(decoder, (MessageType) field.type(), visitor);
+      parse(decoder, (MessageType) field.type(), visitor, unknownFieldHandler);
       visitor.leave(field);
       decoder.len(to);
     } else if (field.type() instanceof EnumType) {
@@ -135,42 +161,63 @@ public class ProtobufReader {
   }
 
   public static void parse(MessageType rootType, Visitor visitor, Buffer buffer) {
+    parse(rootType, visitor, new UnknownRecordVisitor() {
+    }, buffer);
+  }
+
+  public static void parse(MessageType rootType, Visitor visitor, UnknownRecordVisitor unknownFieldHandler, Buffer buffer) {
     ProtobufDecoder decoder = new ProtobufDecoder(buffer);
     visitor.init(rootType);
-    parse(decoder, rootType, visitor);
+    parse(decoder, rootType, visitor, unknownFieldHandler);
     visitor.destroy();
   }
 
-  private static void parse(ProtobufDecoder decoder, MessageType type, Visitor visitor) {
+  private static void parse(ProtobufDecoder decoder, MessageType type, Visitor visitor, UnknownRecordVisitor unknownFieldHandler) {
     while (decoder.isReadable()) {
       assertTrue(decoder.readTag());
       int fieldNumber  = decoder.fieldNumber();
-      Field field = type.field(fieldNumber);
-      if (field == null) {
-        throw new DecodeException("Unknown field  " + fieldNumber + " for message " + type.name());
-      }
       int decodedWireType = decoder.wireType();
+      Field field = type.field(fieldNumber);
       WireType wireType = wireTypes[decodedWireType];
       if (wireType == null) {
         throw new DecodeException("Invalid wire type: " + decodedWireType);
       }
-      switch (wireType) {
-        case LEN:
-          parseLen(decoder, field, visitor);
-          break;
-        case I64:
-          parseI64(decoder, field, visitor);
-          break;
-        case I32:
-          parseI32(decoder, field, visitor);
-          break;
-        case VARINT:
-          parseVarInt(decoder, field, visitor);
-          break;
-        default:
-          throw new UnsupportedOperationException("Implement me " + field.type().wireType());
+      if (field == null) {
+        switch (wireType) {
+          case LEN:
+            parseLen(decoder, type, fieldNumber, unknownFieldHandler);
+            break;
+          case I32:
+            parseI32(decoder, type, fieldNumber, unknownFieldHandler);
+            break;
+          case I64:
+            parseI64(decoder, type, fieldNumber, unknownFieldHandler);
+            break;
+          case VARINT:
+            parseVarInt(decoder, type, fieldNumber, unknownFieldHandler);
+            break;
+          default:
+            throw new UnsupportedOperationException("Todo");
+        }
+      } else {
+        switch (wireType) {
+          case LEN:
+            parseLen(decoder, field, visitor, unknownFieldHandler);
+            break;
+          case I64:
+            parseI64(decoder, field, visitor);
+            break;
+          case I32:
+            parseI32(decoder, field, visitor);
+            break;
+          case VARINT:
+            parseVarInt(decoder, field, visitor);
+            break;
+          default:
+            throw new UnsupportedOperationException("Implement me " + field.type().wireType());
+        }
       }
-    }
+      }
   }
 
   private static void assertTrue(boolean cond) {
