@@ -58,7 +58,31 @@ public interface Visitor {
   //
 
   default void visitVarInt64(Field field, long v) {
-    throw new UnsupportedOperationException();
+    switch (field.type().id()) {
+      case INT64:
+        visitInt64(field, v);
+        break;
+      case UINT64:
+        visitUInt64(field, v);
+        break;
+      case SINT64:
+        visitSInt64(field, decodeSint32((int)v));
+        break;
+      default:
+        throw new IllegalArgumentException();
+    }
+  }
+
+  default void visitInt64(Field field, long v) {
+    visitVarInt64(field, v);
+  }
+
+  default void visitUInt64(Field field, long v) {
+    visitVarInt64(field, v);
+  }
+
+  default void visitSInt64(Field field, long v) {
+    visitVarInt64(field, encodeSint32((int)v));
   }
 
   // I64

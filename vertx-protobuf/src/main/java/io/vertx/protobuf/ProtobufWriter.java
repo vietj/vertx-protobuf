@@ -63,9 +63,6 @@ public class ProtobufWriter {
 
     @Override
     public void visitVarInt64(Field field, long v) {
-      if (field.type().id() == TypeID.SINT64) {
-        v = encodeSint32((int) v);
-      }
       lengths[depth] +=  (packed ? 0 : sizeOf(field)) + ProtobufEncoder.computeRawVarint32Size((int)v);
     }
 
@@ -164,9 +161,6 @@ public class ProtobufWriter {
 
     @Override
     public void visitVarInt64(Field field, long v) {
-      if (field.type().id() == TypeID.SINT64) {
-        v = encodeSint32((int) v);
-      }
       if (!packed) {
         encoder.writeTag(field.number(), WireType.VARINT.id);
       }

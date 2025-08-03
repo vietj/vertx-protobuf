@@ -61,16 +61,42 @@ public class RecordingVisitor implements Visitor {
     }
   }
 
-  private static class VarInt64 extends Record {
+  private static class VisitInt64 extends Record {
     private final Field field;
     private final long value;
-    VarInt64(Field field, long value) {
+    VisitInt64(Field field, long value) {
       this.field = field;
       this.value = value;
     }
     @Override
     protected void apply(Visitor visitor) {
-      visitor.visitVarInt64(field, value);
+      visitor.visitInt64(field, value);
+    }
+  }
+
+  private static class VisitUInt64 extends Record {
+    private final Field field;
+    private final long value;
+    VisitUInt64(Field field, long value) {
+      this.field = field;
+      this.value = value;
+    }
+    @Override
+    protected void apply(Visitor visitor) {
+      visitor.visitUInt64(field, value);
+    }
+  }
+
+  private static class VisitSInt64 extends Record {
+    private final Field field;
+    private final long value;
+    VisitSInt64(Field field, long value) {
+      this.field = field;
+      this.value = value;
+    }
+    @Override
+    protected void apply(Visitor visitor) {
+      visitor.visitSInt64(field, value);
     }
   }
 
@@ -224,8 +250,18 @@ public class RecordingVisitor implements Visitor {
   }
 
   @Override
-  public void visitVarInt64(Field field, long v) {
-    records.add(new VarInt64(field, v));
+  public void visitInt64(Field field, long v) {
+    records.add(new VisitInt64(field, v));
+  }
+
+  @Override
+  public void visitUInt64(Field field, long v) {
+    records.add(new VisitUInt64(field, v));
+  }
+
+  @Override
+  public void visitSInt64(Field field, long v) {
+    records.add(new VisitSInt64(field, v));
   }
 
   @Override
@@ -345,8 +381,22 @@ public class RecordingVisitor implements Visitor {
     }
 
     @Override
-    public void visitVarInt64(Field field, long v) {
-      VarInt64 expectation = expecting(VarInt64.class);
+    public void visitInt64(Field field, long v) {
+      VisitInt64 expectation = expecting(VisitInt64.class);
+      assertSame(expectation.field, field);
+      assertEquals(expectation.value, v);
+    }
+
+    @Override
+    public void visitSInt64(Field field, long v) {
+      VisitSInt64 expectation = expecting(VisitSInt64.class);
+      assertSame(expectation.field, field);
+      assertEquals(expectation.value, v);
+    }
+
+    @Override
+    public void visitUInt64(Field field, long v) {
+      VisitUInt64 expectation = expecting(VisitUInt64.class);
       assertSame(expectation.field, field);
       assertEquals(expectation.value, v);
     }

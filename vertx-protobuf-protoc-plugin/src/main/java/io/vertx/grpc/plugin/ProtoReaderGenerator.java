@@ -281,10 +281,9 @@ class ProtoReaderGenerator {
       new VisitMethod("visitSInt32(Field field, int value)", "visitSInt32(field, value)", Descriptors.FieldDescriptor.Type.SINT32),
       new VisitMethod("visitBool(Field field, boolean value)", "visitBool(field, value)", Descriptors.FieldDescriptor.Type.BOOL),
       new VisitMethod("visitEnum(Field field, int value)", "visitEnum(field, value)", Descriptors.FieldDescriptor.Type.ENUM),
-      new VisitMethod("visitVarInt64(Field field, long value)", "visitVarInt64(field, value)",
-        Descriptors.FieldDescriptor.Type.INT64,
-        Descriptors.FieldDescriptor.Type.SINT64,
-        Descriptors.FieldDescriptor.Type.UINT64)
+      new VisitMethod("visitInt64(Field field, long value)", "visitInt64(field, value)", Descriptors.FieldDescriptor.Type.INT64),
+      new VisitMethod("visitSInt64(Field field, long value)", "visitSInt64(field, value)", Descriptors.FieldDescriptor.Type.SINT64),
+      new VisitMethod("visitUInt64(Field field, long value)", "visitUInt64(field, value)", Descriptors.FieldDescriptor.Type.UINT64)
     };
 
     for (VisitMethod visitMethod : visitMethods) {

@@ -63,7 +63,6 @@ public class ProtobufReader {
         visitor.visitVarInt32(field, value);
         break;
       case SINT64:
-        value = decodeSint32(value);
       case INT64:
       case UINT64:
         visitor.visitVarInt64(field, value);

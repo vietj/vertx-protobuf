@@ -76,7 +76,7 @@ public class DataTypeTest {
   private void testInt64(long value) throws Exception {
     RecordingVisitor visitor = new RecordingVisitor();
     visitor.init(DATA_TYPE);
-    visitor.visitVarInt64(INT64, value);
+    visitor.visitInt64(INT64, value);
     visitor.destroy();
     testDataType(visitor, DataTypesProto.DataTypes.newBuilder().setInt64(value).build());
   }
@@ -90,7 +90,7 @@ public class DataTypeTest {
   private void testUint64(long value) throws Exception {
     RecordingVisitor visitor = new RecordingVisitor();
     visitor.init(DATA_TYPE);
-    visitor.visitVarInt64(UINT64, value);
+    visitor.visitUInt64(UINT64, value);
     visitor.destroy();
     testDataType(visitor, DataTypesProto.DataTypes.newBuilder().setUint64(value).build());
   }
@@ -134,7 +134,7 @@ public class DataTypeTest {
   private void testSint64(long value) throws Exception {
     RecordingVisitor visitor = new RecordingVisitor();
     visitor.init(DATA_TYPE);
-    visitor.visitVarInt64(SINT64, value);
+    visitor.visitSInt64(SINT64, value);
     visitor.destroy();
     testDataType(visitor, DataTypesProto.DataTypes.newBuilder().setSint64(value).build());
   }
