@@ -9,7 +9,7 @@ import static io.vertx.protobuf.ProtobufReader.decodeSInt64;
 import static io.vertx.protobuf.ProtobufWriter.encodeSInt32;
 import static io.vertx.protobuf.ProtobufWriter.encodeSInt64;
 
-public interface Visitor {
+public interface RecordVisitor {
 
   void init(MessageType type);
 

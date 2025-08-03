@@ -96,7 +96,7 @@ class ProtoWriterGenerator {
 
     content.println(
       "package " + javaPkgFqn + ";",
-      "import io.vertx.protobuf.Visitor;",
+      "import io.vertx.protobuf.RecordVisitor;",
       "import io.vertx.protobuf.schema.MessageType;",
       "import io.vertx.protobuf.schema.Field;",
       "",
@@ -104,7 +104,7 @@ class ProtoWriterGenerator {
 
     for (Descriptors.Descriptor d : all) {
       content.println(
-        "  public static void emit(" + Utils.javaTypeOf(d) + " value, Visitor visitor) {",
+        "  public static void emit(" + Utils.javaTypeOf(d) + " value, RecordVisitor visitor) {",
         "    visitor.init(SchemaLiterals.MessageLiteral." + Utils.literalIdentifier(d) + ");",
         "    visit(value, visitor);",
         "    visitor.destroy();",
@@ -204,7 +204,7 @@ class ProtoWriterGenerator {
         props.add(b);
       });
 
-      content.println("  public static void visit(" + Utils.javaTypeOf(d) + " value, Visitor visitor) {");
+      content.println("  public static void visit(" + Utils.javaTypeOf(d) + " value, RecordVisitor visitor) {");
       for (Property property : props) {
         content.println("    if (" + property.defaultValueChecker.apply("value") + ") {");
         if (property instanceof FieldProperty) {

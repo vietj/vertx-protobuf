@@ -202,16 +202,16 @@ class ProtoReaderGenerator {
     out.println(
       "package " + javaPkgFqn + ";",
       "",
-      "import io.vertx.protobuf.Visitor;",
+      "import io.vertx.protobuf.RecordVisitor;",
       "import io.vertx.protobuf.schema.MessageType;",
       "import io.vertx.protobuf.schema.Field;",
       "import java.util.Deque;",
       "import java.util.ArrayDeque;",
       "",
-      "public class ProtoReader implements Visitor {",
+      "public class ProtoReader implements RecordVisitor {",
       "",
       "  public final Deque<Object> stack;",
-      "  private Visitor next;",
+      "  private RecordVisitor next;",
       "",
       "  public ProtoReader(Deque<Object> stack) {",
       "    this.stack = stack;", "  }",
@@ -347,7 +347,7 @@ class ProtoReaderGenerator {
           } else {
             if (field.imported) {
               out.println(
-                "          Visitor v = new " + field.typePkgFqn + ".ProtoReader(stack);",
+                "          RecordVisitor v = new " + field.typePkgFqn + ".ProtoReader(stack);",
                 "          v.init((MessageType)field.type());",
                 "          next = v;");
             } else {

@@ -2,9 +2,8 @@ package io.vertx.tests.protobuf;
 
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.DecodeException;
-import io.vertx.protobuf.ProtobufDecoder;
 import io.vertx.protobuf.ProtobufReader;
-import io.vertx.protobuf.Visitor;
+import io.vertx.protobuf.RecordVisitor;
 import io.vertx.protobuf.schema.DefaultMessageType;
 import io.vertx.protobuf.schema.Field;
 import io.vertx.protobuf.schema.MessageType;
@@ -21,7 +20,7 @@ public class ProtobufReaderTest {
     byte[] data = { 8 + 4 };
     DefaultMessageType msg = new DefaultMessageType("whatever");
     msg.addField(1, ScalarType.STRING);
-    Visitor visitor = new Visitor() {
+    RecordVisitor visitor = new RecordVisitor() {
       @Override
       public void init(MessageType type) {
       }

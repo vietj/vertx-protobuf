@@ -1,8 +1,8 @@
 package io.vertx.tests.protobuf;
 
 import io.vertx.core.buffer.Buffer;
+import io.vertx.protobuf.RecordVisitor;
 import io.vertx.protobuf.UnknownRecordVisitor;
-import io.vertx.protobuf.Visitor;
 import io.vertx.protobuf.schema.Field;
 import io.vertx.protobuf.schema.MessageType;
 
@@ -13,10 +13,10 @@ import java.util.List;
 
 import static org.junit.Assert.*;
 
-public class RecordingVisitor implements Visitor, UnknownRecordVisitor {
+public class RecordingVisitor implements RecordVisitor, UnknownRecordVisitor {
 
   private static abstract class Record {
-    protected abstract void apply(Visitor visitor, UnknownRecordVisitor unknownFieldHandler);
+    protected abstract void apply(RecordVisitor visitor, UnknownRecordVisitor unknownFieldHandler);
   }
 
   private static class Init extends Record {
@@ -25,14 +25,14 @@ public class RecordingVisitor implements Visitor, UnknownRecordVisitor {
       this.messageType = messageType;
     }
     @Override
-    protected void apply(Visitor visitor, UnknownRecordVisitor unknownFieldHandler) {
+    protected void apply(RecordVisitor visitor, UnknownRecordVisitor unknownFieldHandler) {
       visitor.init(messageType);
     }
   }
 
   private static class Destroy extends Record {
     @Override
-    protected void apply(Visitor visitor, UnknownRecordVisitor unknownFieldHandler) {
+    protected void apply(RecordVisitor visitor, UnknownRecordVisitor unknownFieldHandler) {
       visitor.destroy();
     }
   }
@@ -45,7 +45,7 @@ public class RecordingVisitor implements Visitor, UnknownRecordVisitor {
       this.value = value;
     }
     @Override
-    protected void apply(Visitor visitor, UnknownRecordVisitor unknownFieldHandler) {
+    protected void apply(RecordVisitor visitor, UnknownRecordVisitor unknownFieldHandler) {
       visitor.visitFloat(field, value);
     }
   }
@@ -58,7 +58,7 @@ public class RecordingVisitor implements Visitor, UnknownRecordVisitor {
       this.value = value;
     }
     @Override
-    protected void apply(Visitor visitor, UnknownRecordVisitor unknownFieldHandler) {
+    protected void apply(RecordVisitor visitor, UnknownRecordVisitor unknownFieldHandler) {
       visitor.visitDouble(field, value);
     }
   }
@@ -71,7 +71,7 @@ public class RecordingVisitor implements Visitor, UnknownRecordVisitor {
       this.value = value;
     }
     @Override
-    protected void apply(Visitor visitor, UnknownRecordVisitor unknownFieldHandler) {
+    protected void apply(RecordVisitor visitor, UnknownRecordVisitor unknownFieldHandler) {
       visitor.visitInt64(field, value);
     }
   }
@@ -84,7 +84,7 @@ public class RecordingVisitor implements Visitor, UnknownRecordVisitor {
       this.value = value;
     }
     @Override
-    protected void apply(Visitor visitor, UnknownRecordVisitor unknownFieldHandler) {
+    protected void apply(RecordVisitor visitor, UnknownRecordVisitor unknownFieldHandler) {
       visitor.visitUInt64(field, value);
     }
   }
@@ -97,7 +97,7 @@ public class RecordingVisitor implements Visitor, UnknownRecordVisitor {
       this.value = value;
     }
     @Override
-    protected void apply(Visitor visitor, UnknownRecordVisitor unknownFieldHandler) {
+    protected void apply(RecordVisitor visitor, UnknownRecordVisitor unknownFieldHandler) {
       visitor.visitSInt64(field, value);
     }
   }
@@ -110,7 +110,7 @@ public class RecordingVisitor implements Visitor, UnknownRecordVisitor {
       this.value = value;
     }
     @Override
-    protected void apply(Visitor visitor, UnknownRecordVisitor unknownFieldHandler) {
+    protected void apply(RecordVisitor visitor, UnknownRecordVisitor unknownFieldHandler) {
       visitor.visitInt32(field, value);
     }
   }
@@ -123,7 +123,7 @@ public class RecordingVisitor implements Visitor, UnknownRecordVisitor {
       this.value = value;
     }
     @Override
-    protected void apply(Visitor visitor, UnknownRecordVisitor unknownFieldHandler) {
+    protected void apply(RecordVisitor visitor, UnknownRecordVisitor unknownFieldHandler) {
       visitor.visitSInt32(field, value);
     }
   }
@@ -136,7 +136,7 @@ public class RecordingVisitor implements Visitor, UnknownRecordVisitor {
       this.value = value;
     }
     @Override
-    protected void apply(Visitor visitor, UnknownRecordVisitor unknownFieldHandler) {
+    protected void apply(RecordVisitor visitor, UnknownRecordVisitor unknownFieldHandler) {
       visitor.visitUInt32(field, value);
     }
   }
@@ -149,7 +149,7 @@ public class RecordingVisitor implements Visitor, UnknownRecordVisitor {
       this.value = value;
     }
     @Override
-    protected void apply(Visitor visitor, UnknownRecordVisitor unknownFieldHandler) {
+    protected void apply(RecordVisitor visitor, UnknownRecordVisitor unknownFieldHandler) {
       visitor.visitEnum(field, value);
     }
   }
@@ -162,7 +162,7 @@ public class RecordingVisitor implements Visitor, UnknownRecordVisitor {
       this.value = value;
     }
     @Override
-    protected void apply(Visitor visitor, UnknownRecordVisitor unknownFieldHandler) {
+    protected void apply(RecordVisitor visitor, UnknownRecordVisitor unknownFieldHandler) {
       visitor.visitBool(field, value);
     }
   }
@@ -175,7 +175,7 @@ public class RecordingVisitor implements Visitor, UnknownRecordVisitor {
       this.value = value;
     }
     @Override
-    protected void apply(Visitor visitor, UnknownRecordVisitor unknownFieldHandler) {
+    protected void apply(RecordVisitor visitor, UnknownRecordVisitor unknownFieldHandler) {
       visitor.visitFixed32(field, value);
     }
   }
@@ -188,7 +188,7 @@ public class RecordingVisitor implements Visitor, UnknownRecordVisitor {
       this.value = value;
     }
     @Override
-    protected void apply(Visitor visitor, UnknownRecordVisitor unknownFieldHandler) {
+    protected void apply(RecordVisitor visitor, UnknownRecordVisitor unknownFieldHandler) {
       visitor.visitFixed64(field, value);
     }
   }
@@ -201,7 +201,7 @@ public class RecordingVisitor implements Visitor, UnknownRecordVisitor {
       this.value = value;
     }
     @Override
-    protected void apply(Visitor visitor, UnknownRecordVisitor unknownFieldHandler) {
+    protected void apply(RecordVisitor visitor, UnknownRecordVisitor unknownFieldHandler) {
       visitor.visitSFixed32(field, value);
     }
   }
@@ -214,7 +214,7 @@ public class RecordingVisitor implements Visitor, UnknownRecordVisitor {
       this.value = value;
     }
     @Override
-    protected void apply(Visitor visitor, UnknownRecordVisitor unknownFieldHandler) {
+    protected void apply(RecordVisitor visitor, UnknownRecordVisitor unknownFieldHandler) {
       visitor.visitSFixed64(field, value);
     }
   }
@@ -229,7 +229,7 @@ public class RecordingVisitor implements Visitor, UnknownRecordVisitor {
       this.buffer = buffer;
     }
     @Override
-    protected void apply(Visitor visitor, UnknownRecordVisitor unknownFieldHandler) {
+    protected void apply(RecordVisitor visitor, UnknownRecordVisitor unknownFieldHandler) {
       throw new UnsupportedOperationException("TODO");
     }
   }
@@ -244,7 +244,7 @@ public class RecordingVisitor implements Visitor, UnknownRecordVisitor {
       this.value = value;
     }
     @Override
-    protected void apply(Visitor visitor, UnknownRecordVisitor unknownRecordVisitor) {
+    protected void apply(RecordVisitor visitor, UnknownRecordVisitor unknownRecordVisitor) {
       throw new UnsupportedOperationException("TODO");
     }
   }
@@ -259,7 +259,7 @@ public class RecordingVisitor implements Visitor, UnknownRecordVisitor {
       this.value = value;
     }
     @Override
-    protected void apply(Visitor visitor, UnknownRecordVisitor unknownRecordVisitor) {
+    protected void apply(RecordVisitor visitor, UnknownRecordVisitor unknownRecordVisitor) {
       throw new UnsupportedOperationException("TODO");
     }
   }
@@ -274,7 +274,7 @@ public class RecordingVisitor implements Visitor, UnknownRecordVisitor {
       this.value = value;
     }
     @Override
-    protected void apply(Visitor visitor, UnknownRecordVisitor unknownRecordVisitor) {
+    protected void apply(RecordVisitor visitor, UnknownRecordVisitor unknownRecordVisitor) {
       throw new UnsupportedOperationException("TODO");
     }
   }
@@ -401,7 +401,7 @@ public class RecordingVisitor implements Visitor, UnknownRecordVisitor {
     records.add(new UnknownVarInt(messageType, fieldNumber, value));
   }
 
-  public void apply(Visitor visitor) {
+  public void apply(RecordVisitor visitor) {
     apply(visitor, new UnknownRecordVisitor() {
       @Override
       public void visitUnknownLengthDelimited(MessageType messageType, int fieldNumber, Buffer payload) {
@@ -413,7 +413,7 @@ public class RecordingVisitor implements Visitor, UnknownRecordVisitor {
     });
   }
 
-  public void apply(Visitor visitor, UnknownRecordVisitor unknownRecordVisitor) {
+  public void apply(RecordVisitor visitor, UnknownRecordVisitor unknownRecordVisitor) {
     for (Record record : records) {
       record.apply(visitor, unknownRecordVisitor);
     }
@@ -424,7 +424,7 @@ public class RecordingVisitor implements Visitor, UnknownRecordVisitor {
     return new Checker(records);
   }
 
-  public static class Checker implements Visitor, UnknownRecordVisitor {
+  public static class Checker implements RecordVisitor, UnknownRecordVisitor {
 
     private final Deque<Record> expectations;
 

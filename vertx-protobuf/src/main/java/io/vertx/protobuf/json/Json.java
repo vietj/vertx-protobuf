@@ -4,21 +4,21 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
 import io.vertx.protobuf.ProtobufReader;
 import io.vertx.protobuf.ProtobufWriter;
-import io.vertx.protobuf.Visitor;
+import io.vertx.protobuf.RecordVisitor;
 
 import java.util.function.Consumer;
 
 public class Json {
 
   public static Buffer encodeToBuffer(JsonObject json) {
-    Consumer<Visitor> consumer = visitor -> {
+    Consumer<RecordVisitor> consumer = visitor -> {
       ProtoWriter.emit(json, visitor);
     };
     return ProtobufWriter.encode(consumer);
   }
 
   public static byte[] encodeToByteArray(JsonObject json) {
-    Consumer<Visitor> consumer = visitor -> {
+    Consumer<RecordVisitor> consumer = visitor -> {
       ProtoWriter.emit(json, visitor);
     };
     return ProtobufWriter.encodeToByteArray(consumer);

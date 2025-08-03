@@ -3,13 +3,13 @@ package io.vertx.protobuf.json;
 import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.protobuf.Visitor;
+import io.vertx.protobuf.RecordVisitor;
 import io.vertx.protobuf.schema.Field;
 import io.vertx.protobuf.schema.MessageType;
 
 import java.util.Stack;
 
-public class ProtoReader implements Visitor {
+public class ProtoReader implements RecordVisitor {
 
   final Stack<Object> stack = new Stack<>();
   private final Stack<MessageType> current = new Stack<>();
