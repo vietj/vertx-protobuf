@@ -68,6 +68,53 @@ public class DataTypeTest {
   }
 
   @Test
+  public void testInt32() throws Exception {
+    testInt32(4);
+    testInt32(-4);
+    testInt32(Integer.MAX_VALUE);
+    testInt32(Integer.MIN_VALUE);
+  }
+
+  private void testInt32(int value) throws Exception {
+    RecordingVisitor visitor = new RecordingVisitor();
+    visitor.init(DATA_TYPE);
+    visitor.visitInt32(INT32, value);
+    visitor.destroy();
+    testDataType(visitor, DataTypesProto.DataTypes.newBuilder().setInt32(value).build());
+  }
+
+  @Test
+  public void testUInt32() throws Exception {
+    testUInt32(4);
+    testUInt32(-4);
+    testUInt32(Integer.MAX_VALUE);
+    testUInt32(Integer.MIN_VALUE);
+  }
+
+  private void testUInt32(int value) throws Exception {
+    RecordingVisitor visitor = new RecordingVisitor();
+    visitor.init(DATA_TYPE);
+    visitor.visitUInt32(UINT32, value);
+    visitor.destroy();
+    testDataType(visitor, DataTypesProto.DataTypes.newBuilder().setUint32(value).build());
+  }
+
+  @Test
+  public void testSInt32() throws Exception {
+    testSInt32(4);
+    testSInt32(-4);
+    testSInt32(Integer.MAX_VALUE / 2);
+  }
+
+  private void testSInt32(int value) throws Exception {
+    RecordingVisitor visitor = new RecordingVisitor();
+    visitor.init(DATA_TYPE);
+    visitor.visitSInt32(SINT32, value);
+    visitor.destroy();
+    testDataType(visitor, DataTypesProto.DataTypes.newBuilder().setSint32(value).build());
+  }
+
+  @Test
   public void testInt64() throws Exception {
     testInt64(4);
     // testVarInt64(Long.MAX_VALUE);
@@ -93,35 +140,6 @@ public class DataTypeTest {
     visitor.visitUInt64(UINT64, value);
     visitor.destroy();
     testDataType(visitor, DataTypesProto.DataTypes.newBuilder().setUint64(value).build());
-  }
-
-  @Test
-  public void testUint32() throws Exception {
-    testUint32(4);
-    testUint32(Integer.MAX_VALUE);
-  }
-
-  private void testUint32(int value) throws Exception {
-    RecordingVisitor visitor = new RecordingVisitor();
-    visitor.init(DATA_TYPE);
-    visitor.visitUInt32(UINT32, value);
-    visitor.destroy();
-    testDataType(visitor, DataTypesProto.DataTypes.newBuilder().setUint32(value).build());
-  }
-
-  @Test
-  public void testSint32() throws Exception {
-    testSint32(4);
-    testSint32(-4);
-    // testSint32(Integer.MAX_VALUE);
-  }
-
-  private void testSint32(int value) throws Exception {
-    RecordingVisitor visitor = new RecordingVisitor();
-    visitor.init(DATA_TYPE);
-    visitor.visitSInt32(SINT32, value);
-    visitor.destroy();
-    testDataType(visitor, DataTypesProto.DataTypes.newBuilder().setSint32(value).build());
   }
 
   @Test
