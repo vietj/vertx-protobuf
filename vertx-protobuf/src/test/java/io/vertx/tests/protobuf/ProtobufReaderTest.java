@@ -32,6 +32,9 @@ public class ProtobufReaderTest {
       public void visitString(Field field, String s) {
       }
       @Override
+      public void visitBytes(Field field, byte[] bytes) {
+      }
+      @Override
       public void enter(Field field) {
       }
       @Override

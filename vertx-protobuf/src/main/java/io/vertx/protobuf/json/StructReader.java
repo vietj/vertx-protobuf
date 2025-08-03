@@ -106,5 +106,10 @@ public class StructReader {
     @Override
     public void destroy() {
     }
+
+    @Override
+    public void visitBytes(Field field, byte[] bytes) {
+      throw new UnsupportedOperationException();
+    }
   }
 }

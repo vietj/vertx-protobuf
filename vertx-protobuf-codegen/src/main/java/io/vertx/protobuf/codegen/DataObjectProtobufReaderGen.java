@@ -86,6 +86,9 @@ public class DataObjectProtobufReaderGen extends Generator<Model> {
     code.codeln("public void visitString(Field field, String s) {");
     code.codeln("}");
 
+    code.codeln("public void visitBytes(Field field, byte[] s) {");
+    code.codeln("}");
+
     code.codeln("public void visitDouble(Field field, double d) {");
     code.codeln("}");
 

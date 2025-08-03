@@ -153,7 +153,6 @@ public interface Visitor {
 
   void visitString(Field field, String s);
 
-  default void visitBytes(Field field, byte[] bytes) {
-    throw new UnsupportedOperationException(getClass().getName() + " implement me");
-  }
+  void visitBytes(Field field, byte[] bytes);
+
 }

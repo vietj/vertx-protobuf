@@ -266,7 +266,12 @@ public class RecordingVisitor implements Visitor {
 
   @Override
   public void visitString(Field field, String s) {
+    throw new UnsupportedOperationException();
+  }
 
+  @Override
+  public void visitBytes(Field field, byte[] bytes) {
+    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -455,6 +460,11 @@ public class RecordingVisitor implements Visitor {
 
     @Override
     public void leave(Field field) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void visitBytes(Field field, byte[] bytes) {
       throw new UnsupportedOperationException();
     }
 
