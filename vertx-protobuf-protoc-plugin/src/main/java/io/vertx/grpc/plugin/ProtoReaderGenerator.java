@@ -4,12 +4,9 @@ import com.google.protobuf.Descriptors;
 import com.google.protobuf.compiler.PluginProtos;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -257,12 +254,12 @@ class ProtoReaderGenerator {
 
     class VisitMethod {
       final String methodStart;
-      final Set<Descriptors.FieldDescriptor.Type> types;
+      final Descriptors.FieldDescriptor.Type type;
       final String next;
 
-      VisitMethod(String methodStart, String next, Descriptors.FieldDescriptor.Type... types) {
+      VisitMethod(String methodStart, String next, Descriptors.FieldDescriptor.Type type) {
         this.methodStart = methodStart;
-        this.types = new HashSet<>(Arrays.asList(types));
+        this.type = type;
         this.next = next;
       }
     }
@@ -293,7 +290,7 @@ class ProtoReaderGenerator {
         "    if (field instanceof SchemaLiterals.FieldLiteral) {");
       out.println("      SchemaLiterals.FieldLiteral fieldLiteral = (SchemaLiterals.FieldLiteral)field;");
       out.println("      switch (fieldLiteral) {");
-      for (FieldDescriptor fd : collected.stream().filter(f -> visitMethod.types.contains(f.type)).collect(Collectors.toList())) {
+      for (FieldDescriptor fd : collected.stream().filter(f -> visitMethod.type == f.type).collect(Collectors.toList())) {
         out.println("        case " + fd.identifier + ": {");
         if (fd.mapKeyEntry) {
           out.println("          " + fd.mapJavaType + " entry = (" + fd.mapJavaType + ")stack.peek();");
