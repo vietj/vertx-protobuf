@@ -6,7 +6,6 @@ import io.vertx.protobuf.schema.EnumType;
 import io.vertx.protobuf.schema.Field;
 import io.vertx.protobuf.schema.MessageType;
 import io.vertx.protobuf.schema.ScalarType;
-import io.vertx.protobuf.schema.TypeID;
 import io.vertx.protobuf.schema.WireType;
 
 public class ProtobufReader {
@@ -35,37 +34,29 @@ public class ProtobufReader {
     visitor.visitI32(field, v);
   }
 
-  public static int decodeSint32(int value) {
-    if ((value & 1) == 0) {
-      return value >> 1;
-    } else {
-      return (value + 1) / -2;
-    }
+  public static int decodeSInt32(int value) {
+    return (value >>> 1) ^ - (value & 1);
   }
 
-  private static long decodeSint64(long value) {
-    if ((value & 1) == 0) {
-      return value >> 1;
-    } else {
-      return (value + 1) / -2;
-    }
+  public static long decodeSInt64(long value) {
+    return (value >>> 1) ^ - (value & 1);
   }
 
   private static void parseVarInt(ProtobufDecoder decoder, Field field, Visitor visitor) {
-    assertTrue(decoder.readVarInt());
-    int value = decoder.intValue();
     switch (field.type().id()) {
       case SINT32:
       case BOOL:
       case ENUM:
       case UINT32:
       case INT32:
-        visitor.visitVarInt32(field, value);
+        assertTrue(decoder.readVarInt32());
+        visitor.visitVarInt32(field, decoder.intValue());
         break;
       case SINT64:
       case INT64:
       case UINT64:
-        visitor.visitVarInt64(field, value);
+        assertTrue(decoder.readVarInt64());
+        visitor.visitVarInt64(field, decoder.longValue());
         break;
       default:
         throw new UnsupportedOperationException("" + field.type());
@@ -73,7 +64,7 @@ public class ProtobufReader {
   }
 
   private static void parseLen(ProtobufDecoder decoder, Field field, Visitor visitor) {
-    assertTrue(decoder.readVarInt());
+    assertTrue(decoder.readVarInt32());
     int len = decoder.intValue();
     if (field.type() instanceof MessageType) {
       int to = decoder.len();

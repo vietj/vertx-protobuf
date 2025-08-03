@@ -1,6 +1,10 @@
 package io.vertx.tests.protobuf;
 
+import com.google.protobuf.CodedInputStream;
+import com.google.protobuf.CodedOutputStream;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.protobuf.ProtobufDecoder;
+import io.vertx.protobuf.ProtobufEncoder;
 import io.vertx.protobuf.ProtobufReader;
 import io.vertx.protobuf.ProtobufWriter;
 import io.vertx.protobuf.schema.DefaultMessageType;
@@ -42,7 +46,9 @@ public class DataTypeTest {
   @Test
   public void testFloat() throws Exception {
     testFloat(4);
-    // testVarInt64(Long.MAX_VALUE);
+    testFloat(-4);
+    testFloat(Float.MAX_VALUE);
+    testFloat(Float.MIN_VALUE);
   }
 
   private void testFloat(float value) throws Exception {
@@ -56,7 +62,9 @@ public class DataTypeTest {
   @Test
   public void testDouble() throws Exception {
     testDouble(4);
-    // testVarInt64(Long.MAX_VALUE);
+    testDouble(-4);
+    testDouble(Double.MAX_VALUE);
+    testDouble(Double.MIN_VALUE);
   }
 
   private void testDouble(double value) throws Exception {
@@ -103,7 +111,8 @@ public class DataTypeTest {
   public void testSInt32() throws Exception {
     testSInt32(4);
     testSInt32(-4);
-    testSInt32(Integer.MAX_VALUE / 2);
+    testSInt32(Integer.MAX_VALUE);
+    testSInt32(Integer.MIN_VALUE);
   }
 
   private void testSInt32(int value) throws Exception {
@@ -117,7 +126,9 @@ public class DataTypeTest {
   @Test
   public void testInt64() throws Exception {
     testInt64(4);
-    // testVarInt64(Long.MAX_VALUE);
+    testInt64(-4);
+    testInt64(Long.MAX_VALUE);
+    testInt64(Long.MIN_VALUE);
   }
 
   private void testInt64(long value) throws Exception {
@@ -129,12 +140,12 @@ public class DataTypeTest {
   }
 
   @Test
-  public void testUint64() throws Exception {
-    testUint64(4);
-    // testVarInt64(Long.MAX_VALUE);
+  public void testUInt64() throws Exception {
+    testUInt64(4);
+    testUInt64(Long.MAX_VALUE);
   }
 
-  private void testUint64(long value) throws Exception {
+  private void testUInt64(long value) throws Exception {
     RecordingVisitor visitor = new RecordingVisitor();
     visitor.init(DATA_TYPE);
     visitor.visitUInt64(UINT64, value);
@@ -143,10 +154,11 @@ public class DataTypeTest {
   }
 
   @Test
-  public void testSint64() throws Exception {
+  public void testSInt64() throws Exception {
     testSint64(4);
     testSint64(-4);
-    // testSint32(Integer.MAX_VALUE);
+    testSint64(Long.MAX_VALUE);
+    testSint64(Long.MIN_VALUE);
   }
 
   private void testSint64(long value) throws Exception {

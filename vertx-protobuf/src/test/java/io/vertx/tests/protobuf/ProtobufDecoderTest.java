@@ -14,7 +14,7 @@ public class ProtobufDecoderTest {
     byte[] data = { -1, -1, -1, -1, -1, -1, -1, -1, 127 };
     long expected = 0b1111111_1111111_1111111_1111111_1111111_1111111_1111111_1111111_1111111L;
     ProtobufDecoder decoder = new ProtobufDecoder(Buffer.buffer(data));
-    assertTrue(decoder.readVarInt());
+    assertTrue(decoder.readVarInt32());
     assertEquals((int)expected, decoder.intValue());
  }
 
@@ -28,7 +28,7 @@ public class ProtobufDecoderTest {
    ProtobufDecoder decoder = new ProtobufDecoder(Buffer.buffer(data));
    int[] expected = { 12345, 12345, 12345, 2147483647, -2147483648, 0, -1, -1, 1 };
    for (int i = 0;i < expected.length;i++) {
-     assertTrue(decoder.readVarInt());
+     assertTrue(decoder.readVarInt32());
      assertEquals("Not same at " + i, expected[i], decoder.intValue());
    }
 

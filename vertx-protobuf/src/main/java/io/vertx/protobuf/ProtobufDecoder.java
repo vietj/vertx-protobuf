@@ -1,9 +1,7 @@
 package io.vertx.protobuf;
 
-import io.netty.handler.codec.CorruptedFrameException;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.DecodeException;
-import io.vertx.protobuf.schema.WireType;
 
 public class ProtobufDecoder {
 
@@ -52,7 +50,7 @@ public class ProtobufDecoder {
 
   public boolean readTag() {
     int c = idx;
-    int e = readRawVarint32();
+    int e = decodeVarInt32();
     // Can be branch-less
     if (idx > c) {
       fieldNumber = e >> 3;
@@ -79,9 +77,15 @@ public class ProtobufDecoder {
     return longValue;
   }
 
-  public boolean readVarInt() {
+  public boolean readVarInt32() {
     int c = idx;
-    intValue = readRawVarint32();
+    intValue = decodeVarInt32();
+    return idx > c;
+  }
+
+  public boolean readVarInt64() {
+    int c = idx;
+    longValue = decodeVarInt64();
     return idx > c;
   }
 
@@ -107,16 +111,15 @@ public class ProtobufDecoder {
     return idx < len;
   }
 
-  /**
-   * Reads variable length 32bit int from buffer
-   *
-   * @return decoded int if buffers readerIndex has been forwarded else nonsense value
-   */
-  public int readRawVarint32() {
-    return readRawVarintOversize();
+  public int decodeVarInt32() {
+    return (int) decodeRawVarInt();
   }
 
-  private int readRawVarintOversize() {
+  public long decodeVarInt64() {
+    return decodeRawVarInt();
+  }
+
+  private long decodeRawVarInt() {
     int i = idx;
     int l = idx + len;
     while (i < l) {
@@ -131,7 +134,7 @@ public class ProtobufDecoder {
           val <<= 7;
           val += (buffer.getByte(from--) & 0x7F);
         }
-        return (int)val;
+        return val;
       }
     }
     throw new DecodeException();

@@ -20,12 +20,17 @@ public class ProtobufEncoder {
 
   public ProtobufEncoder writeTag(int fieldNumber, int wireType) {
     int tag = (fieldNumber << 3) | (wireType & 0x07);
-    writeRawVarint32(buffer, tag);
+    encodeVarInt32(buffer, tag);
     return this;
   }
 
   public ProtobufEncoder writeVarInt32(int v) {
-    writeRawVarint32(buffer, v);
+    encodeVarInt32(buffer, v);
+    return this;
+  }
+
+  public ProtobufEncoder writeVarInt64(long v) {
+    encodeVarInt64(buffer, v);
     return this;
   }
 
@@ -53,11 +58,28 @@ public class ProtobufEncoder {
 //  public ProtoEncoder write
 
   /**
-   * Writes protobuf varint32 to (@link ByteBuf).
+   * Encode a 4 bytes value to {@code VARINT} format
    * @param out to be written to
    * @param value to be written
    */
-  static void writeRawVarint32(Buffer out, int value) {
+  static void encodeVarInt32(Buffer out, int value) {
+    while (true) {
+      if ((value & ~0x7F) == 0) {
+        out.appendByte((byte) value);
+        return;
+      } else {
+        out.appendByte((byte) ((value & 0x7F) | 0x80));
+        value >>>= 7;
+      }
+    }
+  }
+
+  /**
+   * Encode a 8 bytes value to {@code VARINT} format
+   * @param out to be written to
+   * @param value to be written
+   */
+  static void encodeVarInt64(Buffer out, long value) {
     while (true) {
       if ((value & ~0x7F) == 0) {
         out.appendByte((byte) value);

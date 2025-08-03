@@ -4,8 +4,6 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.EncodeException;
 import io.vertx.protobuf.schema.Field;
 import io.vertx.protobuf.schema.MessageType;
-import io.vertx.protobuf.schema.ScalarType;
-import io.vertx.protobuf.schema.TypeID;
 import io.vertx.protobuf.schema.WireType;
 
 import java.nio.charset.StandardCharsets;
@@ -15,8 +13,12 @@ import static java.lang.Character.MIN_SUPPLEMENTARY_CODE_POINT;
 
 public class ProtobufWriter {
 
-  public static int encodeSint32(int value) {
+  public static int encodeSInt32(int value) {
     return (value << 1) ^ (value >> 31);
+  }
+
+  public static long encodeSInt64(long value) {
+    return (value << 1) ^ (value >> 63);
   }
 
   public static Buffer encode(Consumer<Visitor> consumer) {
@@ -164,7 +166,7 @@ public class ProtobufWriter {
       if (!packed) {
         encoder.writeTag(field.number(), WireType.VARINT.id);
       }
-      encoder.writeVarInt32((int)v);
+      encoder.writeVarInt64(v);
     }
 
     @Override

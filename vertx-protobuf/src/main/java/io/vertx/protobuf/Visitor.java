@@ -4,8 +4,10 @@ package io.vertx.protobuf;
 import io.vertx.protobuf.schema.Field;
 import io.vertx.protobuf.schema.MessageType;
 
-import static io.vertx.protobuf.ProtobufReader.decodeSint32;
-import static io.vertx.protobuf.ProtobufWriter.encodeSint32;
+import static io.vertx.protobuf.ProtobufReader.decodeSInt32;
+import static io.vertx.protobuf.ProtobufReader.decodeSInt64;
+import static io.vertx.protobuf.ProtobufWriter.encodeSInt32;
+import static io.vertx.protobuf.ProtobufWriter.encodeSInt64;
 
 public interface Visitor {
 
@@ -22,7 +24,7 @@ public interface Visitor {
         visitUInt32(field, v);
         break;
       case SINT32:
-        visitSInt32(field, decodeSint32(v));
+        visitSInt32(field, decodeSInt32(v));
         break;
       case BOOL:
         visitBool(field, v != 0);
@@ -44,7 +46,7 @@ public interface Visitor {
   }
 
   default void visitSInt32(Field field, int v) {
-    visitVarInt32(field, encodeSint32(v));
+    visitVarInt32(field, encodeSInt32(v));
   }
 
   default void visitBool(Field field, boolean v) {
@@ -66,7 +68,7 @@ public interface Visitor {
         visitUInt64(field, v);
         break;
       case SINT64:
-        visitSInt64(field, decodeSint32((int)v));
+        visitSInt64(field, decodeSInt64(v));
         break;
       default:
         throw new IllegalArgumentException();
@@ -82,7 +84,7 @@ public interface Visitor {
   }
 
   default void visitSInt64(Field field, long v) {
-    visitVarInt64(field, encodeSint32((int)v));
+    visitVarInt64(field, encodeSInt64(v));
   }
 
   // I64
