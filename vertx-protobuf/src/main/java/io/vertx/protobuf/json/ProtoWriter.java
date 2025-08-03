@@ -6,15 +6,15 @@ import io.vertx.protobuf.Visitor;
 
 import java.util.Map;
 
-class JsonDriver {
+public class ProtoWriter {
 
-  static void visitStruct(JsonObject json, Visitor visitor) {
+  public static void emit(JsonObject json, Visitor visitor) {
     visitor.init(SchemaLiterals.Struct.TYPE);
-    visitStructInternal(json, visitor);
+    visit(json, visitor);
     visitor.destroy();
   }
 
-  private static void visitStructInternal(JsonObject json, Visitor visitor) {
+  public static void visit(JsonObject json, Visitor visitor) {
     Map<String, Object> map = json.getMap();
     for (Map.Entry<String, Object> entry : map.entrySet()) {
       visitor.enter(SchemaLiterals.Struct.fields); // fields
@@ -26,7 +26,13 @@ class JsonDriver {
     }
   }
 
-  private static void visitListInternal(JsonArray json, Visitor visitor) {
+  public static void emit(JsonArray json, Visitor visitor) {
+    visitor.init(SchemaLiterals.ListValue.TYPE);
+    visit(json, visitor);
+    visitor.destroy();
+  }
+
+  public static void visit(JsonArray json, Visitor visitor) {
     for (Object value : json.getList()) {
       visitor.enter(SchemaLiterals.ListValue.values); // values
       visitValueInternal(value, visitor);
@@ -45,11 +51,11 @@ class JsonDriver {
       visitor.visitDouble(SchemaLiterals.Value.number_value, ((Number) value).doubleValue());
     } else if (value instanceof JsonObject) {
       visitor.enter(SchemaLiterals.Value.struct_value);
-      visitStructInternal((JsonObject) value, visitor);
+      visit((JsonObject) value, visitor);
       visitor.leave(SchemaLiterals.Value.struct_value);
     } else if (value instanceof JsonArray) {
       visitor.enter(SchemaLiterals.Value.list_value);
-      visitListInternal((JsonArray) value, visitor);
+      visit((JsonArray) value, visitor);
       visitor.leave(SchemaLiterals.Value.list_value);
     } else {
       throw new UnsupportedOperationException("" + value);

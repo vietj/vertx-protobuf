@@ -2,24 +2,31 @@ package io.vertx.protobuf.json;
 
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
+import io.vertx.protobuf.ProtobufReader;
 import io.vertx.protobuf.ProtobufWriter;
 import io.vertx.protobuf.Visitor;
 
 import java.util.function.Consumer;
 
-public class JsonWriter {
+public class Json {
 
-  public static Buffer encode(JsonObject json) {
+  public static Buffer encodeToBuffer(JsonObject json) {
     Consumer<Visitor> consumer = visitor -> {
-      JsonDriver.visitStruct(json, visitor);
+      ProtoWriter.emit(json, visitor);
     };
     return ProtobufWriter.encode(consumer);
   }
 
   public static byte[] encodeToByteArray(JsonObject json) {
     Consumer<Visitor> consumer = visitor -> {
-      JsonDriver.visitStruct(json, visitor);
+      ProtoWriter.emit(json, visitor);
     };
     return ProtobufWriter.encodeToByteArray(consumer);
+  }
+
+  public static JsonObject parseStruct(Buffer buffer) {
+    ProtoReader builder = new ProtoReader();
+    ProtobufReader.parse(SchemaLiterals.Struct.TYPE, builder, buffer);
+    return (JsonObject) builder.stack.pop();
   }
 }
