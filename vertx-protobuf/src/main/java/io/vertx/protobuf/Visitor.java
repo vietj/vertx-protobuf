@@ -4,21 +4,64 @@ package io.vertx.protobuf;
 import io.vertx.protobuf.schema.Field;
 import io.vertx.protobuf.schema.MessageType;
 
+import static io.vertx.protobuf.ProtobufReader.decodeSint32;
+import static io.vertx.protobuf.ProtobufWriter.encodeSint32;
+
 public interface Visitor {
 
   void init(MessageType type);
 
-  void visitVarInt32(Field field, int v);
+  void destroy();
+
+  default void visitVarInt32(Field field, int v) {
+    switch (field.type().id()) {
+      case INT32:
+        visitInt32(field, v);
+        break;
+      case UINT32:
+        visitUInt32(field, v);
+        break;
+      case SINT32:
+        visitSInt32(field, decodeSint32(v));
+        break;
+      case BOOL:
+        visitBool(field, v != 0);
+        break;
+      case ENUM:
+        visitEnum(field, v);
+        break;
+      default:
+        throw new IllegalArgumentException();
+    }
+  }
+
+  default void visitInt32(Field field, int v) {
+    visitVarInt32(field, v);
+  }
+
+  default void visitUInt32(Field field, int v) {
+    visitVarInt32(field, v);
+  }
+
+  default void visitSInt32(Field field, int v) {
+    visitVarInt32(field, encodeSint32(v));
+  }
+
+  default void visitBool(Field field, boolean v) {
+    visitVarInt32(field, v ? 1 : 0);
+  }
+
+  default void visitEnum(Field field, int number) {
+    visitInt32(field, number);
+  }
+
+  //
 
   default void visitVarInt64(Field field, long v) {
     throw new UnsupportedOperationException();
   }
 
-  void visitString(Field field, String s);
-
-  default void visitBytes(Field field, byte[] bytes) {
-    throw new UnsupportedOperationException(getClass().getName() + " implement me");
-  }
+  // I64
 
   default void visitI64(Field field, long value) {
     switch (field.type().id()) {
@@ -48,6 +91,8 @@ public interface Visitor {
     visitI64(field, v);
   }
 
+  // I32
+
   default void visitI32(Field field, int value) {
     switch (field.type().id()) {
       case FLOAT:
@@ -76,10 +121,15 @@ public interface Visitor {
     visitI32(field, v);
   }
 
+  // LEN
+
   void enter(Field field);
 
   void leave(Field field);
 
-  void destroy();
+  void visitString(Field field, String s);
 
+  default void visitBytes(Field field, byte[] bytes) {
+    throw new UnsupportedOperationException(getClass().getName() + " implement me");
+  }
 }

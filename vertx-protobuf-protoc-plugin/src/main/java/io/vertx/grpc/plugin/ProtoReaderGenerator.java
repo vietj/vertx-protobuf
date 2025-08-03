@@ -126,9 +126,6 @@ class ProtoReaderGenerator {
         }
         final Function<String, String> converter;
         switch (fd.getType()) {
-          case BOOL:
-            converter = s -> "value == 1";
-            break;
           case ENUM:
             converter = s -> Utils.javaTypeOfInternal(fd) + ".valueOf(" + s + ")";
             break;
@@ -279,12 +276,11 @@ class ProtoReaderGenerator {
       new VisitMethod("visitSFixed64(Field field, long value)", "visitSFixed64(field, value)", Descriptors.FieldDescriptor.Type.SFIXED64),
       new VisitMethod("visitFloat(Field field, float value)", "visitFloat(field, value)", Descriptors.FieldDescriptor.Type.FLOAT),
       new VisitMethod("visitDouble(Field field, double value)", "visitDouble(field, value)", Descriptors.FieldDescriptor.Type.DOUBLE),
-      new VisitMethod("visitVarInt32(Field field, int value)", "visitVarInt32(field, value)",
-        Descriptors.FieldDescriptor.Type.BOOL,
-        Descriptors.FieldDescriptor.Type.ENUM,
-        Descriptors.FieldDescriptor.Type.INT32,
-        Descriptors.FieldDescriptor.Type.SINT32,
-        Descriptors.FieldDescriptor.Type.UINT32),
+      new VisitMethod("visitInt32(Field field, int value)", "visitInt32(field, value)", Descriptors.FieldDescriptor.Type.INT32),
+      new VisitMethod("visitUInt32(Field field, int value)", "visitUInt32(field, value)", Descriptors.FieldDescriptor.Type.UINT32),
+      new VisitMethod("visitSInt32(Field field, int value)", "visitSInt32(field, value)", Descriptors.FieldDescriptor.Type.SINT32),
+      new VisitMethod("visitBool(Field field, boolean value)", "visitBool(field, value)", Descriptors.FieldDescriptor.Type.BOOL),
+      new VisitMethod("visitEnum(Field field, int value)", "visitEnum(field, value)", Descriptors.FieldDescriptor.Type.ENUM),
       new VisitMethod("visitVarInt64(Field field, long value)", "visitVarInt64(field, value)",
         Descriptors.FieldDescriptor.Type.INT64,
         Descriptors.FieldDescriptor.Type.SINT64,

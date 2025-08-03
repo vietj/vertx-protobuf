@@ -15,7 +15,7 @@ import static java.lang.Character.MIN_SUPPLEMENTARY_CODE_POINT;
 
 public class ProtobufWriter {
 
-  private static int encodeSint32(int value) {
+  public static int encodeSint32(int value) {
     return (value << 1) ^ (value >> 31);
   }
 
@@ -57,9 +57,6 @@ public class ProtobufWriter {
 
     @Override
     public void visitVarInt32(Field field, int v) {
-      if (field.type() == ScalarType.SINT32) {
-        v = encodeSint32(v);
-      }
       int delta = (packed ? 0 : sizeOf(field)) + ProtobufEncoder.computeRawVarint32Size(v);
       lengths[depth] += delta;
     }
@@ -159,9 +156,6 @@ public class ProtobufWriter {
 
     @Override
     public void visitVarInt32(Field field, int v) {
-      if (field.type() == ScalarType.SINT32) {
-        v = encodeSint32(v);
-      }
       if (!packed) {
         encoder.writeTag(field.number(), WireType.VARINT.id);
       }

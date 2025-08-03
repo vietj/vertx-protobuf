@@ -74,16 +74,68 @@ public class RecordingVisitor implements Visitor {
     }
   }
 
-  private static class VarInt32 extends Record {
+  private static class VisitInt32 extends Record {
     private final Field field;
     private final int value;
-    VarInt32(Field field, int value) {
+    VisitInt32(Field field, int value) {
       this.field = field;
       this.value = value;
     }
     @Override
     protected void apply(Visitor visitor) {
-      visitor.visitVarInt32(field, value);
+      visitor.visitInt32(field, value);
+    }
+  }
+
+  private static class VisitSInt32 extends Record {
+    private final Field field;
+    private final int value;
+    VisitSInt32(Field field, int value) {
+      this.field = field;
+      this.value = value;
+    }
+    @Override
+    protected void apply(Visitor visitor) {
+      visitor.visitSInt32(field, value);
+    }
+  }
+
+  private static class VisitUInt32 extends Record {
+    private final Field field;
+    private final int value;
+    VisitUInt32(Field field, int value) {
+      this.field = field;
+      this.value = value;
+    }
+    @Override
+    protected void apply(Visitor visitor) {
+      visitor.visitUInt32(field, value);
+    }
+  }
+
+  private static class VisitEnum extends Record {
+    private final Field field;
+    private final int value;
+    VisitEnum(Field field, int value) {
+      this.field = field;
+      this.value = value;
+    }
+    @Override
+    protected void apply(Visitor visitor) {
+      visitor.visitEnum(field, value);
+    }
+  }
+
+  private static class VisitBool extends Record {
+    private final Field field;
+    private final boolean value;
+    VisitBool(Field field, boolean value) {
+      this.field = field;
+      this.value = value;
+    }
+    @Override
+    protected void apply(Visitor visitor) {
+      visitor.visitBool(field, value);
     }
   }
 
@@ -147,8 +199,28 @@ public class RecordingVisitor implements Visitor {
   }
 
   @Override
-  public void visitVarInt32(Field field, int v) {
-    records.add(new VarInt32(field, v));
+  public void visitInt32(Field field, int v) {
+    records.add(new VisitInt32(field, v));
+  }
+
+  @Override
+  public void visitUInt32(Field field, int v) {
+    records.add(new VisitUInt32(field, v));
+  }
+
+  @Override
+  public void visitSInt32(Field field, int v) {
+    records.add(new VisitSInt32(field, v));
+  }
+
+  @Override
+  public void visitBool(Field field, boolean v) {
+    records.add(new VisitBool(field, v));
+  }
+
+  @Override
+  public void visitEnum(Field field, int number) {
+    records.add(new VisitEnum(field, number));
   }
 
   @Override
@@ -238,10 +310,38 @@ public class RecordingVisitor implements Visitor {
     }
 
     @Override
-    public void visitVarInt32(Field field, int v) {
-      VarInt32 expectation = expecting(VarInt32.class);
+    public void visitInt32(Field field, int v) {
+      VisitInt32 expectation = expecting(VisitInt32.class);
       assertSame(expectation.field, field);
       assertEquals(expectation.value, v);
+    }
+
+    @Override
+    public void visitUInt32(Field field, int v) {
+      VisitUInt32 expectation = expecting(VisitUInt32.class);
+      assertSame(expectation.field, field);
+      assertEquals(expectation.value, v);
+    }
+
+    @Override
+    public void visitSInt32(Field field, int v) {
+      VisitSInt32 expectation = expecting(VisitSInt32.class);
+      assertSame(expectation.field, field);
+      assertEquals(expectation.value, v);
+    }
+
+    @Override
+    public void visitBool(Field field, boolean v) {
+      VisitBool expectation = expecting(VisitBool.class);
+      assertSame(expectation.field, field);
+      assertEquals(expectation.value, v);
+    }
+
+    @Override
+    public void visitEnum(Field field, int number) {
+      VisitEnum expectation = expecting(VisitEnum.class);
+      assertSame(expectation.field, field);
+      assertEquals(expectation.value, number);
     }
 
     @Override

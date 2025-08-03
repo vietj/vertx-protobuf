@@ -104,7 +104,7 @@ public class DataTypeTest {
   private void testUint32(int value) throws Exception {
     RecordingVisitor visitor = new RecordingVisitor();
     visitor.init(DATA_TYPE);
-    visitor.visitVarInt32(UINT32, value);
+    visitor.visitUInt32(UINT32, value);
     visitor.destroy();
     testDataType(visitor, DataTypesProto.DataTypes.newBuilder().setUint32(value).build());
   }
@@ -119,7 +119,7 @@ public class DataTypeTest {
   private void testSint32(int value) throws Exception {
     RecordingVisitor visitor = new RecordingVisitor();
     visitor.init(DATA_TYPE);
-    visitor.visitVarInt32(SINT32, value);
+    visitor.visitSInt32(SINT32, value);
     visitor.destroy();
     testDataType(visitor, DataTypesProto.DataTypes.newBuilder().setSint32(value).build());
   }

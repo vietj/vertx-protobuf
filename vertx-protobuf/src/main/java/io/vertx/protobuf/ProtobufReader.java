@@ -35,7 +35,7 @@ public class ProtobufReader {
     visitor.visitI32(field, v);
   }
 
-  private static int decodeSint32(int value) {
+  public static int decodeSint32(int value) {
     if ((value & 1) == 0) {
       return value >> 1;
     } else {
@@ -56,7 +56,6 @@ public class ProtobufReader {
     int value = decoder.intValue();
     switch (field.type().id()) {
       case SINT32:
-        value = decodeSint32(value);
       case BOOL:
       case ENUM:
       case UINT32:
