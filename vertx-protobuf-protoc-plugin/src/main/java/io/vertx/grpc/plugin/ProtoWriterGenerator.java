@@ -21,9 +21,7 @@ class ProtoWriterGenerator {
       this.type = type;
     }
     Bilto(String visitMethod, Descriptors.FieldDescriptor.Type type) {
-      this.visitMethod = visitMethod;
-      this.fn = Function.identity();
-      this.type = type;
+      this(visitMethod, Function.identity(), type);
     }
   }
 
@@ -238,9 +236,7 @@ class ProtoWriterGenerator {
         "          io.vertx.protobuf.schema.Field field = unknownField.getKey();",
         "          switch (field.type().wireType()) {",
         "            case LEN:",
-        // "              visitor.enter(field);",
         "              visitor.visitBytes(field, ((io.vertx.core.buffer.Buffer)o).getBytes());",
-        // "              visitor.leave(field);",
         "              break;",
         "            case I32:",
         "              visitor.visitI32(field, (Integer)o);",

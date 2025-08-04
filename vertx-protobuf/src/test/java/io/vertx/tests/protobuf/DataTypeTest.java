@@ -1,17 +1,15 @@
 package io.vertx.tests.protobuf;
 
-import com.google.protobuf.CodedInputStream;
-import com.google.protobuf.CodedOutputStream;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.protobuf.ProtobufDecoder;
-import io.vertx.protobuf.ProtobufEncoder;
 import io.vertx.protobuf.ProtobufReader;
 import io.vertx.protobuf.ProtobufWriter;
 import io.vertx.protobuf.schema.DefaultMessageType;
 import io.vertx.protobuf.schema.DefaultSchema;
 import io.vertx.protobuf.schema.Field;
 import io.vertx.protobuf.schema.ScalarType;
+import io.vertx.tests.protobuf.datatypes.DataTypes;
 import io.vertx.tests.protobuf.datatypes.DataTypesProto;
+import io.vertx.tests.protobuf.datatypes.ProtoWriter;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -21,6 +19,8 @@ public class DataTypeTest {
 
   private static final DefaultSchema SCHEMA = new DefaultSchema();
   private static final DefaultMessageType DATA_TYPE = SCHEMA.of("DataType");
+  private static final Field STRING = DATA_TYPE.addField(1, ScalarType.STRING);
+  private static final Field BYTES = DATA_TYPE.addField(2, ScalarType.BYTES);
   private static final Field FLOAT = DATA_TYPE.addField(3, ScalarType.FLOAT);
   private static final Field DOUBLE = DATA_TYPE.addField(4, ScalarType.DOUBLE);
   private static final Field INT32 = DATA_TYPE.addField(5, ScalarType.INT32);
@@ -223,5 +223,41 @@ public class DataTypeTest {
     visitor.visitSFixed64(SFIXED64, value);
     visitor.destroy();
     testDataType(visitor, DataTypesProto.DataTypes.newBuilder().setSfixed64(value).build());
+  }
+
+  @Test
+  public void testStringRecord() throws Exception {
+    Buffer bytes = ProtobufWriter.encode(visitor -> {
+      visitor.init(DATA_TYPE);
+      visitor.visitBytes(STRING, "hello".getBytes());
+      visitor.destroy();
+    });
+    DataTypesProto.DataTypes dataTypes = DataTypesProto.DataTypes.parseFrom(bytes.getBytes());
+    assertEquals("hello", dataTypes.getString());
+    DataTypes d = new DataTypes();
+    d.setString("hello");
+    bytes = ProtobufWriter.encode(visitor -> {
+      ProtoWriter.emit(d, visitor);
+    });
+    dataTypes = DataTypesProto.DataTypes.parseFrom(bytes.getBytes());
+    assertEquals("hello", dataTypes.getString());
+  }
+
+  @Test
+  public void testBytesRecord() throws Exception {
+    Buffer bytes = ProtobufWriter.encode(visitor -> {
+      visitor.init(DATA_TYPE);
+      visitor.visitBytes(BYTES, "hello".getBytes());
+      visitor.destroy();
+    });
+    DataTypesProto.DataTypes dataTypes = DataTypesProto.DataTypes.parseFrom(bytes.getBytes());
+    assertEquals("hello", dataTypes.getBytes().toStringUtf8());
+    DataTypes d = new DataTypes();
+    d.setBytes(Buffer.buffer("hello"));
+    bytes = ProtobufWriter.encode(visitor -> {
+      ProtoWriter.emit(d, visitor);
+    });
+    dataTypes = DataTypesProto.DataTypes.parseFrom(bytes.getBytes());
+    assertEquals("hello", dataTypes.getBytes().toStringUtf8());
   }
 }
