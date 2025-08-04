@@ -1,4 +1,1 @@
-Required.Proto3.ProtobufInput.RepeatedScalarMessageMerge.ProtobufOutput # Protobuf output we received from test was unparseable.
-Required.Proto3.ProtobufInput.UnknownOrdering.ProtobufOutput # Unknown field mismatch
-Required.Proto3.ProtobufInput.ValidDataMap.STRING.MESSAGE.MergeValue.ProtobufOutput # Protobuf output we received from test was unparseable.
 Required.Proto3.ProtobufInput.ValidDataOneof.MESSAGE.Merge.ProtobufOutput # Protobuf output we received from test was unparseable.

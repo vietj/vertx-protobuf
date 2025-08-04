@@ -54,9 +54,11 @@ class ProtoReaderGenerator {
     public String setterMethod;
     public String containingJavaType;
     public String typePkgFqn;
-    public Function<String, String> converter;
+    public Function<String, String> wrapper;
+    public Function<String, String> unwrapper;
     public boolean imported;
     public boolean oneOf;
+    public String oneOfJavaType;
   }
 
   public PluginProtos.CodeGeneratorResponse.File generate() {
@@ -178,14 +180,17 @@ class ProtoReaderGenerator {
         Descriptors.OneofDescriptor oneOf = oneOfMap.get(fd);
         if (oneOf != null) {
           descriptor.oneOf = true;
-          descriptor.getterMethod = "/* TODO */";
+          descriptor.oneOfJavaType = Utils.javaTypeOf(oneOf);
+          descriptor.getterMethod = Utils.getterOf(oneOf);
           descriptor.setterMethod = Utils.setterOf(oneOf);
-          descriptor.converter = s -> Utils.javaTypeOf(oneOf) + ".of" + Utils.oneOfTypeName(fd) + "(" + converter.apply(s) + ")";
+          descriptor.wrapper = s -> Utils.javaTypeOf(oneOf) + ".of" + Utils.oneOfTypeName(fd) + "(" + converter.apply(s) + ")";
+          descriptor.unwrapper = s -> s + ".as" + Utils.oneOfTypeName(fd) + "().orElse(null)";
         } else {
           descriptor.oneOf = false;
           descriptor.getterMethod = Utils.getterOf(fd);
           descriptor.setterMethod = Utils.setterOf(fd);
-          descriptor.converter = converter;
+          descriptor.wrapper = converter;
+          descriptor.unwrapper = Function.identity();
         }
 
         collected.add(descriptor);
@@ -296,19 +301,19 @@ class ProtoReaderGenerator {
         out.println("        case " + fd.identifier + ": {");
         if (fd.mapKeyEntry) {
           out.println("          " + fd.mapJavaType + " entry = (" + fd.mapJavaType + ")stack.peek();");
-          out.println("          entry.setKey(" + fd.converter.apply("value") + ");");
+          out.println("          entry.setKey(" + fd.wrapper.apply("value") + ");");
         } else if (fd.mapValueEntry) {
           out.println("          " + fd.mapJavaType + " entry = (" + fd.mapJavaType + ")stack.peek();");
-          out.println("          entry.setValue(" + fd.converter.apply("value") + ");");
+          out.println("          entry.setValue(" + fd.wrapper.apply("value") + ");");
         } else if (fd.repeated) {
           out.println(
             "          " + fd.containingJavaType + " messageFields = (" + fd.containingJavaType + ")stack.peek()" + ";",
             "          if (messageFields." + fd.getterMethod + "() == null) {",
             "            messageFields." + fd.setterMethod + "(new java.util.ArrayList<>());",
             "          }",
-            "          messageFields." + fd.getterMethod + "().add(" + fd.converter.apply("value") + ");");
+            "          messageFields." + fd.getterMethod + "().add(" + fd.wrapper.apply("value") + ");");
         } else {
-          out.println("          ((" + fd.containingJavaType + ")stack.peek())." + fd.setterMethod + "(" + fd.converter.apply("value") + ");");
+          out.println("          ((" + fd.containingJavaType + ")stack.peek())." + fd.setterMethod + "(" + fd.wrapper.apply("value") + ");");
         }
         out.println("          break;");
         out.println("        }");
@@ -372,13 +377,23 @@ class ProtoReaderGenerator {
                 "          v.init((MessageType)field.type());",
                 "          next = v;");
             } else {
-              String initExpression;
               if (field.repeated) {
-                initExpression = field.javaTypeInternal;
+                String initExpression = field.javaTypeInternal;
+                out.println("          " + initExpression + " v = " + "new " + initExpression + "().init()" + ";");
               } else {
-                initExpression = field.javaType;
+                String initExpression = field.javaType;
+                out.println("          " + field.containingJavaType + " container = (" + field.containingJavaType + ")stack.peek();");
+                out.println("          " + initExpression + " v;");
+                if (field.oneOf) {
+                  out.println("          " + field.oneOfJavaType + "<?> oneOf = container." + field.getterMethod + "();");
+                  out.println("          v = oneOf != null ? " + field.unwrapper.apply("oneOf") + " : " + "null;");
+                } else {
+                  out.println("          v = container." + field.getterMethod + "();");
+                }
+                out.println("          if (v == null) {");
+                out.println("            v = " + "new " + initExpression + "().init()" + ";");
+                out.println("          }");
               }
-              out.println("          " + initExpression + " v = " + "new " + initExpression + "().init()" + ";");
               out.println("          stack.push(v);");
             }
           }
@@ -456,7 +471,7 @@ class ProtoReaderGenerator {
             } else {
               out.println(
                 "          " + field.javaType + " v = (" + field.javaType + ")stack.pop();",
-                "          ((" + field.containingJavaType + ")stack.peek())." + field.setterMethod + "(" + field.converter.apply("v") + ");");
+                "          ((" + field.containingJavaType + ")stack.peek())." + field.setterMethod + "(" + field.wrapper.apply("v") + ");");
             }
           }
         }
