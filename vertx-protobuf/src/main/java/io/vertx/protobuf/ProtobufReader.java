@@ -6,6 +6,7 @@ import io.vertx.protobuf.schema.EnumType;
 import io.vertx.protobuf.schema.Field;
 import io.vertx.protobuf.schema.MessageType;
 import io.vertx.protobuf.schema.ScalarType;
+import io.vertx.protobuf.schema.TypeID;
 import io.vertx.protobuf.schema.WireType;
 
 public class ProtobufReader {
@@ -63,39 +64,42 @@ public class ProtobufReader {
     }
   }
 
-  private static void parseLen(ProtobufDecoder decoder, MessageType messageType, int fieldNumber, UnknownRecordVisitor unknownFieldHandler) {
+  private static void parseUnknownLen(ProtobufDecoder decoder, MessageType messageType, int fieldNumber, RecordVisitor unknownFieldHandler) {
     assertTrue(decoder.readVarInt32());
     int len = decoder.intValue();
     byte[] data = decoder.readBytes(len);
-    unknownFieldHandler.visitUnknownLengthDelimited(messageType, fieldNumber, Buffer.buffer(data));
+    Field field = messageType.unknownField(fieldNumber, TypeID.BYTES, WireType.LEN);
+    unknownFieldHandler.enter(field);
+    unknownFieldHandler.visitBytes(field, data);
+    unknownFieldHandler.leave(field);
   }
 
-  private static void parseI32(ProtobufDecoder decoder, MessageType messageType, int fieldNumber, UnknownRecordVisitor unknownFieldHandler) {
+  private static void parseUnknownI32(ProtobufDecoder decoder, MessageType messageType, int fieldNumber, RecordVisitor unknownFieldHandler) {
     assertTrue(decoder.readI32());
     int v = decoder.intValue();
-    unknownFieldHandler.visitUnknownI32(messageType, fieldNumber, v);
+    unknownFieldHandler.visitI32(messageType.unknownField(fieldNumber,TypeID.FIXED32,  WireType.I32), v);
   }
 
-  private static void parseI64(ProtobufDecoder decoder, MessageType messageType, int fieldNumber, UnknownRecordVisitor unknownFieldHandler) {
+  private static void parseUnknownI64(ProtobufDecoder decoder, MessageType messageType, int fieldNumber, RecordVisitor unknownFieldHandler) {
     assertTrue(decoder.readI64());
     long v = decoder.longValue();
-    unknownFieldHandler.visitUnknownI64(messageType, fieldNumber, v);
+    unknownFieldHandler.visitFixed64(messageType.unknownField(fieldNumber, TypeID.FIXED64, WireType.I64), v);
   }
 
-  private static void parseVarInt(ProtobufDecoder decoder, MessageType messageType, int fieldNumber, UnknownRecordVisitor unknownFieldHandler) {
+  private static void parseUnknownVarInt(ProtobufDecoder decoder, MessageType messageType, int fieldNumber, RecordVisitor unknownFieldHandler) {
     assertTrue(decoder.readVarInt64());
     long v = decoder.longValue();
-    unknownFieldHandler.visitUnknownVarInt(messageType, fieldNumber, v);
+    unknownFieldHandler.visitVarInt64(messageType.unknownField(fieldNumber, TypeID.INT64, WireType.VARINT), v);
   }
 
-  private static void parseLen(ProtobufDecoder decoder, Field field, RecordVisitor visitor, UnknownRecordVisitor unknownFieldHandler) {
+  private static void parseLen(ProtobufDecoder decoder, Field field, RecordVisitor visitor) {
     assertTrue(decoder.readVarInt32());
     int len = decoder.intValue();
     if (field.type() instanceof MessageType) {
       int to = decoder.len();
       decoder.len(decoder.index() + len);
       visitor.enter(field);
-      parse(decoder, (MessageType) field.type(), visitor, unknownFieldHandler);
+      parse(decoder, (MessageType) field.type(), visitor);
       visitor.leave(field);
       decoder.len(to);
     } else if (field.type() instanceof EnumType) {
@@ -160,18 +164,13 @@ public class ProtobufReader {
   }
 
   public static void parse(MessageType rootType, RecordVisitor visitor, Buffer buffer) {
-    parse(rootType, visitor, new UnknownRecordVisitor() {
-    }, buffer);
-  }
-
-  public static void parse(MessageType rootType, RecordVisitor visitor, UnknownRecordVisitor unknownFieldHandler, Buffer buffer) {
     ProtobufDecoder decoder = new ProtobufDecoder(buffer);
     visitor.init(rootType);
-    parse(decoder, rootType, visitor, unknownFieldHandler);
+    parse(decoder, rootType, visitor);
     visitor.destroy();
   }
 
-  private static void parse(ProtobufDecoder decoder, MessageType type, RecordVisitor visitor, UnknownRecordVisitor unknownFieldHandler) {
+  private static void parse(ProtobufDecoder decoder, MessageType type, RecordVisitor visitor) {
     while (decoder.isReadable()) {
       assertTrue(decoder.readTag());
       int fieldNumber  = decoder.fieldNumber();
@@ -184,16 +183,16 @@ public class ProtobufReader {
       if (field == null) {
         switch (wireType) {
           case LEN:
-            parseLen(decoder, type, fieldNumber, unknownFieldHandler);
+            parseUnknownLen(decoder, type, fieldNumber, visitor);
             break;
           case I32:
-            parseI32(decoder, type, fieldNumber, unknownFieldHandler);
+            parseUnknownI32(decoder, type, fieldNumber, visitor);
             break;
           case I64:
-            parseI64(decoder, type, fieldNumber, unknownFieldHandler);
+            parseUnknownI64(decoder, type, fieldNumber, visitor);
             break;
           case VARINT:
-            parseVarInt(decoder, type, fieldNumber, unknownFieldHandler);
+            parseUnknownVarInt(decoder, type, fieldNumber, visitor);
             break;
           default:
             throw new UnsupportedOperationException("Todo");
@@ -201,7 +200,7 @@ public class ProtobufReader {
       } else {
         switch (wireType) {
           case LEN:
-            parseLen(decoder, field, visitor, unknownFieldHandler);
+            parseLen(decoder, field, visitor);
             break;
           case I64:
             parseI64(decoder, field, visitor);

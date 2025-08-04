@@ -1,1 +1,1 @@
-Required.Proto3.ProtobufInput.ValidDataMap.INT32.FLOAT.Unordered.ProtobufOutput # Protobuf output we received from test was unparseable.
+Required.Proto3.ProtobufInput.UnknownOrdering.ProtobufOutput # Unknown field mismatch

@@ -256,31 +256,33 @@ class ProtoReaderGenerator {
       final String methodStart;
       final Descriptors.FieldDescriptor.Type type;
       final String next;
+      final boolean allowsUnkown;
 
-      VisitMethod(String methodStart, String next, Descriptors.FieldDescriptor.Type type) {
+      VisitMethod(String methodStart, String next, Descriptors.FieldDescriptor.Type type, boolean allowsUnkown) {
         this.methodStart = methodStart;
         this.type = type;
         this.next = next;
+        this.allowsUnkown = allowsUnkown;
       }
     }
 
     VisitMethod[] visitMethods = {
-      new VisitMethod("visitString(Field field, String value)", "visitString(field, value)", Descriptors.FieldDescriptor.Type.STRING),
-      new VisitMethod("visitBytes(Field field, byte[] value)", "visitBytes(field, value)", Descriptors.FieldDescriptor.Type.BYTES),
-      new VisitMethod("visitFixed32(Field field, int value)", "visitFixed32(field, value)", Descriptors.FieldDescriptor.Type.FIXED32),
-      new VisitMethod("visitFixed64(Field field, long value)", "visitFixed64(field, value)", Descriptors.FieldDescriptor.Type.FIXED64),
-      new VisitMethod("visitSFixed32(Field field, int value)", "visitSFixed32(field, value)", Descriptors.FieldDescriptor.Type.SFIXED32),
-      new VisitMethod("visitSFixed64(Field field, long value)", "visitSFixed64(field, value)", Descriptors.FieldDescriptor.Type.SFIXED64),
-      new VisitMethod("visitFloat(Field field, float value)", "visitFloat(field, value)", Descriptors.FieldDescriptor.Type.FLOAT),
-      new VisitMethod("visitDouble(Field field, double value)", "visitDouble(field, value)", Descriptors.FieldDescriptor.Type.DOUBLE),
-      new VisitMethod("visitInt32(Field field, int value)", "visitInt32(field, value)", Descriptors.FieldDescriptor.Type.INT32),
-      new VisitMethod("visitUInt32(Field field, int value)", "visitUInt32(field, value)", Descriptors.FieldDescriptor.Type.UINT32),
-      new VisitMethod("visitSInt32(Field field, int value)", "visitSInt32(field, value)", Descriptors.FieldDescriptor.Type.SINT32),
-      new VisitMethod("visitBool(Field field, boolean value)", "visitBool(field, value)", Descriptors.FieldDescriptor.Type.BOOL),
-      new VisitMethod("visitEnum(Field field, int value)", "visitEnum(field, value)", Descriptors.FieldDescriptor.Type.ENUM),
-      new VisitMethod("visitInt64(Field field, long value)", "visitInt64(field, value)", Descriptors.FieldDescriptor.Type.INT64),
-      new VisitMethod("visitSInt64(Field field, long value)", "visitSInt64(field, value)", Descriptors.FieldDescriptor.Type.SINT64),
-      new VisitMethod("visitUInt64(Field field, long value)", "visitUInt64(field, value)", Descriptors.FieldDescriptor.Type.UINT64)
+      new VisitMethod("visitString(Field field, String value)", "visitString(field, value)", Descriptors.FieldDescriptor.Type.STRING, false),
+      new VisitMethod("visitBytes(Field field, byte[] value)", "visitBytes(field, value)", Descriptors.FieldDescriptor.Type.BYTES, true),
+      new VisitMethod("visitFixed32(Field field, int value)", "visitFixed32(field, value)", Descriptors.FieldDescriptor.Type.FIXED32, true),
+      new VisitMethod("visitFixed64(Field field, long value)", "visitFixed64(field, value)", Descriptors.FieldDescriptor.Type.FIXED64, true),
+      new VisitMethod("visitSFixed32(Field field, int value)", "visitSFixed32(field, value)", Descriptors.FieldDescriptor.Type.SFIXED32, false),
+      new VisitMethod("visitSFixed64(Field field, long value)", "visitSFixed64(field, value)", Descriptors.FieldDescriptor.Type.SFIXED64, false),
+      new VisitMethod("visitFloat(Field field, float value)", "visitFloat(field, value)", Descriptors.FieldDescriptor.Type.FLOAT, false),
+      new VisitMethod("visitDouble(Field field, double value)", "visitDouble(field, value)", Descriptors.FieldDescriptor.Type.DOUBLE, false),
+      new VisitMethod("visitInt32(Field field, int value)", "visitInt32(field, value)", Descriptors.FieldDescriptor.Type.INT32, false),
+      new VisitMethod("visitUInt32(Field field, int value)", "visitUInt32(field, value)", Descriptors.FieldDescriptor.Type.UINT32, false),
+      new VisitMethod("visitSInt32(Field field, int value)", "visitSInt32(field, value)", Descriptors.FieldDescriptor.Type.SINT32, false),
+      new VisitMethod("visitBool(Field field, boolean value)", "visitBool(field, value)", Descriptors.FieldDescriptor.Type.BOOL, false),
+      new VisitMethod("visitEnum(Field field, int value)", "visitEnum(field, value)", Descriptors.FieldDescriptor.Type.ENUM, false),
+      new VisitMethod("visitInt64(Field field, long value)", "visitInt64(field, value)", Descriptors.FieldDescriptor.Type.INT64, true),
+      new VisitMethod("visitSInt64(Field field, long value)", "visitSInt64(field, value)", Descriptors.FieldDescriptor.Type.SINT64, false),
+      new VisitMethod("visitUInt64(Field field, long value)", "visitUInt64(field, value)", Descriptors.FieldDescriptor.Type.UINT64, false)
     };
 
     for (VisitMethod visitMethod : visitMethods) {
@@ -315,6 +317,10 @@ class ProtoReaderGenerator {
         "        default:",
         "          throw new IllegalArgumentException(\"Invalid field \" + field);",
         "      }");
+      if (visitMethod.allowsUnkown) {
+        out.println(
+          "    } else if (field.isUnknown()) {");
+      }
       out.println(
         "    } else if (next != null) {",
         "      next." + visitMethod.next + ";",
@@ -369,6 +375,7 @@ class ProtoReaderGenerator {
     out.println("          throw new UnsupportedOperationException();");
     out.println("      }");
     out.println(
+      "    } else if (field.isUnknown()) {",
       "    } else if (next != null) {",
       "      next.enter(field);",
       "    } else {",
@@ -445,6 +452,7 @@ class ProtoReaderGenerator {
       "        default:",
       "          throw new UnsupportedOperationException();",
       "      }",
+      "    } else if (field.isUnknown()) {",
       "    } else if (next != null) {",
       "      next.leave(field);",
       "    } else {",

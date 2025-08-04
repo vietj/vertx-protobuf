@@ -1,8 +1,6 @@
 package io.vertx.tests.protobuf;
 
-import io.vertx.core.buffer.Buffer;
 import io.vertx.protobuf.RecordVisitor;
-import io.vertx.protobuf.UnknownRecordVisitor;
 import io.vertx.protobuf.schema.Field;
 import io.vertx.protobuf.schema.MessageType;
 
@@ -13,10 +11,10 @@ import java.util.List;
 
 import static org.junit.Assert.*;
 
-public class RecordingVisitor implements RecordVisitor, UnknownRecordVisitor {
+public class RecordingVisitor implements RecordVisitor {
 
   private static abstract class Record {
-    protected abstract void apply(RecordVisitor visitor, UnknownRecordVisitor unknownFieldHandler);
+    protected abstract void apply(RecordVisitor visitor);
   }
 
   private static class Init extends Record {
@@ -25,14 +23,14 @@ public class RecordingVisitor implements RecordVisitor, UnknownRecordVisitor {
       this.messageType = messageType;
     }
     @Override
-    protected void apply(RecordVisitor visitor, UnknownRecordVisitor unknownFieldHandler) {
+    protected void apply(RecordVisitor visitor) {
       visitor.init(messageType);
     }
   }
 
   private static class Destroy extends Record {
     @Override
-    protected void apply(RecordVisitor visitor, UnknownRecordVisitor unknownFieldHandler) {
+    protected void apply(RecordVisitor visitor) {
       visitor.destroy();
     }
   }
@@ -45,7 +43,7 @@ public class RecordingVisitor implements RecordVisitor, UnknownRecordVisitor {
       this.value = value;
     }
     @Override
-    protected void apply(RecordVisitor visitor, UnknownRecordVisitor unknownFieldHandler) {
+    protected void apply(RecordVisitor visitor) {
       visitor.visitFloat(field, value);
     }
   }
@@ -58,7 +56,7 @@ public class RecordingVisitor implements RecordVisitor, UnknownRecordVisitor {
       this.value = value;
     }
     @Override
-    protected void apply(RecordVisitor visitor, UnknownRecordVisitor unknownFieldHandler) {
+    protected void apply(RecordVisitor visitor) {
       visitor.visitDouble(field, value);
     }
   }
@@ -71,7 +69,7 @@ public class RecordingVisitor implements RecordVisitor, UnknownRecordVisitor {
       this.value = value;
     }
     @Override
-    protected void apply(RecordVisitor visitor, UnknownRecordVisitor unknownFieldHandler) {
+    protected void apply(RecordVisitor visitor) {
       visitor.visitInt64(field, value);
     }
   }
@@ -84,7 +82,7 @@ public class RecordingVisitor implements RecordVisitor, UnknownRecordVisitor {
       this.value = value;
     }
     @Override
-    protected void apply(RecordVisitor visitor, UnknownRecordVisitor unknownFieldHandler) {
+    protected void apply(RecordVisitor visitor) {
       visitor.visitUInt64(field, value);
     }
   }
@@ -97,7 +95,7 @@ public class RecordingVisitor implements RecordVisitor, UnknownRecordVisitor {
       this.value = value;
     }
     @Override
-    protected void apply(RecordVisitor visitor, UnknownRecordVisitor unknownFieldHandler) {
+    protected void apply(RecordVisitor visitor) {
       visitor.visitSInt64(field, value);
     }
   }
@@ -110,7 +108,7 @@ public class RecordingVisitor implements RecordVisitor, UnknownRecordVisitor {
       this.value = value;
     }
     @Override
-    protected void apply(RecordVisitor visitor, UnknownRecordVisitor unknownFieldHandler) {
+    protected void apply(RecordVisitor visitor) {
       visitor.visitInt32(field, value);
     }
   }
@@ -123,7 +121,7 @@ public class RecordingVisitor implements RecordVisitor, UnknownRecordVisitor {
       this.value = value;
     }
     @Override
-    protected void apply(RecordVisitor visitor, UnknownRecordVisitor unknownFieldHandler) {
+    protected void apply(RecordVisitor visitor) {
       visitor.visitSInt32(field, value);
     }
   }
@@ -136,7 +134,7 @@ public class RecordingVisitor implements RecordVisitor, UnknownRecordVisitor {
       this.value = value;
     }
     @Override
-    protected void apply(RecordVisitor visitor, UnknownRecordVisitor unknownFieldHandler) {
+    protected void apply(RecordVisitor visitor) {
       visitor.visitUInt32(field, value);
     }
   }
@@ -149,7 +147,7 @@ public class RecordingVisitor implements RecordVisitor, UnknownRecordVisitor {
       this.value = value;
     }
     @Override
-    protected void apply(RecordVisitor visitor, UnknownRecordVisitor unknownFieldHandler) {
+    protected void apply(RecordVisitor visitor) {
       visitor.visitEnum(field, value);
     }
   }
@@ -162,7 +160,7 @@ public class RecordingVisitor implements RecordVisitor, UnknownRecordVisitor {
       this.value = value;
     }
     @Override
-    protected void apply(RecordVisitor visitor, UnknownRecordVisitor unknownFieldHandler) {
+    protected void apply(RecordVisitor visitor) {
       visitor.visitBool(field, value);
     }
   }
@@ -175,7 +173,7 @@ public class RecordingVisitor implements RecordVisitor, UnknownRecordVisitor {
       this.value = value;
     }
     @Override
-    protected void apply(RecordVisitor visitor, UnknownRecordVisitor unknownFieldHandler) {
+    protected void apply(RecordVisitor visitor) {
       visitor.visitFixed32(field, value);
     }
   }
@@ -188,7 +186,7 @@ public class RecordingVisitor implements RecordVisitor, UnknownRecordVisitor {
       this.value = value;
     }
     @Override
-    protected void apply(RecordVisitor visitor, UnknownRecordVisitor unknownFieldHandler) {
+    protected void apply(RecordVisitor visitor) {
       visitor.visitFixed64(field, value);
     }
   }
@@ -201,7 +199,7 @@ public class RecordingVisitor implements RecordVisitor, UnknownRecordVisitor {
       this.value = value;
     }
     @Override
-    protected void apply(RecordVisitor visitor, UnknownRecordVisitor unknownFieldHandler) {
+    protected void apply(RecordVisitor visitor) {
       visitor.visitSFixed32(field, value);
     }
   }
@@ -214,67 +212,33 @@ public class RecordingVisitor implements RecordVisitor, UnknownRecordVisitor {
       this.value = value;
     }
     @Override
-    protected void apply(RecordVisitor visitor, UnknownRecordVisitor unknownFieldHandler) {
+    protected void apply(RecordVisitor visitor) {
       visitor.visitSFixed64(field, value);
     }
   }
 
-  private static class UnknownLengthDelimited extends Record {
-    private final MessageType messageType;
-    private final int fieldNumber;
-    private final Buffer buffer;
-    public UnknownLengthDelimited(MessageType messageType, int fieldNumber, Buffer buffer) {
-      this.messageType = messageType;
-      this.fieldNumber = fieldNumber;
-      this.buffer = buffer;
+  private static class VisitBytes extends Record {
+    private final Field field;
+    private final byte[] bytes;
+    public VisitBytes(Field field, byte[] bytes) {
+      this.field = field;
+      this.bytes = bytes;
     }
     @Override
-    protected void apply(RecordVisitor visitor, UnknownRecordVisitor unknownFieldHandler) {
-      throw new UnsupportedOperationException("TODO");
-    }
-  }
-
-  private static class UnknownI32 extends Record {
-    private final MessageType messageType;
-    private final int fieldNumber;
-    private final int value;
-    public UnknownI32(MessageType messageType, int fieldNumber, int value) {
-      this.messageType = messageType;
-      this.fieldNumber = fieldNumber;
-      this.value = value;
-    }
-    @Override
-    protected void apply(RecordVisitor visitor, UnknownRecordVisitor unknownRecordVisitor) {
-      throw new UnsupportedOperationException("TODO");
-    }
-  }
-
-  private static class UnknownI64 extends Record {
-    private final MessageType messageType;
-    private final int fieldNumber;
-    private final long value;
-    public UnknownI64(MessageType messageType, int fieldNumber, long value) {
-      this.messageType = messageType;
-      this.fieldNumber = fieldNumber;
-      this.value = value;
-    }
-    @Override
-    protected void apply(RecordVisitor visitor, UnknownRecordVisitor unknownRecordVisitor) {
+    protected void apply(RecordVisitor visitor) {
       throw new UnsupportedOperationException("TODO");
     }
   }
 
   private static class UnknownVarInt extends Record {
-    private final MessageType messageType;
-    private final int fieldNumber;
+    private final Field field;
     private final long value;
-    public UnknownVarInt(MessageType messageType, int fieldNumber, long value) {
-      this.messageType = messageType;
-      this.fieldNumber = fieldNumber;
+    public UnknownVarInt(Field field, long value) {
+      this.field = field;
       this.value = value;
     }
     @Override
-    protected void apply(RecordVisitor visitor, UnknownRecordVisitor unknownRecordVisitor) {
+    protected void apply(RecordVisitor visitor) {
       throw new UnsupportedOperationException("TODO");
     }
   }
@@ -333,7 +297,7 @@ public class RecordingVisitor implements RecordVisitor, UnknownRecordVisitor {
 
   @Override
   public void visitBytes(Field field, byte[] bytes) {
-    throw new UnsupportedOperationException();
+    records.add(new VisitBytes(field, bytes));
   }
 
   @Override
@@ -381,41 +345,9 @@ public class RecordingVisitor implements RecordVisitor, UnknownRecordVisitor {
     records.add(new Destroy());
   }
 
-  @Override
-  public void visitUnknownLengthDelimited(MessageType messageType, int fieldNumber, Buffer payload) {
-    records.add(new UnknownLengthDelimited(messageType, fieldNumber, payload));
-  }
-
-  @Override
-  public void visitUnknownI32(MessageType messageType, int fieldNumber, int value) {
-    records.add(new UnknownI32(messageType, fieldNumber, value));
-  }
-
-  @Override
-  public void visitUnknownI64(MessageType messageType, int fieldNumber, long value) {
-    records.add(new UnknownI64(messageType, fieldNumber, value));
-  }
-
-  @Override
-  public void visitUnknownVarInt(MessageType messageType, int fieldNumber, long value) {
-    records.add(new UnknownVarInt(messageType, fieldNumber, value));
-  }
-
   public void apply(RecordVisitor visitor) {
-    apply(visitor, new UnknownRecordVisitor() {
-      @Override
-      public void visitUnknownLengthDelimited(MessageType messageType, int fieldNumber, Buffer payload) {
-      }
-      @Override
-      public void visitUnknownI32(MessageType messageType, int fieldNumber, int value) {
-
-      }
-    });
-  }
-
-  public void apply(RecordVisitor visitor, UnknownRecordVisitor unknownRecordVisitor) {
     for (Record record : records) {
-      record.apply(visitor, unknownRecordVisitor);
+      record.apply(visitor);
     }
   }
 
@@ -424,7 +356,7 @@ public class RecordingVisitor implements RecordVisitor, UnknownRecordVisitor {
     return new Checker(records);
   }
 
-  public static class Checker implements RecordVisitor, UnknownRecordVisitor {
+  public static class Checker implements RecordVisitor {
 
     private final Deque<Record> expectations;
 
@@ -447,56 +379,56 @@ public class RecordingVisitor implements RecordVisitor, UnknownRecordVisitor {
     @Override
     public void visitInt32(Field field, int v) {
       VisitInt32 expectation = expecting(VisitInt32.class);
-      assertSame(expectation.field, field);
+      assertEquals(expectation.field, field);
       assertEquals(expectation.value, v);
     }
 
     @Override
     public void visitUInt32(Field field, int v) {
       VisitUInt32 expectation = expecting(VisitUInt32.class);
-      assertSame(expectation.field, field);
+      assertEquals(expectation.field, field);
       assertEquals(expectation.value, v);
     }
 
     @Override
     public void visitSInt32(Field field, int v) {
       VisitSInt32 expectation = expecting(VisitSInt32.class);
-      assertSame(expectation.field, field);
+      assertEquals(expectation.field, field);
       assertEquals(expectation.value, v);
     }
 
     @Override
     public void visitBool(Field field, boolean v) {
       VisitBool expectation = expecting(VisitBool.class);
-      assertSame(expectation.field, field);
+      assertEquals(expectation.field, field);
       assertEquals(expectation.value, v);
     }
 
     @Override
     public void visitEnum(Field field, int number) {
       VisitEnum expectation = expecting(VisitEnum.class);
-      assertSame(expectation.field, field);
+      assertEquals(expectation.field, field);
       assertEquals(expectation.value, number);
     }
 
     @Override
     public void visitInt64(Field field, long v) {
       VisitInt64 expectation = expecting(VisitInt64.class);
-      assertSame(expectation.field, field);
+      assertEquals(expectation.field, field);
       assertEquals(expectation.value, v);
     }
 
     @Override
     public void visitSInt64(Field field, long v) {
       VisitSInt64 expectation = expecting(VisitSInt64.class);
-      assertSame(expectation.field, field);
+      assertEquals(expectation.field, field);
       assertEquals(expectation.value, v);
     }
 
     @Override
     public void visitUInt64(Field field, long v) {
       VisitUInt64 expectation = expecting(VisitUInt64.class);
-      assertSame(expectation.field, field);
+      assertEquals(expectation.field, field);
       assertEquals(expectation.value, v);
     }
 
@@ -508,42 +440,42 @@ public class RecordingVisitor implements RecordVisitor, UnknownRecordVisitor {
     @Override
     public void visitFloat(Field field, float f) {
       Float expectation = expecting(Float.class);
-      assertSame(expectation.field, field);
+      assertEquals(expectation.field, field);
       assertEquals(expectation.value, f, 0.001D);
     }
 
     @Override
     public void visitDouble(Field field, double d) {
       Double expectation = expecting(Double.class);
-      assertSame(expectation.field, field);
+      assertEquals(expectation.field, field);
       assertEquals(expectation.value, d, 0.001D);
     }
 
     @Override
     public void visitFixed32(Field field, int v) {
       Fixed32 expectation = expecting(Fixed32.class);
-      assertSame(expectation.field, field);
+      assertEquals(expectation.field, field);
       assertEquals(expectation.value, v);
     }
 
     @Override
     public void visitFixed64(Field field, long v) {
       Fixed64 expectation = expecting(Fixed64.class);
-      assertSame(expectation.field, field);
+      assertEquals(expectation.field, field);
       assertEquals(expectation.value, v);
     }
 
     @Override
     public void visitSFixed32(Field field, int v) {
       SFixed32 expectation = expecting(SFixed32.class);
-      assertSame(expectation.field, field);
+      assertEquals(expectation.field, field);
       assertEquals(expectation.value, v);
     }
 
     @Override
     public void visitSFixed64(Field field, long v) {
       SFixed64 expectation = expecting(SFixed64.class);
-      assertSame(expectation.field, field);
+      assertEquals(expectation.field, field);
       assertEquals(expectation.value, v);
     }
 
@@ -559,44 +491,14 @@ public class RecordingVisitor implements RecordVisitor, UnknownRecordVisitor {
 
     @Override
     public void visitBytes(Field field, byte[] bytes) {
-      throw new UnsupportedOperationException();
+      VisitBytes expectation = expecting(VisitBytes.class);
+      assertEquals(expectation.field, field);
+      assertArrayEquals(expectation.bytes, bytes);
     }
 
     @Override
     public void destroy() {
       expecting(Destroy.class);
-    }
-
-    @Override
-    public void visitUnknownLengthDelimited(MessageType messageType, int fieldNumber, Buffer payload) {
-      UnknownLengthDelimited expectation = expecting(UnknownLengthDelimited.class);
-      assertSame(expectation.messageType, messageType);
-      assertSame(expectation.fieldNumber, fieldNumber);
-      assertEquals(expectation.buffer, payload);
-    }
-
-    @Override
-    public void visitUnknownI32(MessageType messageType, int fieldNumber, int value) {
-      UnknownI32 expectation = expecting(UnknownI32.class);
-      assertSame(expectation.messageType, messageType);
-      assertSame(expectation.fieldNumber, fieldNumber);
-      assertEquals(expectation.value, value);
-    }
-
-    @Override
-    public void visitUnknownI64(MessageType messageType, int fieldNumber, long value) {
-      UnknownI64 expectation = expecting(UnknownI64.class);
-      assertSame(expectation.messageType, messageType);
-      assertSame(expectation.fieldNumber, fieldNumber);
-      assertEquals(expectation.value, value);
-    }
-
-    @Override
-    public void visitUnknownVarInt(MessageType messageType, int fieldNumber, long value) {
-      UnknownVarInt expectation = expecting(UnknownVarInt.class);
-      assertSame(expectation.messageType, messageType);
-      assertSame(expectation.fieldNumber, fieldNumber);
-      assertEquals(expectation.value, value);
     }
 
     public boolean isEmpty() {
