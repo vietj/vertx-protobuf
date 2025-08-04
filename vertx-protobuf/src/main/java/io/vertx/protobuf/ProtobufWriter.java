@@ -53,7 +53,7 @@ public class ProtobufWriter {
     boolean packed;
 
     private int sizeOf(Field field) {
-      return ProtobufEncoder.computeRawVarint32Size(field.number());
+      return ProtobufEncoder.computeRawVarint32Size(field.number() << 3 | field.type().wireType().id);
     }
 
     @Override

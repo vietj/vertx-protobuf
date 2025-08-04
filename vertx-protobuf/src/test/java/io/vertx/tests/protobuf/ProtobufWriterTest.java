@@ -29,4 +29,22 @@ public class ProtobufWriterTest {
     });
     assertEquals(10, output.getByte(1));
   }
+
+  @Test
+  public void testSizeOfField() {
+    DefaultSchema schema = new DefaultSchema();
+    DefaultMessageType msg = schema.of("msg");
+    DefaultMessageType nested = schema.of("msg");
+    DefaultField nestedField = msg.addField(1, nested);
+    DefaultField fixed32Field = nested.addField(89, ScalarType.FIXED32);
+    Buffer output = ProtobufWriter.encode(visitor -> {
+      visitor.init(msg);
+      visitor.enter(nestedField);
+      visitor.enter(fixed32Field);
+      visitor.visitFixed32(fixed32Field, 1);
+      visitor.leave(fixed32Field);
+      visitor.leave(nestedField);
+    });
+    assertEquals(7, output.getByte(1));
+  }
 }

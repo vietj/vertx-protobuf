@@ -22,13 +22,29 @@ public class ConformanceTest {
 
   @Test
   public void testConformance() throws Exception {
-    byte[] bytes ={ -126, 7, 9, 18, 7, 8, 1, 16, 1, -56, 5, 1, -126, 7, 7, 18, 5, 16, 1, -56, 5, 1 };
+    byte[] bytes = { -126, 7, 9, 18, 7, 8, 1, 16, 1, -56, 5, 1, -126, 7, 7, 18, 5, 16, 1, -56, 5, 1 };
+
+
+    // Expected output
+    // [-126, 7,
+    //  12,
+    //     18, (corecursive)
+    //     10, (len)
+    //       8, (optional_int32)
+    //       1,
+    //       16, (optional_int64)
+    //       1,
+    //       -56, 5, (unpacked_int32)
+    //       1,
+    //       -56, 5, (unpacked_int32)
+    //       1]
+
+    // [-126, 7, 10, 18, 8, 8, 1, 16, 1, -56, 5, 1, -56, 5, 1]
+    // [-126, 7, 12, 18, 10, 8, 1, 16, 1, -56, 5, 1, -56, 5, 1];
 
     ProtoReader reader = new ProtoReader();
     Buffer buffer = Buffer.buffer(bytes);
     TestMessagesProto3.TestAllTypesProto3 d = TestMessagesProto3.TestAllTypesProto3.parseFrom(bytes);
-
-    System.out.println(d);
 
     byte[] expected = d.toByteArray();
 //    System.out.println(d);
@@ -44,9 +60,8 @@ public class ConformanceTest {
     System.out.println(corec.getOptionalInt64());
     System.out.println(corec.getUnpackedInt32());
 
-//    Buffer result = ProtobufWriter.encode(visitor -> {
-//      ProtoWriter.emit(testMessage, visitor);
-//    });
-//    assertArrayEquals(expected, actual);
+    Buffer result = ProtobufWriter.encode(visitor -> {
+      ProtoWriter.emit(testMessage, visitor);
+    });
   }
 }
