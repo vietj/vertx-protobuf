@@ -3,6 +3,7 @@ package io.vertx.tests.protobuf;
 import com.google.protobuf.CodedInputStream;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.DecodeException;
+import io.vertx.protobuf.ProtobufDecoder;
 import io.vertx.protobuf.ProtobufReader;
 import io.vertx.protobuf.ProtobufWriter;
 import io.vertx.protobuf.schema.DefaultMessageType;

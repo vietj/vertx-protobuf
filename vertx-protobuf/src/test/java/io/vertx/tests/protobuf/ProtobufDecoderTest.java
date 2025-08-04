@@ -40,4 +40,13 @@ public class ProtobufDecoderTest {
 
  }
 
+  @Test
+  public void testReadOversizeUInt64() {
+    // 18446744073709551615
+    byte[] data = { -1, -1, -1, -1, -1, -1, -1, -1, -1, 1 };
+    ProtobufDecoder decoder = new ProtobufDecoder(Buffer.buffer(data));
+    assertTrue(decoder.readVarInt64());
+//    assertEquals(18446744073709551615L, decoder.longValue());
+
+  }
 }

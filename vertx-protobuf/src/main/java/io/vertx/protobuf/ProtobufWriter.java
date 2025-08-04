@@ -64,7 +64,7 @@ public class ProtobufWriter {
 
     @Override
     public void visitVarInt64(Field field, long v) {
-      lengths[depth] +=  (packed ? 0 : sizeOf(field)) + ProtobufEncoder.computeRawVarint32Size((int)v);
+      lengths[depth] +=  (packed ? 0 : sizeOf(field)) + ProtobufEncoder.computeRawVarint64Size(v);
     }
 
     @Override

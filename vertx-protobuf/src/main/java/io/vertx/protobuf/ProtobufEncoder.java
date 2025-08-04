@@ -111,4 +111,35 @@ public class ProtobufEncoder {
     }
     return 5;
   }
+
+  public static int computeRawVarint64Size(final long value) {
+    if ((value & (0xffffffffffffffffL <<  7)) == 0) {
+      return 1;
+    }
+    if ((value & (0xffffffffffffffffL << 14)) == 0) {
+      return 2;
+    }
+    if ((value & (0xffffffffffffffffL << 21)) == 0) {
+      return 3;
+    }
+    if ((value & (0xffffffffffffffffL << 28)) == 0) {
+      return 4;
+    }
+    if ((value & (0xffffffffffffffffL << 35)) == 0) {
+      return 5;
+    }
+    if ((value & (0xffffffffffffffffL << 42)) == 0) {
+      return 6;
+    }
+    if ((value & (0xffffffffffffffffL << 49)) == 0) {
+      return 7;
+    }
+    if ((value & (0xffffffffffffffffL << 56)) == 0) {
+      return 8;
+    }
+    if ((value & (0xffffffffffffffffL << 63)) == 0) {
+      return 9;
+    }
+    return 10;
+  }
 }
