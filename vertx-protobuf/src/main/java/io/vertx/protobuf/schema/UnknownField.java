@@ -3,13 +3,11 @@ package io.vertx.protobuf.schema;
 class UnknownField implements Field, Type {
   final MessageType owner;
   final int number;
-  final TypeID typeId;
   final WireType wireType;
 
-  UnknownField(MessageType owner, int number,TypeID typeId, WireType wireType) {
+  UnknownField(MessageType owner, int number,WireType wireType) {
     this.owner = owner;
     this.number = number;
-    this.typeId = typeId;
     this.wireType = wireType;
   }
 
@@ -30,7 +28,18 @@ class UnknownField implements Field, Type {
 
   @Override
   public TypeID id() {
-    return typeId;
+    switch (wireType) {
+      case LEN:
+        return TypeID.BYTES;
+      case I32:
+        return TypeID.FIXED32;
+      case I64:
+        return TypeID.FIXED64;
+      case VARINT:
+        return TypeID.INT64;
+      default:
+        throw new IllegalStateException();
+    }
   }
 
   @Override
@@ -44,13 +53,18 @@ class UnknownField implements Field, Type {
   }
 
   @Override
+  public int hashCode() {
+    return number;
+  }
+
+  @Override
   public boolean equals(Object obj) {
     if (obj == this) {
       return true;
     }
     if (obj instanceof Field) {
       Field that = (Field) obj;
-      return number == that.number() && typeId == that.type().id() && wireType == that.type().wireType();
+      return number == that.number() && type().id() == that.type().id() && wireType == that.type().wireType();
     }
     return false;
   }

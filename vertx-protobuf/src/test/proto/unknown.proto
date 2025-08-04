@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package io.vertx.tests.unknown;
+package io.vertx.tests.protobuf.unknown;
 
-option java_package = "io.vertx.tests.unknown";
+option java_package = "io.vertx.tests.protobuf.unknown";
 option java_outer_classname = "UnknownProto";
 
 message Message {

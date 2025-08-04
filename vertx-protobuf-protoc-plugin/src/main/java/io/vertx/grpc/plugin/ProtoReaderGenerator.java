@@ -319,7 +319,22 @@ class ProtoReaderGenerator {
         "      }");
       if (visitMethod.allowsUnkown) {
         out.println(
-          "    } else if (field.isUnknown()) {");
+          "    } else if (field.isUnknown()) {",
+          "      " + javaPkgFqn + ".MessageBase base = (" + javaPkgFqn + ".MessageBase)stack.peek();");
+        switch (visitMethod.type) {
+          case BYTES:
+            out.println("      base.unknownField(field).add(io.vertx.core.buffer.Buffer.buffer(value));");
+            break;
+          case FIXED32:
+            out.println("      base.unknownField(field).add(value);");
+            break;
+          case FIXED64:
+            out.println("      base.unknownField(field).add(value);");
+            break;
+          case INT64:
+            out.println("      base.unknownField(field).add(value);");
+            break;
+        }
       }
       out.println(
         "    } else if (next != null) {",

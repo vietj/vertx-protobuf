@@ -11,7 +11,7 @@ public interface MessageType extends Type {
   }
   String name();
   Field field(int number);
-  default Field unknownField(int number, TypeID typeId, WireType wireType) {
-    return new UnknownField(this, number, typeId, wireType);
+  default Field unknownField(int number, WireType wireType) {
+    return new UnknownField(this, number, wireType);
   }
  }

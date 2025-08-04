@@ -1,16 +1,18 @@
-package io.vertx.tests.protobuf;
+package io.vertx.tests.protobuf.unknown;
 
 import com.google.protobuf.ByteString;
 import com.google.protobuf.UnknownFieldSet;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.protobuf.ProtobufReader;
-import io.vertx.protobuf.schema.TypeID;
+import io.vertx.protobuf.ProtobufWriter;
 import io.vertx.protobuf.schema.WireType;
-import io.vertx.tests.unknown.SchemaLiterals;
-import io.vertx.tests.unknown.UnknownProto;
+import io.vertx.tests.protobuf.RecordingVisitor;
 import org.junit.Test;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Map;
 
 import static org.junit.Assert.*;
 
@@ -28,8 +30,8 @@ public class UnknownTest {
     ProtobufReader.parse(SchemaLiterals.MessageLiteral.Message, visitor, Buffer.buffer(bytes));
     RecordingVisitor.Checker checker = visitor.checker();
     checker.init(SchemaLiterals.MessageLiteral.Message);
-    checker.visitBytes(SchemaLiterals.MessageLiteral.Message.unknownField(2, TypeID.BYTES, WireType.LEN), "Hello".getBytes(StandardCharsets.UTF_8));
-    checker.visitBytes(SchemaLiterals.MessageLiteral.Message.unknownField(3, TypeID.BYTES, WireType.LEN), "World".getBytes(StandardCharsets.UTF_8));
+    checker.visitBytes(SchemaLiterals.MessageLiteral.Message.unknownField(2, WireType.LEN), "Hello".getBytes(StandardCharsets.UTF_8));
+    checker.visitBytes(SchemaLiterals.MessageLiteral.Message.unknownField(3, WireType.LEN), "World".getBytes(StandardCharsets.UTF_8));
     checker.destroy();
     assertTrue(checker.isEmpty());
   }
@@ -43,7 +45,7 @@ public class UnknownTest {
     ProtobufReader.parse(SchemaLiterals.MessageLiteral.Message, visitor, Buffer.buffer(bytes));
     RecordingVisitor.Checker checker = visitor.checker();
     checker.init(SchemaLiterals.MessageLiteral.Message);
-    checker.visitFixed32(SchemaLiterals.MessageLiteral.Message.unknownField(2, TypeID.FIXED32, WireType.I32), 15);
+    checker.visitFixed32(SchemaLiterals.MessageLiteral.Message.unknownField(2, WireType.I32), 15);
     checker.destroy();
     assertTrue(checker.isEmpty());
   }
@@ -57,7 +59,7 @@ public class UnknownTest {
     ProtobufReader.parse(SchemaLiterals.MessageLiteral.Message, visitor, Buffer.buffer(bytes));
     RecordingVisitor.Checker checker = visitor.checker();
     checker.init(SchemaLiterals.MessageLiteral.Message);
-    checker.visitFixed64(SchemaLiterals.MessageLiteral.Message.unknownField(2, TypeID.FIXED64, WireType.I64), 15L);
+    checker.visitFixed64(SchemaLiterals.MessageLiteral.Message.unknownField(2, WireType.I64), 15L);
     checker.destroy();
     assertTrue(checker.isEmpty());
   }
@@ -71,8 +73,42 @@ public class UnknownTest {
     ProtobufReader.parse(SchemaLiterals.MessageLiteral.Message, visitor, Buffer.buffer(bytes));
     RecordingVisitor.Checker checker = visitor.checker();
     checker.init(SchemaLiterals.MessageLiteral.Message);
-    checker.visitVarInt64(SchemaLiterals.MessageLiteral.Message.unknownField(2, TypeID.INT64, WireType.VARINT), 15L);
+    checker.visitVarInt64(SchemaLiterals.MessageLiteral.Message.unknownField(2, WireType.VARINT), 15L);
     checker.destroy();
     assertTrue(checker.isEmpty());
+  }
+
+  @Test
+  public void testMessage() throws Exception {
+    byte[] bytes = UnknownProto.Message.newBuilder()
+      .setUnknownFields(UnknownFieldSet.newBuilder()
+        .addField(2, UnknownFieldSet.Field.newBuilder().addLengthDelimited(ByteString.copyFromUtf8("Hello")).build())
+        .addField(3, UnknownFieldSet.Field.newBuilder().addLengthDelimited(ByteString.copyFromUtf8("World")).build())
+        .addField(4, UnknownFieldSet.Field.newBuilder().addFixed64(15L).addFixed64(20L).build())
+        .addField(5, UnknownFieldSet.Field.newBuilder().addFixed32(17).build())
+        .addField(6, UnknownFieldSet.Field.newBuilder().addVarint(18L).build())
+        .build()
+      ).build().toByteArray();
+    ProtoReader reader = new ProtoReader();
+    ProtobufReader.parse(SchemaLiterals.MessageLiteral.Message, reader, Buffer.buffer(bytes));
+    Message msg = (Message) reader.stack.pop();
+    assertNotNull(msg.unknownFields);
+    assertEquals(Map.of(
+      SchemaLiterals.MessageLiteral.Message.unknownField(2, WireType.LEN), Collections.singletonList(Buffer.buffer("Hello")),
+      SchemaLiterals.MessageLiteral.Message.unknownField(3, WireType.LEN), Collections.singletonList(Buffer.buffer("World")),
+      SchemaLiterals.MessageLiteral.Message.unknownField(4, WireType.I64), Arrays.asList(15L, 20L),
+      SchemaLiterals.MessageLiteral.Message.unknownField(5, WireType.I32), Collections.singletonList(17),
+      SchemaLiterals.MessageLiteral.Message.unknownField(6, WireType.VARINT), Collections.singletonList(18L)
+    )
+      , msg.unknownFields);
+
+    // [18,
+    // 7, 18, 5, 72, 101, 108, 108, 111,
+    // 26, 7, 26, 5, 87, 111, 114, 108, 100, 33, 15, 0, 0, 0, 0, 0, 0, 0, 33, 20, 0, 0, 0, 0, 0, 0, 0, 45, 17, 0, 0, 0, 48, 18]
+
+    bytes = ProtobufWriter.encodeToByteArray(visitor -> ProtoWriter.emit(msg, visitor));
+    UnknownProto.Message protoMsg = UnknownProto.Message.parseFrom(bytes);
+    String stringUtf8 = protoMsg.getUnknownFields().getField(2).getLengthDelimitedList().get(0).toStringUtf8();
+    assertEquals("Hello", stringUtf8);
   }
 }

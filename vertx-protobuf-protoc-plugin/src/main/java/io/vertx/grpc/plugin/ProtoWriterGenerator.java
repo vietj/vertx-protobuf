@@ -229,6 +229,33 @@ class ProtoWriterGenerator {
         }
         content.println("    }");
       }
+
+      content.println(
+        "    java.util.Map<io.vertx.protobuf.schema.Field, java.util.List<Object>> unknownFields = value.unknownFields;",
+        "    if (unknownFields != null) {",
+        "      for (java.util.Map.Entry<io.vertx.protobuf.schema.Field, java.util.List<Object>> unknownField : unknownFields.entrySet()) {",
+        "        for (Object o : unknownField.getValue()) {",
+        "          io.vertx.protobuf.schema.Field field = unknownField.getKey();",
+        "          switch (field.type().wireType()) {",
+        "            case LEN:",
+        // "              visitor.enter(field);",
+        "              visitor.visitBytes(field, ((io.vertx.core.buffer.Buffer)o).getBytes());",
+        // "              visitor.leave(field);",
+        "              break;",
+        "            case I32:",
+        "              visitor.visitI32(field, (Integer)o);",
+        "              break;",
+        "            case I64:",
+        "              visitor.visitI64(field, (Long)o);",
+        "              break;",
+        "            case VARINT:",
+        "              visitor.visitVarInt64(field, (Long)o);",
+        "              break;",
+        "          }",
+        "        }",
+        "      }",
+        "    }");
+
       content.println("  }");
     }
 

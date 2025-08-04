@@ -164,6 +164,7 @@ public class VertxGrpcGeneratorImpl extends Generator {
           .forEach(enums::add);
       }
 
+      files.add(new MessageBaseGenerator(javaPkgFqn).generate());
       files.addAll(new ElementGenerator(javaPkgFqn, new ArrayList<>(messages.values()), enums).generate());
       files.add(new SchemaGenerator(javaPkgFqn, new ArrayList<>(messages.values())).generate());
       files.add(new ProtoReaderGenerator(javaPkgFqn, new ArrayList<>(messages.values())).generate());

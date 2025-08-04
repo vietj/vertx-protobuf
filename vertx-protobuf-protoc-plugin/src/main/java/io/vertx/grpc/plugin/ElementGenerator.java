@@ -100,7 +100,7 @@ class ElementGenerator {
     }
 
     void generate2(GenWriter writer) {
-      writer.println("public " + (container != null ? "static " : "") + "class " + descriptor.getName() + " {");
+      writer.println("public " + (container != null ? "static " : "") + "class " + descriptor.getName() + " extends MessageBase {");
       fields.forEach(fd -> {
         String javaType = Utils.javaTypeOf(fd);
         if (javaType != null) {
