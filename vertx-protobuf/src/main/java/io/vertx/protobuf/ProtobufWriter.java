@@ -37,9 +37,8 @@ public class ProtobufWriter {
   }
 
   static class State {
-    int[] capture = new int[20];
+    int[] capture = new int[50];
     Buffer buffer;
-    int[] strings = new int[20];
   }
 
   static class ComputePhase implements RecordVisitor {
@@ -80,8 +79,7 @@ public class ProtobufWriter {
 
     @Override
     public void visitBytes(Field field, byte[] bytes) {
-      int length = bytes.length;
-      lengths[depth] += sizeOf(field) + ProtobufEncoder.computeRawVarint32Size(length) + length;
+      lengths[depth] += bytes.length;
     }
 
     @Override
@@ -97,8 +95,7 @@ public class ProtobufWriter {
           break;
         }
       }
-      state.strings[string_ptr++] = length;
-      lengths[depth] += sizeOf(field) + ProtobufEncoder.computeRawVarint32Size(length) + length;
+      lengths[depth] += length;
     }
 
     @Override
@@ -125,7 +122,7 @@ public class ProtobufWriter {
       lengths[depth] = 0;
       int index = indices[depth];
       state.capture[index] = l;
-      l += 1 + ProtobufEncoder.computeRawVarint32Size(l);
+      l += sizeOf(field) + ProtobufEncoder.computeRawVarint32Size(l);
       depth--;
       lengths[depth] += l;
     }
@@ -142,7 +139,6 @@ public class ProtobufWriter {
     State state;
     ProtobufEncoder encoder;
     int ptr_;
-    int string_ptr;
     boolean packed;
 
 
@@ -187,17 +183,11 @@ public class ProtobufWriter {
 
     @Override
     public void visitBytes(Field field, byte[] bytes) {
-      int length = bytes.length;
-      encoder.writeTag(field.number(), WireType.LEN.id);
-      encoder.writeVarInt32(length);
       encoder.writeBytes(bytes);
     }
 
     @Override
     public void visitString(Field field, String s) {
-      int length = state.strings[string_ptr++];
-      encoder.writeTag(field.number(), WireType.LEN.id);
-      encoder.writeVarInt32(length);
       encoder.writeString(s);
     }
 

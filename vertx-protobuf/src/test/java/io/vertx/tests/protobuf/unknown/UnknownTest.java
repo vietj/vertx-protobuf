@@ -101,11 +101,6 @@ public class UnknownTest {
       SchemaLiterals.MessageLiteral.Message.unknownField(6, WireType.VARINT), Collections.singletonList(18L)
     )
       , msg.unknownFields);
-
-    // [18,
-    // 7, 18, 5, 72, 101, 108, 108, 111,
-    // 26, 7, 26, 5, 87, 111, 114, 108, 100, 33, 15, 0, 0, 0, 0, 0, 0, 0, 33, 20, 0, 0, 0, 0, 0, 0, 0, 45, 17, 0, 0, 0, 48, 18]
-
     bytes = ProtobufWriter.encodeToByteArray(visitor -> ProtoWriter.emit(msg, visitor));
     UnknownProto.Message protoMsg = UnknownProto.Message.parseFrom(bytes);
     String stringUtf8 = protoMsg.getUnknownFields().getField(2).getLengthDelimitedList().get(0).toStringUtf8();

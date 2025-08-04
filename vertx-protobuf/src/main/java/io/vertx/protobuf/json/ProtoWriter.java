@@ -18,7 +18,9 @@ public class ProtoWriter {
     Map<String, Object> map = json.getMap();
     for (Map.Entry<String, Object> entry : map.entrySet()) {
       visitor.enter(SchemaLiterals.Struct.fields); // fields
+      visitor.enter(SchemaLiterals.FieldsEntry.key);
       visitor.visitString(SchemaLiterals.FieldsEntry.key, entry.getKey());
+      visitor.leave(SchemaLiterals.FieldsEntry.key);
       visitor.enter(SchemaLiterals.FieldsEntry.value);
       visitValueInternal(entry.getValue(), visitor);
       visitor.leave(SchemaLiterals.FieldsEntry.value);
@@ -44,7 +46,9 @@ public class ProtoWriter {
     if (value == null) {
       visitor.visitVarInt32(SchemaLiterals.Value.null_value, 0);
     } else if (value instanceof String) {
+      visitor.enter(SchemaLiterals.Value.string_value);
       visitor.visitString(SchemaLiterals.Value.string_value, (String) value);
+      visitor.leave(SchemaLiterals.Value.string_value);
     } else if (value instanceof Boolean) {
       visitor.visitVarInt32(SchemaLiterals.Value.bool_value, ((Boolean) value) ? 1 : 0);
     } else if (value instanceof Number) {

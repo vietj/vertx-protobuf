@@ -65,7 +65,9 @@ public class MapTest {
       visitor.init(SchemaLiterals.MessageLiteral.MapKeyVariant);
       visitor.enter(mapField);
       visitor.visitVarInt32(((MessageType)mapField.type()).field(2), 4);
+      visitor.enter(((MessageType) mapField.type()).field(1));
       visitor.visitString(((MessageType)mapField.type()).field(1), "string-value");
+      visitor.leave(((MessageType) mapField.type()).field(1));
       visitor.leave(mapField);
     });
     ProtoReader reader = new ProtoReader();

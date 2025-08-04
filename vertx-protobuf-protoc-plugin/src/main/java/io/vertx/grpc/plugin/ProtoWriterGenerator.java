@@ -15,10 +15,12 @@ class ProtoWriterGenerator {
     final String visitMethod;
     final Function<String, String> fn;
     final Descriptors.FieldDescriptor.Type type;
+    final boolean lengthDelimited;
     Bilto(String visitMethod, Function<String, String> fn, Descriptors.FieldDescriptor.Type type) {
       this.visitMethod = visitMethod;
       this.fn = fn;
       this.type = type;
+      this.lengthDelimited = (type == Descriptors.FieldDescriptor.Type.BYTES) || (type == Descriptors.FieldDescriptor.Type.STRING) || (type == Descriptors.FieldDescriptor.Type.MESSAGE);
     }
     Bilto(String visitMethod, Descriptors.FieldDescriptor.Type type) {
       this(visitMethod, Function.identity(), type);
@@ -236,7 +238,9 @@ class ProtoWriterGenerator {
         "          io.vertx.protobuf.schema.Field field = unknownField.getKey();",
         "          switch (field.type().wireType()) {",
         "            case LEN:",
+        "              visitor.enter(field);",
         "              visitor.visitBytes(field, ((io.vertx.core.buffer.Buffer)o).getBytes());",
+        "              visitor.leave(field);",
         "              break;",
         "            case I32:",
         "              visitor.visitI32(field, (Integer)o);",
@@ -269,7 +273,13 @@ class ProtoWriterGenerator {
       if (field.map) {
         content.println("      for (java.util.Map.Entry<" + field.keyJavaType + ", " + field.valueJavaType + "> entry : v.entrySet()) {");
         content.println("        visitor.enter(SchemaLiterals.FieldLiteral." + field.identifier + ");");
+        if (field.keyTypeTo.lengthDelimited) {
+          content.println("        visitor.enter(SchemaLiterals.FieldLiteral." + field.keyIdentifier + ");");
+        }
         content.println("        visitor." + field.keyTypeTo.visitMethod + "(SchemaLiterals.FieldLiteral." + field.keyIdentifier + ", " + field.keyTypeTo.fn.apply("entry.getKey()") + ");");
+        if (field.keyTypeTo.lengthDelimited) {
+          content.println("        visitor.leave(SchemaLiterals.FieldLiteral." + field.keyIdentifier + ");");
+        }
         if (field.valueTypeTo == null) {
           // Message
           content.println(
@@ -277,7 +287,13 @@ class ProtoWriterGenerator {
             "        visit(entry.getValue(), visitor);",
             "        visitor.leave(SchemaLiterals.FieldLiteral." + field.valueIdentifier + ");");
         } else {
+          if (field.valueTypeTo.lengthDelimited) {
+            content.println("        visitor.enter(SchemaLiterals.FieldLiteral." + field.valueIdentifier + ");");
+          }
           content.println("        visitor." + field.valueTypeTo.visitMethod + "(SchemaLiterals.FieldLiteral." + field.valueIdentifier + ", " + field.valueTypeTo.fn.apply("entry.getValue()") + ");");
+          if (field.valueTypeTo.lengthDelimited) {
+            content.println("        visitor.leave(SchemaLiterals.FieldLiteral." + field.valueIdentifier + ");");
+          }
         }
         content.println(
           "        visitor.leave(SchemaLiterals.FieldLiteral." + field.identifier + ");",
@@ -302,15 +318,26 @@ class ProtoWriterGenerator {
         if (field.packed) {
           content.println("visitor.enter(SchemaLiterals.FieldLiteral." + field.identifier + ");");
         }
-        content.println(
-          "      for (" + field.javaTypeInternal + " c : v) {",
-          "        visitor." + field.typeTo.visitMethod + "(SchemaLiterals.FieldLiteral." + field.identifier + ", " + field.typeTo.fn.apply("c") + ");",
-          "      }");
+        content.println("      for (" + field.javaTypeInternal + " c : v) {");
+        if (field.typeTo.lengthDelimited) {
+          content.println("        visitor.enter(SchemaLiterals.FieldLiteral." + field.identifier + ");");
+        }
+        content.println("        visitor." + field.typeTo.visitMethod + "(SchemaLiterals.FieldLiteral." + field.identifier + ", " + field.typeTo.fn.apply("c") + ");");
+        if (field.typeTo.lengthDelimited) {
+          content.println("        visitor.leave(SchemaLiterals.FieldLiteral." + field.identifier + ");");
+        }
+        content.println("      }");
         if (field.packed) {
           content.println("visitor.leave(SchemaLiterals.FieldLiteral." + field.identifier + ");");
         }
       } else {
+        if (field.typeTo.lengthDelimited) {
+          content.println("      visitor.enter(SchemaLiterals.FieldLiteral." + field.identifier + ");");
+        }
         content.println("      visitor." + field.typeTo.visitMethod + "(SchemaLiterals.FieldLiteral." + field.identifier + ", " + field.typeTo.fn.apply("v") + ");");
+        if (field.typeTo.lengthDelimited) {
+          content.println("      visitor.leave(SchemaLiterals.FieldLiteral." + field.identifier + ");");
+        }
       }
     }
   }

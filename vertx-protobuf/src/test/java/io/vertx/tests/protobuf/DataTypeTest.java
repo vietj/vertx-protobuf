@@ -229,7 +229,9 @@ public class DataTypeTest {
   public void testStringRecord() throws Exception {
     Buffer bytes = ProtobufWriter.encode(visitor -> {
       visitor.init(DATA_TYPE);
-      visitor.visitBytes(STRING, "hello".getBytes());
+      visitor.enter(STRING);
+      visitor.visitString(STRING, "hello");
+      visitor.leave(STRING);
       visitor.destroy();
     });
     DataTypesProto.DataTypes dataTypes = DataTypesProto.DataTypes.parseFrom(bytes.getBytes());
@@ -247,7 +249,9 @@ public class DataTypeTest {
   public void testBytesRecord() throws Exception {
     Buffer bytes = ProtobufWriter.encode(visitor -> {
       visitor.init(DATA_TYPE);
+      visitor.enter(BYTES);
       visitor.visitBytes(BYTES, "hello".getBytes());
+      visitor.leave(BYTES);
       visitor.destroy();
     });
     DataTypesProto.DataTypes dataTypes = DataTypesProto.DataTypes.parseFrom(bytes.getBytes());
