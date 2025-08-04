@@ -22,25 +22,20 @@ public class ConformanceTest {
 
   @Test
   public void testConformance() throws Exception {
-    byte[] bytes = { -126, 7, 9, 18, 7, 8, 1, 16, 1, -56, 5, 1, -126, 7, 7, 18, 5, 16, 1, -56, 5, 1 };
+    byte[] bytes = { -46, 41, 3, 97, 98, 99, -48, 41, 123, -46, 41, 3, 100, 101, 102, -48, 41, -56, 3 };
 
+    // Expected
+    // [-48, 41, 123,
+    // -48, 41, -56, 3,
+    // -46, 41, 3, 97, 98, 99,
+    // -46, 41, 3, 100, 101, 102
+    // ]
 
-    // Expected output
-    // [-126, 7,
-    //  12,
-    //     18, (corecursive)
-    //     10, (len)
-    //       8, (optional_int32)
-    //       1,
-    //       16, (optional_int64)
-    //       1,
-    //       -56, 5, (unpacked_int32)
-    //       1,
-    //       -56, 5, (unpacked_int32)
-    //       1]
-
-    // [-126, 7, 10, 18, 8, 8, 1, 16, 1, -56, 5, 1, -56, 5, 1]
-    // [-126, 7, 12, 18, 10, 8, 1, 16, 1, -56, 5, 1, -56, 5, 1];
+    // Actual
+    // [-46, 41, 3, 97, 98, 99,
+    // -46, 41, 3, 100, 101, 102,
+    // -48, 41, 123,
+    // -48, 41, -56, 3]
 
     ProtoReader reader = new ProtoReader();
     Buffer buffer = Buffer.buffer(bytes);
@@ -55,13 +50,9 @@ public class ConformanceTest {
     ProtobufReader.parse(SchemaLiterals.MessageLiteral.TestAllTypesProto3, reader, buffer);
     TestAllTypesProto3 testMessage = (TestAllTypesProto3) reader.stack.pop();
 
-    TestAllTypesProto3 corec = testMessage.getOneof_field().asOneofNestedMessage().get().getCorecursive();
-    System.out.println(corec.getOptionalInt32());
-    System.out.println(corec.getOptionalInt64());
-    System.out.println(corec.getUnpackedInt32());
-
     Buffer result = ProtobufWriter.encode(visitor -> {
       ProtoWriter.emit(testMessage, visitor);
     });
+    System.out.println("a");
   }
 }

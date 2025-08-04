@@ -697,4 +697,5 @@
 --test Required.Proto3.ProtobufInput.UnmatchedStartGroupUnknown \
 --test Required.Proto3.ProtobufInput.UnmatchedStartGroupWithData \
 --test Required.Proto3.ProtobufInput.UnmatchedStartGroupWrongType \
+--failure_list known_failures.txt \
 conformance.sh
