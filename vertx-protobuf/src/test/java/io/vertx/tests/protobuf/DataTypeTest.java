@@ -1,6 +1,8 @@
 package io.vertx.tests.protobuf;
 
+import com.google.protobuf.CodedInputStream;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.json.DecodeException;
 import io.vertx.protobuf.ProtobufReader;
 import io.vertx.protobuf.ProtobufWriter;
 import io.vertx.protobuf.schema.DefaultMessageType;
@@ -12,8 +14,7 @@ import io.vertx.tests.protobuf.datatypes.DataTypesProto;
 import io.vertx.tests.protobuf.datatypes.ProtoWriter;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class DataTypeTest {
 
@@ -33,6 +34,7 @@ public class DataTypeTest {
   private static final Field FIXED64 = DATA_TYPE.addField(12, ScalarType.FIXED64);
   private static final Field SFIXED32 = DATA_TYPE.addField(13, ScalarType.SFIXED32);
   private static final Field SFIXED64 = DATA_TYPE.addField(14, ScalarType.SFIXED64);
+  private static final Field BOOL = DATA_TYPE.addField(15, ScalarType.BOOL);
 
   private void testDataType(RecordingVisitor visitor, DataTypesProto.DataTypes expected) throws Exception {
     byte[] bytes = expected.toByteArray();
@@ -263,5 +265,15 @@ public class DataTypeTest {
     });
     dataTypes = DataTypesProto.DataTypes.parseFrom(bytes.getBytes());
     assertEquals("hello", dataTypes.getBytes().toStringUtf8());
+  }
+
+  @Test
+  public void testReadOversizedBoolean() throws Exception {
+    byte[] data = { 120, -128, -128, -128, -128, -128, -128, -128, -128, -128, 1 };
+    RecordingVisitor visitor = new RecordingVisitor();
+    ProtobufReader.parse(DATA_TYPE, visitor, Buffer.buffer(data));
+    RecordingVisitor.Checker checker = visitor.checker();
+    checker.init(DATA_TYPE);
+    checker.visitBool(BOOL, true);
   }
 }

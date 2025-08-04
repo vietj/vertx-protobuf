@@ -26,9 +26,6 @@ public interface RecordVisitor {
       case SINT32:
         visitSInt32(field, decodeSInt32(v));
         break;
-      case BOOL:
-        visitBool(field, v != 0);
-        break;
       case ENUM:
         visitEnum(field, v);
         break;
@@ -49,10 +46,6 @@ public interface RecordVisitor {
     visitVarInt32(field, encodeSInt32(v));
   }
 
-  default void visitBool(Field field, boolean v) {
-    visitVarInt32(field, v ? 1 : 0);
-  }
-
   default void visitEnum(Field field, int number) {
     visitInt32(field, number);
   }
@@ -70,6 +63,9 @@ public interface RecordVisitor {
       case SINT64:
         visitSInt64(field, decodeSInt64(v));
         break;
+      case BOOL:
+        visitBool(field, v != 0);
+        break;
       default:
         throw new IllegalArgumentException();
     }
@@ -85,6 +81,10 @@ public interface RecordVisitor {
 
   default void visitSInt64(Field field, long v) {
     visitVarInt64(field, encodeSInt64(v));
+  }
+
+  default void visitBool(Field field, boolean v) {
+    visitVarInt64(field, v ? 1 : 0);
   }
 
   // I64

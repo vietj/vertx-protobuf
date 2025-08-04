@@ -20,4 +20,5 @@ message DataTypes {
   fixed64 fixed64 = 12;
   sfixed32 sfixed32 = 13;
   sfixed64 sfixed64 = 14;
+  bool bool = 15;
 }

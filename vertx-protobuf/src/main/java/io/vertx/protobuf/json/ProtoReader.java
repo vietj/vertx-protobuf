@@ -23,18 +23,15 @@ public class ProtoReader implements RecordVisitor {
   }
 
   @Override
+  public void visitBool(Field field, boolean v) {
+    visitValue(v);
+  }
+
+  @Override
   public void visitVarInt32(Field field, int v) {
     if (field == SchemaLiterals.Value.null_value) {
       // NULL
       visitValue(null);
-    } else if (field == SchemaLiterals.Value.bool_value) {
-      if (v == 1) {
-        visitValue(true);
-      } else if (v == 0) {
-        visitValue(false);
-      } else {
-        throw new DecodeException();
-      }
     } else {
       throw new UnsupportedOperationException();
     }

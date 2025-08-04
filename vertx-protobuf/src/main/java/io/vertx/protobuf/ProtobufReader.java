@@ -45,8 +45,11 @@ public class ProtobufReader {
 
   private static void parseVarInt(ProtobufDecoder decoder, Field field, RecordVisitor visitor) {
     switch (field.type().id()) {
-      case SINT32:
       case BOOL:
+        assertTrue(decoder.readVarInt64());
+        visitor.visitVarInt64(field, decoder.longValue());
+        break;
+      case SINT32:
       case ENUM:
       case UINT32:
       case INT32:
@@ -174,6 +177,9 @@ public class ProtobufReader {
     while (decoder.isReadable()) {
       assertTrue(decoder.readTag());
       int fieldNumber  = decoder.fieldNumber();
+      if (fieldNumber == 0) {
+        throw new DecodeException();
+      }
       int decodedWireType = decoder.wireType();
       Field field = type.field(fieldNumber);
       WireType wireType = wireTypes[decodedWireType];

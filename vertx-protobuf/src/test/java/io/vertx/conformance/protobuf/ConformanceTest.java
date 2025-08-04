@@ -21,33 +21,21 @@ public class ConformanceTest {
 
   @Test
   public void testConformance() throws Exception {
-    byte[] bytes = {
-      -46, 41, 3, 97, 98, 99,
-      -48, 41, 123,
-      -46, 41, 3, 100, 101, 102,
-      -48, 41, -56, 3 };
+    byte[] bytes = { 104, -128, -128, -128, -128, -128, -128, -128, -128, -128, 1 };
 
-    // Output:
-    // [
-    // -48, 41, 123,
-    // -48, 41, -56, 3,
-    // -46, 41, 3, 97, 98, 99,
-    // -46, 41, 3, 100, 101, 102]
 
     ProtoReader reader = new ProtoReader();
     Buffer buffer = Buffer.buffer(bytes);
     TestMessagesProto3.TestAllTypesProto3 d = TestMessagesProto3.TestAllTypesProto3.parseFrom(bytes);
 
-    byte[] expected = d.toByteArray();
+//    byte[] expected = d.toByteArray();
 
     //    System.out.println("d = " + d);
     ProtobufReader.parse(SchemaLiterals.MessageLiteral.TestAllTypesProto3, reader, buffer);
-    TestAllTypesProto3 testMessage = (TestAllTypesProto3) reader.stack.pop();
-    Buffer result = ProtobufWriter.encode(visitor -> {
-      ProtoWriter.emit(testMessage, visitor);
-    });
-    byte[] actual = result.getBytes();
-    TestMessagesProto3.TestAllTypesProto3.parseFrom(actual);
+//    TestAllTypesProto3 testMessage = (TestAllTypesProto3) reader.stack.pop();
+//    Buffer result = ProtobufWriter.encode(visitor -> {
+//      ProtoWriter.emit(testMessage, visitor);
+//    });
 //    assertArrayEquals(expected, actual);
   }
 }

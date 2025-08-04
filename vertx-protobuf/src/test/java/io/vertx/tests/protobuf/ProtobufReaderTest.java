@@ -16,33 +16,20 @@ public class ProtobufReaderTest {
 
   @Test
   public void testReadInvalidTagWireType() {
-
     byte[] data = { 8 + 4 };
+    testInvalidInput(data);
+  }
+
+  @Test
+  public void testReadInvalidTagNumberType() {
+    byte[] data = { 1 };
+    testInvalidInput(data);
+  }
+
+  private void testInvalidInput(byte[] data) {
     DefaultMessageType msg = new DefaultMessageType("whatever");
     msg.addField(1, ScalarType.STRING);
-    RecordVisitor visitor = new RecordVisitor() {
-      @Override
-      public void init(MessageType type) {
-      }
-      @Override
-      public void visitVarInt32(Field field, int v) {
-      }
-      @Override
-      public void visitString(Field field, String s) {
-      }
-      @Override
-      public void visitBytes(Field field, byte[] bytes) {
-      }
-      @Override
-      public void enter(Field field) {
-      }
-      @Override
-      public void leave(Field field) {
-      }
-      @Override
-      public void destroy() {
-      }
-    };
+    RecordingVisitor visitor = new RecordingVisitor();
     try {
       ProtobufReader.parse(msg, visitor, Buffer.buffer(data));
       fail();

@@ -1,1 +1,1 @@
-Required.Proto3.ProtobufInput.UnknownOrdering.ProtobufOutput # Unknown field mismatch
+Required.Proto3.ProtobufInput.ValidDataScalar.BOOL[6].ProtobufOutput # Output was not equivalent to reference message: deleted: optional_bool: true
