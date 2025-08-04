@@ -22,8 +22,10 @@ public class ConformanceTest {
   @Test
   public void testConformance() throws Exception {
     byte[] bytes = {
-       -110, 4, 7, 21, 0, 0, -128, 63, 8, 1
-    };
+      -46, 41, 3, 97, 98, 99,
+      -48, 41, 123,
+      -46, 41, 3, 100, 101, 102,
+      -48, 41, -56, 3 };
 
     // Input :     [-110, 4, 7, 21, 0, 0, -128, 63, 8, 1]
     // Actual :    [-110, 4, 6, 8, 1, 21, 0, 0, -128, 63]
@@ -38,11 +40,10 @@ public class ConformanceTest {
     ProtoReader reader = new ProtoReader();
     Buffer buffer = Buffer.buffer(bytes);
     TestMessagesProto3.TestAllTypesProto3 d = TestMessagesProto3.TestAllTypesProto3.parseFrom(bytes);
-    Map.Entry<Integer, Float> entry = d.getMapInt32FloatMap().entrySet().iterator().next();
-    System.out.println(entry.getKey());
-    System.out.println(entry.getValue());
+
     byte[] expected = d.toByteArray();
-//    System.out.println("d = " + d);
+
+    //    System.out.println("d = " + d);
     ProtobufReader.parse(SchemaLiterals.MessageLiteral.TestAllTypesProto3, reader, buffer);
     TestAllTypesProto3 testMessage = (TestAllTypesProto3) reader.stack.pop();
     Buffer result = ProtobufWriter.encode(visitor -> {

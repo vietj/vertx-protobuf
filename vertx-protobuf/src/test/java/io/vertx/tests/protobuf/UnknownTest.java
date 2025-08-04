@@ -15,13 +15,17 @@ public class UnknownTest {
   @Test
   public void testUnknownLengthDelimited() throws Exception {
     byte[] bytes = UnknownProto.Message.newBuilder()
-      .setUnknownFields(UnknownFieldSet.newBuilder().addField(2, UnknownFieldSet.Field.newBuilder().addLengthDelimited(ByteString.copyFromUtf8("HelloWorld")).build()).build())
-      .build().toByteArray();
+      .setUnknownFields(UnknownFieldSet.newBuilder()
+        .addField(2, UnknownFieldSet.Field.newBuilder().addLengthDelimited(ByteString.copyFromUtf8("Hello")).build())
+        .addField(3, UnknownFieldSet.Field.newBuilder().addLengthDelimited(ByteString.copyFromUtf8("World")).build())
+        .build()
+      ).build().toByteArray();
     RecordingVisitor visitor = new RecordingVisitor();
     ProtobufReader.parse(SchemaLiterals.MessageLiteral.Message, visitor, visitor, Buffer.buffer(bytes));
     RecordingVisitor.Checker checker = visitor.checker();
     checker.init(SchemaLiterals.MessageLiteral.Message);
-    checker.visitUnknownLengthDelimited(SchemaLiterals.MessageLiteral.Message, 2, Buffer.buffer("HelloWorld"));
+    checker.visitUnknownLengthDelimited(SchemaLiterals.MessageLiteral.Message, 2, Buffer.buffer("Hello"));
+    checker.visitUnknownLengthDelimited(SchemaLiterals.MessageLiteral.Message, 3, Buffer.buffer("World"));
     checker.destroy();
     assertTrue(checker.isEmpty());
   }

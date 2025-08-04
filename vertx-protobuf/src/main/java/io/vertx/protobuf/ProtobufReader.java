@@ -68,7 +68,6 @@ public class ProtobufReader {
     int len = decoder.intValue();
     byte[] data = decoder.readBytes(len);
     unknownFieldHandler.visitUnknownLengthDelimited(messageType, fieldNumber, Buffer.buffer(data));
-    decoder.skip(len);
   }
 
   private static void parseI32(ProtobufDecoder decoder, MessageType messageType, int fieldNumber, UnknownRecordVisitor unknownFieldHandler) {
