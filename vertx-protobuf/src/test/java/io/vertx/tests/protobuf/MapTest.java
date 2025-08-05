@@ -95,10 +95,10 @@ public class MapTest {
     testEmptyMapValueVariant(SchemaLiterals.FieldLiteral.MapKeyVariant_bool, MapValueVariant::getBoolV, false);
     testEmptyMapValueVariant(SchemaLiterals.FieldLiteral.MapValueVariant__enum_v, MapValueVariant::getEnumV, Enum.constant_0);
     testEmptyMapValueVariant(SchemaLiterals.FieldLiteral.MapValueVariant_fixed64_v, MapValueVariant::getFixed64V, 0L);
-//    testEmptyMapValueVariant(SchemaLiterals.FieldLiteral.MapValueVariant_fixed64_v, MapValueVariant::getSfixed64V, 0L);
+    testEmptyMapValueVariant(SchemaLiterals.FieldLiteral.MapValueVariant_sfixed64_v, MapValueVariant::getSfixed64V, 0L);
     testEmptyMapValueVariant(SchemaLiterals.FieldLiteral.MapValueVariant__double_v, MapValueVariant::getDoubleV, 0D);
     testEmptyMapValueVariant(SchemaLiterals.FieldLiteral.MapValueVariant_fixed32_v, MapValueVariant::getFixed32V, 0);
-//    testEmptyMapValueVariant(SchemaLiterals.FieldLiteral.MapValueVariant_fixed32_v, MapValueVariant::getSfixed32V, 0);
+    testEmptyMapValueVariant(SchemaLiterals.FieldLiteral.MapValueVariant_sfixed32_v, MapValueVariant::getSfixed32V, 0);
     testEmptyMapValueVariant(SchemaLiterals.FieldLiteral.MapValueVariant__float_v, MapValueVariant::getFloatV, 0F);
     this.<Value>testEmptyMapValueVariant(SchemaLiterals.FieldLiteral.MapValueVariant__message_v, MapValueVariant::getMessageV, Assert::assertNotNull);
   }
