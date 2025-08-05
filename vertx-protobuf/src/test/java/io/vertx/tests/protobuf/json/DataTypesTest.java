@@ -18,9 +18,8 @@ public class DataTypesTest extends DataTypeTestBase {
   @Override
   protected void testDataType(RecordingVisitor visitor, MessageType messageType, MessageLite expected) throws Exception {
     String json = JsonFormat.printer().print((MessageOrBuilder) expected);
-    JsonParser parser = JacksonCodec.createParser(json);
     RecordingVisitor.Checker checker = visitor.checker();
-    JsonReader.parse(parser, messageType, checker);
+    JsonReader.parse(json, messageType, checker);
     assertTrue(checker.isEmpty());
 //    bytes = ProtobufWriter.encode(visitor::apply).getBytes();
 //    assertEquals(expected, DataTypesProto.ScalarTypes.parseFrom(bytes));

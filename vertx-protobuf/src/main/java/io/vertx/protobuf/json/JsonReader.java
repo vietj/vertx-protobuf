@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.core.JsonTokenId;
 import io.vertx.core.json.DecodeException;
+import io.vertx.core.json.jackson.JacksonCodec;
 import io.vertx.protobuf.RecordVisitor;
 import io.vertx.protobuf.schema.EnumType;
 import io.vertx.protobuf.schema.Field;
@@ -17,6 +18,18 @@ import java.util.Objects;
 import java.util.OptionalInt;
 
 public class JsonReader {
+
+  public static void parse(String json, MessageType messageType, RecordVisitor visitor) {
+    JsonParser parser = JacksonCodec.createParser(json);
+    try {
+      parse(parser, messageType, visitor);
+    } finally {
+      try {
+        parser.close();
+      } catch (IOException ignore) {
+      }
+    }
+  }
 
   public static void parse(JsonParser parser, MessageType messageType, RecordVisitor visitor) throws DecodeException {
 

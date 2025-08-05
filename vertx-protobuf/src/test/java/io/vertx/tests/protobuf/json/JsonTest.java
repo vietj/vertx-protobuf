@@ -2,9 +2,6 @@ package io.vertx.tests.protobuf.json;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.google.protobuf.util.JsonFormat;
-import io.vertx.core.json.Json;
-import io.vertx.core.json.jackson.JacksonCodec;
-import io.vertx.core.spi.json.JsonCodec;
 import io.vertx.protobuf.json.JsonReader;
 import io.vertx.tests.protobuf.ProtoReader;
 import io.vertx.tests.protobuf.SchemaLiterals;
@@ -21,18 +18,16 @@ public class JsonTest {
   @Test
   public void testSimple() throws Exception {
 
-    String res = JsonFormat.printer().print(TestProto.SimpleMessage.newBuilder()
+    String json = JsonFormat.printer().print(TestProto.SimpleMessage.newBuilder()
       .setStringField("the-string")
       .setInt32Field(4)
       .addStringListField("s1")
       .addStringListField("s2")
       .build());
 
-    JsonParser parser = JacksonCodec.createParser(res);
-
     ProtoReader pr = new ProtoReader();
 
-    JsonReader.parse(parser, SchemaLiterals.MessageLiteral.SimpleMessage, pr);
+    JsonReader.parse(json, SchemaLiterals.MessageLiteral.SimpleMessage, pr);
 
     SimpleMessage pop = (SimpleMessage) pr.stack.pop();
 

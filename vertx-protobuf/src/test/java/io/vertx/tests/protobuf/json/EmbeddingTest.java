@@ -20,9 +20,8 @@ public class EmbeddingTest {
   public void testEmbedding() throws Exception {
     EmbeddingProto.Container expected = EmbeddingProto.Container.newBuilder().setEmbedded(EmbeddingProto.Embedded.newBuilder().setValue(4).build()).build();
     String json = JsonFormat.printer().print(expected);
-    JsonParser parser = JacksonCodec.createParser(json);
     ProtoReader visitor = new ProtoReader();
-    JsonReader.parse(parser, SchemaLiterals.MessageLiteral.Container, visitor);
+    JsonReader.parse(json, SchemaLiterals.MessageLiteral.Container, visitor);
     Container container = (Container) visitor.stack.pop();
     assertNotNull(container.getEmbedded());
     assertEquals(4, (int)container.getEmbedded().getValue());
@@ -35,9 +34,8 @@ public class EmbeddingTest {
       .addRepeated(EmbeddingProto.Embedded.newBuilder().setValue(6).build())
       .build();
     String json = JsonFormat.printer().print(expected);
-    JsonParser parser = JacksonCodec.createParser(json);
     ProtoReader visitor = new ProtoReader();
-    JsonReader.parse(parser, SchemaLiterals.MessageLiteral.Container, visitor);
+    JsonReader.parse(json, SchemaLiterals.MessageLiteral.Container, visitor);
     Container container = (Container) visitor.stack.pop();
     assertNotNull(container.getRepeated());
     assertEquals(2, container.getRepeated().size());
