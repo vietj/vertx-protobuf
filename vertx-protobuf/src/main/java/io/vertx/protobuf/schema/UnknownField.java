@@ -43,6 +43,11 @@ class UnknownField implements Field, Type {
   }
 
   @Override
+  public String jsonName() {
+    return null;
+  }
+
+  @Override
   public WireType wireType() {
     return wireType;
   }

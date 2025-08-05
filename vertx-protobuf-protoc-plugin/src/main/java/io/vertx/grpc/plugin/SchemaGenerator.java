@@ -222,6 +222,9 @@ class SchemaGenerator {
     writer.println("    public int number() {");
     writer.println("      return number;");
     writer.println("    }");
+    writer.println("    public String jsonName() {");
+    writer.println("      return jsonName;");
+    writer.println("    }");
     writer.println("    public boolean isRepeated() {");
     writer.println("      return repeated;");
     writer.println("    }");
