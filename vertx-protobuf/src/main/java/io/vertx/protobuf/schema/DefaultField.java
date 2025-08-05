@@ -1,14 +1,18 @@
 package io.vertx.protobuf.schema;
 
+import java.util.Objects;
+
 public class DefaultField implements Field {
 
-  private final MessageType owner;
+  private final DefaultMessageType owner;
   private final int number;
+  private final String name;
   private final Type type;
 
-  public DefaultField(MessageType owner, int number, Type type) {
+  DefaultField(DefaultMessageType owner, int number, String name, Type type) {
     this.owner = owner;
     this.number = number;
+    this.name = name;
     this.type = type;
   }
 

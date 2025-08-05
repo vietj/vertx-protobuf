@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package io.vertx.tests.embedding;
+
+option java_package = "io.vertx.tests.embedding";
+option java_outer_classname = "EmbeddingProto";
+
+message Container {
+  Embedded embedded = 1;
+  repeated Embedded repeated = 2;
+}
+
+message Embedded {
+  int32 value = 100000000;
+}

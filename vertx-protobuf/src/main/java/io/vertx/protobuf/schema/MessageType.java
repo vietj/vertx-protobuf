@@ -11,7 +11,12 @@ public interface MessageType extends Type {
   }
   String name();
   Field field(int number);
-  Field field(String name);
+  default Field fieldByName(String name) {
+    return null;
+  }
+  default Field fieldByJsonName(String jsonName) {
+    return null;
+  }
   default Field unknownField(int number, WireType wireType) {
     return new UnknownField(this, number, wireType);
   }

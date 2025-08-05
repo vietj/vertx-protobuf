@@ -32,7 +32,7 @@ public class JsonTest {
 
     ProtoReader pr = new ProtoReader();
 
-    JsonReader.fromParser(parser, SchemaLiterals.MessageLiteral.SimpleMessage, pr);
+    JsonReader.parse(parser, SchemaLiterals.MessageLiteral.SimpleMessage, pr);
 
     SimpleMessage pop = (SimpleMessage) pr.stack.pop();
 

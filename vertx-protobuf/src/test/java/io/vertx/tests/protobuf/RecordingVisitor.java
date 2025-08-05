@@ -13,11 +13,33 @@ import static org.junit.Assert.*;
 
 public class RecordingVisitor implements RecordVisitor {
 
-  private static abstract class Record {
+  private static abstract class Action {
     protected abstract void apply(RecordVisitor visitor);
   }
 
-  private static class Init extends Record {
+  private static class Enter extends Action {
+    private final Field field;
+    public Enter(Field field) {
+      this.field = field;
+    }
+    @Override
+    protected void apply(RecordVisitor visitor) {
+      visitor.enter(field);
+    }
+  }
+
+  private static class Leave extends Action {
+    private final Field field;
+    public Leave(Field field) {
+      this.field = field;
+    }
+    @Override
+    protected void apply(RecordVisitor visitor) {
+      visitor.leave(field);
+    }
+  }
+
+  private static class Init extends Action {
     private final MessageType messageType;
     Init(MessageType messageType) {
       this.messageType = messageType;
@@ -28,14 +50,14 @@ public class RecordingVisitor implements RecordVisitor {
     }
   }
 
-  private static class Destroy extends Record {
+  private static class Destroy extends Action {
     @Override
     protected void apply(RecordVisitor visitor) {
       visitor.destroy();
     }
   }
 
-  private static class Float extends Record {
+  private static class Float extends Action {
     private final Field field;
     private final float value;
     Float(Field field, float value) {
@@ -48,7 +70,7 @@ public class RecordingVisitor implements RecordVisitor {
     }
   }
 
-  private static class Double extends Record {
+  private static class Double extends Action {
     private final Field field;
     private final double value;
     Double(Field field, double value) {
@@ -61,7 +83,7 @@ public class RecordingVisitor implements RecordVisitor {
     }
   }
 
-  private static class VisitInt64 extends Record {
+  private static class VisitInt64 extends Action {
     private final Field field;
     private final long value;
     VisitInt64(Field field, long value) {
@@ -74,7 +96,7 @@ public class RecordingVisitor implements RecordVisitor {
     }
   }
 
-  private static class VisitUInt64 extends Record {
+  private static class VisitUInt64 extends Action {
     private final Field field;
     private final long value;
     VisitUInt64(Field field, long value) {
@@ -87,7 +109,7 @@ public class RecordingVisitor implements RecordVisitor {
     }
   }
 
-  private static class VisitSInt64 extends Record {
+  private static class VisitSInt64 extends Action {
     private final Field field;
     private final long value;
     VisitSInt64(Field field, long value) {
@@ -100,7 +122,7 @@ public class RecordingVisitor implements RecordVisitor {
     }
   }
 
-  private static class VisitInt32 extends Record {
+  private static class VisitInt32 extends Action {
     private final Field field;
     private final int value;
     VisitInt32(Field field, int value) {
@@ -113,7 +135,7 @@ public class RecordingVisitor implements RecordVisitor {
     }
   }
 
-  private static class VisitSInt32 extends Record {
+  private static class VisitSInt32 extends Action {
     private final Field field;
     private final int value;
     VisitSInt32(Field field, int value) {
@@ -126,7 +148,7 @@ public class RecordingVisitor implements RecordVisitor {
     }
   }
 
-  private static class VisitUInt32 extends Record {
+  private static class VisitUInt32 extends Action {
     private final Field field;
     private final int value;
     VisitUInt32(Field field, int value) {
@@ -139,7 +161,7 @@ public class RecordingVisitor implements RecordVisitor {
     }
   }
 
-  private static class VisitEnum extends Record {
+  private static class VisitEnum extends Action {
     private final Field field;
     private final int value;
     VisitEnum(Field field, int value) {
@@ -152,7 +174,7 @@ public class RecordingVisitor implements RecordVisitor {
     }
   }
 
-  private static class VisitBool extends Record {
+  private static class VisitBool extends Action {
     private final Field field;
     private final boolean value;
     VisitBool(Field field, boolean value) {
@@ -165,7 +187,7 @@ public class RecordingVisitor implements RecordVisitor {
     }
   }
 
-  private static class Fixed32 extends Record {
+  private static class Fixed32 extends Action {
     private final Field field;
     private final int value;
     Fixed32(Field field, int value) {
@@ -178,7 +200,7 @@ public class RecordingVisitor implements RecordVisitor {
     }
   }
 
-  private static class Fixed64 extends Record {
+  private static class Fixed64 extends Action {
     private final Field field;
     private final long value;
     Fixed64(Field field, long value) {
@@ -191,7 +213,7 @@ public class RecordingVisitor implements RecordVisitor {
     }
   }
 
-  private static class SFixed32 extends Record {
+  private static class SFixed32 extends Action {
     private final Field field;
     private final int value;
     SFixed32(Field field, int value) {
@@ -204,7 +226,7 @@ public class RecordingVisitor implements RecordVisitor {
     }
   }
 
-  private static class SFixed64 extends Record {
+  private static class SFixed64 extends Action {
     private final Field field;
     private final long value;
     SFixed64(Field field, long value) {
@@ -217,7 +239,7 @@ public class RecordingVisitor implements RecordVisitor {
     }
   }
 
-  private static class VisitBytes extends Record {
+  private static class VisitBytes extends Action {
     private final Field field;
     private final byte[] bytes;
     public VisitBytes(Field field, byte[] bytes) {
@@ -226,146 +248,146 @@ public class RecordingVisitor implements RecordVisitor {
     }
     @Override
     protected void apply(RecordVisitor visitor) {
-      throw new UnsupportedOperationException("TODO");
+      visitor.visitBytes(field, bytes.clone());
     }
   }
 
-  private static class UnknownVarInt extends Record {
+  private static class VisitString extends Action {
     private final Field field;
-    private final long value;
-    public UnknownVarInt(Field field, long value) {
+    private final String s;
+    public VisitString(Field field, String s) {
       this.field = field;
-      this.value = value;
+      this.s = s;
     }
     @Override
     protected void apply(RecordVisitor visitor) {
-      throw new UnsupportedOperationException("TODO");
+      visitor.visitString(field, s);
     }
   }
 
-  private List<Record> records = new ArrayList<>();
+  private List<Action> log = new ArrayList<>();
 
   @Override
   public void init(MessageType type) {
-    records.add(new Init(type));
+    log.add(new Init(type));
   }
 
   @Override
   public void visitInt32(Field field, int v) {
-    records.add(new VisitInt32(field, v));
+    log.add(new VisitInt32(field, v));
   }
 
   @Override
   public void visitUInt32(Field field, int v) {
-    records.add(new VisitUInt32(field, v));
+    log.add(new VisitUInt32(field, v));
   }
 
   @Override
   public void visitSInt32(Field field, int v) {
-    records.add(new VisitSInt32(field, v));
+    log.add(new VisitSInt32(field, v));
   }
 
   @Override
   public void visitBool(Field field, boolean v) {
-    records.add(new VisitBool(field, v));
+    log.add(new VisitBool(field, v));
   }
 
   @Override
   public void visitEnum(Field field, int number) {
-    records.add(new VisitEnum(field, number));
+    log.add(new VisitEnum(field, number));
   }
 
   @Override
   public void visitInt64(Field field, long v) {
-    records.add(new VisitInt64(field, v));
+    log.add(new VisitInt64(field, v));
   }
 
   @Override
   public void visitUInt64(Field field, long v) {
-    records.add(new VisitUInt64(field, v));
+    log.add(new VisitUInt64(field, v));
   }
 
   @Override
   public void visitSInt64(Field field, long v) {
-    records.add(new VisitSInt64(field, v));
+    log.add(new VisitSInt64(field, v));
   }
 
   @Override
   public void visitString(Field field, String s) {
-    throw new UnsupportedOperationException();
+    log.add(new VisitString(field, s));
   }
 
   @Override
   public void visitBytes(Field field, byte[] bytes) {
-    records.add(new VisitBytes(field, bytes));
+    log.add(new VisitBytes(field, bytes));
   }
 
   @Override
   public void visitFloat(Field field, float f) {
-    records.add(new Float(field, f));
+    log.add(new Float(field, f));
   }
 
   @Override
   public void visitDouble(Field field, double d) {
-    records.add(new Double(field, d));
+    log.add(new Double(field, d));
   }
 
   @Override
   public void visitFixed32(Field field, int v) {
-    records.add(new Fixed32(field, v));
+    log.add(new Fixed32(field, v));
   }
 
   @Override
   public void visitFixed64(Field field, long v) {
-    records.add(new Fixed64(field, v));
+    log.add(new Fixed64(field, v));
   }
 
   @Override
   public void visitSFixed32(Field field, int v) {
-    records.add(new SFixed32(field, v));
+    log.add(new SFixed32(field, v));
   }
 
   @Override
   public void visitSFixed64(Field field, long v) {
-    records.add(new SFixed64(field, v));
+    log.add(new SFixed64(field, v));
   }
 
   @Override
   public void enter(Field field) {
-
+    log.add(new Enter(field));
   }
 
   @Override
   public void leave(Field field) {
-
+    log.add(new Leave(field));
   }
 
   @Override
   public void destroy() {
-    records.add(new Destroy());
+    log.add(new Destroy());
   }
 
   public void apply(RecordVisitor visitor) {
-    for (Record record : records) {
-      record.apply(visitor);
+    for (Action action : log) {
+      action.apply(visitor);
     }
   }
 
   public Checker checker() {
-    Deque<Record> records = new ArrayDeque<>(RecordingVisitor.this.records);
-    return new Checker(records);
+    Deque<Action> log = new ArrayDeque<>(RecordingVisitor.this.log);
+    return new Checker(log);
   }
 
   public static class Checker implements RecordVisitor {
 
-    private final Deque<Record> expectations;
+    private final Deque<Action> expectations;
 
-    public Checker(Deque<Record> expectations) {
+    public Checker(Deque<Action> expectations) {
       this.expectations = expectations;
     }
 
-    private <E extends Record> E expecting(Class<E> type) {
-      Record expectation = expectations.poll();
+    private <E extends Action> E expecting(Class<E> type) {
+      Action expectation = expectations.poll();
       assertNotNull(expectation);
       assertTrue("Expecting an instance of " + type.getName() + " instead of " + expectation.getClass().getName(), type.isInstance(expectation));
       return type.cast(expectation);
@@ -434,7 +456,9 @@ public class RecordingVisitor implements RecordVisitor {
 
     @Override
     public void visitString(Field field, String s) {
-      throw new UnsupportedOperationException();
+      VisitString expectation = expecting(VisitString.class);
+      assertEquals(expectation.field, field);
+      assertEquals(expectation.s, s);
     }
 
     @Override
@@ -481,12 +505,14 @@ public class RecordingVisitor implements RecordVisitor {
 
     @Override
     public void enter(Field field) {
-      throw new UnsupportedOperationException();
+      Enter enter = expecting(Enter.class);
+      assertEquals(enter.field, field);
     }
 
     @Override
     public void leave(Field field) {
-      throw new UnsupportedOperationException();
+      Leave leave = expecting(Leave.class);
+      assertEquals(leave.field, field);
     }
 
     @Override

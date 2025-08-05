@@ -22,3 +22,12 @@ message ScalarTypes {
   string string = 14;
   bytes bytes = 15;
 }
+message EnumTypes {
+  Enum _enum = 1;
+}
+enum Enum {
+  zero = 0;
+  one = 1;
+  two = 2;
+  three = 3;
+}

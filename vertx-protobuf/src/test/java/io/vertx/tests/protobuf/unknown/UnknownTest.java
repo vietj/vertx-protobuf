@@ -5,6 +5,7 @@ import com.google.protobuf.UnknownFieldSet;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.protobuf.ProtobufReader;
 import io.vertx.protobuf.ProtobufWriter;
+import io.vertx.protobuf.schema.Field;
 import io.vertx.protobuf.schema.WireType;
 import io.vertx.tests.protobuf.RecordingVisitor;
 import org.junit.Test;
@@ -30,8 +31,14 @@ public class UnknownTest {
     ProtobufReader.parse(SchemaLiterals.MessageLiteral.Message, visitor, Buffer.buffer(bytes));
     RecordingVisitor.Checker checker = visitor.checker();
     checker.init(SchemaLiterals.MessageLiteral.Message);
-    checker.visitBytes(SchemaLiterals.MessageLiteral.Message.unknownField(2, WireType.LEN), "Hello".getBytes(StandardCharsets.UTF_8));
-    checker.visitBytes(SchemaLiterals.MessageLiteral.Message.unknownField(3, WireType.LEN), "World".getBytes(StandardCharsets.UTF_8));
+    Field uf2 = SchemaLiterals.MessageLiteral.Message.unknownField(2, WireType.LEN);
+    checker.enter(uf2);
+    checker.visitBytes(uf2, "Hello".getBytes(StandardCharsets.UTF_8));
+    checker.leave(uf2);
+    Field uf3 = SchemaLiterals.MessageLiteral.Message.unknownField(3, WireType.LEN);
+    checker.enter(uf3);
+    checker.visitBytes(uf3, "World".getBytes(StandardCharsets.UTF_8));
+    checker.leave(uf3);
     checker.destroy();
     assertTrue(checker.isEmpty());
   }

@@ -5,7 +5,9 @@ import com.google.protobuf.compiler.PluginProtos;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 class SchemaGenerator {
 
@@ -15,6 +17,17 @@ class SchemaGenerator {
   public SchemaGenerator(String javaPkgFqn, List<Descriptors.Descriptor> fileDesc) {
     this.javaPkgFqn = javaPkgFqn;
     this.fileDesc = fileDesc;
+  }
+
+  public static class EnumTypeDeclaration {
+
+    public final String name;
+    public final Map<Integer, String> numberToIdentifier;
+
+    public EnumTypeDeclaration(String name) {
+      this.name = name;
+      this.numberToIdentifier = new LinkedHashMap<>();
+    }
   }
 
   public static class MessageTypeDeclaration {
@@ -54,6 +67,7 @@ class SchemaGenerator {
   PluginProtos.CodeGeneratorResponse.File generate() {
     List<MessageTypeDeclaration> list = new ArrayList<>();
     List<FieldDeclaration> list2 = new ArrayList<>();
+    Map<Descriptors.EnumDescriptor, EnumTypeDeclaration> list3 = new LinkedHashMap<>();
     fileDesc.forEach(messageType -> {
       list.add(new MessageTypeDeclaration(Utils.schemaIdentifier(messageType), messageType.getName()));
       messageType.getFields().forEach(field -> {
@@ -75,7 +89,7 @@ class SchemaGenerator {
             typeExpr = "ScalarType.STRING";
             break;
           case ENUM:
-            typeExpr = "new DefaultEnumType()";
+            typeExpr = Utils.javaTypeOfInternal(field) + ".TYPE";
             break;
           case BYTES:
             typeExpr = "ScalarType.BYTES";
@@ -117,8 +131,19 @@ class SchemaGenerator {
             return;
         }
         list2.add(new FieldDeclaration(identifier, field.getName(), field.isRepeated(), field.getJsonName(), messageTypeRef, number, field.getContainingType().getName(), typeExpr));
+        if (field.getType() == Descriptors.FieldDescriptor.Type.ENUM) {
+          Descriptors.EnumDescriptor enumType = field.getEnumType();
+          if (!list3.containsKey(enumType)) {
+            EnumTypeDeclaration decl = new EnumTypeDeclaration(enumType.getName());
+            list3.put(enumType, decl);
+            enumType.getValues().forEach(value -> {
+              decl.numberToIdentifier.put(value.getNumber(), value.getName());
+            });
+          }
+        }
       });
     });
+
 
     GenWriter writer = new GenWriter();
 
@@ -156,7 +181,7 @@ class SchemaGenerator {
     writer.println("    public Field field(int number) {");
     writer.println("      return byNumber.get(number);");
     writer.println("    }");
-    writer.println("    public Field field(String name) {");
+    writer.println("    public Field fieldByJsonName(String name) {");
     writer.println("      return byJsonName.get(name);");
     writer.println("    }");
     writer.println("    static {");

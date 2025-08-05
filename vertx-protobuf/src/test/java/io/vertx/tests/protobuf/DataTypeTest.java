@@ -1,278 +1,32 @@
 package io.vertx.tests.protobuf;
 
+import com.google.protobuf.MessageLite;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.protobuf.ProtobufReader;
 import io.vertx.protobuf.ProtobufWriter;
-import io.vertx.protobuf.schema.DefaultMessageType;
-import io.vertx.protobuf.schema.DefaultSchema;
-import io.vertx.protobuf.schema.Field;
-import io.vertx.protobuf.schema.ScalarType;
-import io.vertx.tests.protobuf.datatypes.ScalarTypes;
-import io.vertx.tests.protobuf.datatypes.ProtoWriter;
-import io.vertx.tests.protobuf.datatypes.DataTypesProto;
+import io.vertx.protobuf.schema.MessageType;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
 
-public class DataTypeTest {
+public class DataTypeTest extends DataTypeTestBase {
 
-  private static final DefaultSchema SCHEMA = new DefaultSchema();
-  private static final DefaultMessageType DATA_TYPE = SCHEMA.of("DataType");
-
-  private static final Field INT32 = DATA_TYPE.addField(1, ScalarType.INT32);
-  private static final Field UINT32 = DATA_TYPE.addField(2, ScalarType.UINT32);
-  private static final Field SINT32 = DATA_TYPE.addField(3, ScalarType.SINT32);
-  private static final Field INT64 = DATA_TYPE.addField(4, ScalarType.INT64);
-  private static final Field UINT64 = DATA_TYPE.addField(5, ScalarType.UINT64);
-  private static final Field SINT64 = DATA_TYPE.addField(6, ScalarType.SINT64);
-  private static final Field BOOL = DATA_TYPE.addField(7, ScalarType.BOOL);
-  private static final Field FIXED32 = DATA_TYPE.addField(8, ScalarType.FIXED32);
-  private static final Field SFIXED32 = DATA_TYPE.addField(9, ScalarType.SFIXED32);
-  private static final Field FLOAT = DATA_TYPE.addField(10, ScalarType.FLOAT);
-  private static final Field FIXED64 = DATA_TYPE.addField(11, ScalarType.FIXED64);
-  private static final Field SFIXED64 = DATA_TYPE.addField(12, ScalarType.SFIXED64);
-  private static final Field DOUBLE = DATA_TYPE.addField(13, ScalarType.DOUBLE);
-  private static final Field STRING = DATA_TYPE.addField(14, ScalarType.STRING);
-  private static final Field BYTES = DATA_TYPE.addField(15, ScalarType.BYTES);
-
-  private void testDataType(RecordingVisitor visitor, DataTypesProto.ScalarTypes expected) throws Exception {
+  protected void testDataType(RecordingVisitor visitor, MessageType messageType, MessageLite expected) throws Exception {
     byte[] bytes = expected.toByteArray();
     RecordingVisitor.Checker checker = visitor.checker();
-    ProtobufReader.parse(DATA_TYPE, checker, Buffer.buffer(bytes));
+    ProtobufReader.parse(messageType, checker, Buffer.buffer(bytes));
     assertTrue(checker.isEmpty());
     bytes = ProtobufWriter.encode(visitor::apply).getBytes();
-    assertEquals(expected, DataTypesProto.ScalarTypes.parseFrom(bytes));
-  }
-
-  @Test
-  public void testFloat() throws Exception {
-    testFloat(4);
-    testFloat(-4);
-    testFloat(Float.MAX_VALUE);
-    testFloat(Float.MIN_VALUE);
-  }
-
-  private void testFloat(float value) throws Exception {
-    RecordingVisitor visitor = new RecordingVisitor();
-    visitor.init(DATA_TYPE);
-    visitor.visitFloat(FLOAT, value);
-    visitor.destroy();
-    testDataType(visitor, DataTypesProto.ScalarTypes.newBuilder().setFloat(value).build());
-  }
-
-  @Test
-  public void testDouble() throws Exception {
-    testDouble(4);
-    testDouble(-4);
-    testDouble(Double.MAX_VALUE);
-    testDouble(Double.MIN_VALUE);
-  }
-
-  private void testDouble(double value) throws Exception {
-    RecordingVisitor visitor = new RecordingVisitor();
-    visitor.init(DATA_TYPE);
-    visitor.visitDouble(DOUBLE, value);
-    visitor.destroy();
-    testDataType(visitor, DataTypesProto.ScalarTypes.newBuilder().setDouble(value).build());
-  }
-
-  @Test
-  public void testInt32() throws Exception {
-    testInt32(4);
-    testInt32(-4);
-    testInt32(Integer.MAX_VALUE);
-    testInt32(Integer.MIN_VALUE);
-  }
-
-  private void testInt32(int value) throws Exception {
-    RecordingVisitor visitor = new RecordingVisitor();
-    visitor.init(DATA_TYPE);
-    visitor.visitInt32(INT32, value);
-    visitor.destroy();
-    testDataType(visitor, DataTypesProto.ScalarTypes.newBuilder().setInt32(value).build());
-  }
-
-  @Test
-  public void testUInt32() throws Exception {
-    testUInt32(4);
-    testUInt32(-4);
-    testUInt32(Integer.MAX_VALUE);
-    testUInt32(Integer.MIN_VALUE);
-  }
-
-  private void testUInt32(int value) throws Exception {
-    RecordingVisitor visitor = new RecordingVisitor();
-    visitor.init(DATA_TYPE);
-    visitor.visitUInt32(UINT32, value);
-    visitor.destroy();
-    testDataType(visitor, DataTypesProto.ScalarTypes.newBuilder().setUint32(value).build());
-  }
-
-  @Test
-  public void testSInt32() throws Exception {
-    testSInt32(4);
-    testSInt32(-4);
-    testSInt32(Integer.MAX_VALUE);
-    testSInt32(Integer.MIN_VALUE);
-  }
-
-  private void testSInt32(int value) throws Exception {
-    RecordingVisitor visitor = new RecordingVisitor();
-    visitor.init(DATA_TYPE);
-    visitor.visitSInt32(SINT32, value);
-    visitor.destroy();
-    testDataType(visitor, DataTypesProto.ScalarTypes.newBuilder().setSint32(value).build());
-  }
-
-  @Test
-  public void testInt64() throws Exception {
-    testInt64(4);
-    testInt64(-4);
-    testInt64(Long.MAX_VALUE);
-    testInt64(Long.MIN_VALUE);
-  }
-
-  private void testInt64(long value) throws Exception {
-    RecordingVisitor visitor = new RecordingVisitor();
-    visitor.init(DATA_TYPE);
-    visitor.visitInt64(INT64, value);
-    visitor.destroy();
-    testDataType(visitor, DataTypesProto.ScalarTypes.newBuilder().setInt64(value).build());
-  }
-
-  @Test
-  public void testUInt64() throws Exception {
-    testUInt64(4);
-    testUInt64(Long.MAX_VALUE);
-  }
-
-  private void testUInt64(long value) throws Exception {
-    RecordingVisitor visitor = new RecordingVisitor();
-    visitor.init(DATA_TYPE);
-    visitor.visitUInt64(UINT64, value);
-    visitor.destroy();
-    testDataType(visitor, DataTypesProto.ScalarTypes.newBuilder().setUint64(value).build());
-  }
-
-  @Test
-  public void testSInt64() throws Exception {
-    testSint64(4);
-    testSint64(-4);
-    testSint64(Long.MAX_VALUE);
-    testSint64(Long.MIN_VALUE);
-  }
-
-  private void testSint64(long value) throws Exception {
-    RecordingVisitor visitor = new RecordingVisitor();
-    visitor.init(DATA_TYPE);
-    visitor.visitSInt64(SINT64, value);
-    visitor.destroy();
-    testDataType(visitor, DataTypesProto.ScalarTypes.newBuilder().setSint64(value).build());
-  }
-
-  @Test
-  public void testFixed32() throws Exception {
-    testFixed32(4);
-    testFixed32(Integer.MAX_VALUE);
-  }
-
-  private void testFixed32(int value) throws Exception {
-    RecordingVisitor visitor = new RecordingVisitor();
-    visitor.init(DATA_TYPE);
-    visitor.visitFixed32(FIXED32, value);
-    visitor.destroy();
-    testDataType(visitor, DataTypesProto.ScalarTypes.newBuilder().setFixed32(value).build());
-  }
-
-  @Test
-  public void testFixed64() throws Exception {
-    testFixed64(4);
-    testFixed64(Integer.MAX_VALUE);
-  }
-
-  private void testFixed64(long value) throws Exception {
-    RecordingVisitor visitor = new RecordingVisitor();
-    visitor.init(DATA_TYPE);
-    visitor.visitFixed64(FIXED64, value);
-    visitor.destroy();
-    testDataType(visitor, DataTypesProto.ScalarTypes.newBuilder().setFixed64(value).build());
-  }
-
-  @Test
-  public void testSFixed32() throws Exception {
-    testSFixed32(4);
-    testSFixed32(Integer.MAX_VALUE);
-  }
-
-  private void testSFixed32(int value) throws Exception {
-    RecordingVisitor visitor = new RecordingVisitor();
-    visitor.init(DATA_TYPE);
-    visitor.visitSFixed32(SFIXED32, value);
-    visitor.destroy();
-    testDataType(visitor, DataTypesProto.ScalarTypes.newBuilder().setSfixed32(value).build());
-  }
-
-  @Test
-  public void testSFixed64() throws Exception {
-    testSFixed64(4);
-    testSFixed64(Integer.MAX_VALUE);
-  }
-
-  private void testSFixed64(long value) throws Exception {
-    RecordingVisitor visitor = new RecordingVisitor();
-    visitor.init(DATA_TYPE);
-    visitor.visitSFixed64(SFIXED64, value);
-    visitor.destroy();
-    testDataType(visitor, DataTypesProto.ScalarTypes.newBuilder().setSfixed64(value).build());
-  }
-
-  @Test
-  public void testStringRecord() throws Exception {
-    Buffer bytes = ProtobufWriter.encode(visitor -> {
-      visitor.init(DATA_TYPE);
-      visitor.enter(STRING);
-      visitor.visitString(STRING, "hello");
-      visitor.leave(STRING);
-      visitor.destroy();
-    });
-    DataTypesProto.ScalarTypes dataTypes = DataTypesProto.ScalarTypes.parseFrom(bytes.getBytes());
-    assertEquals("hello", dataTypes.getString());
-    ScalarTypes d = new ScalarTypes();
-    d.setString("hello");
-    bytes = ProtobufWriter.encode(visitor -> {
-      ProtoWriter.emit(d, visitor);
-    });
-    dataTypes = DataTypesProto.ScalarTypes.parseFrom(bytes.getBytes());
-    assertEquals("hello", dataTypes.getString());
-  }
-
-  @Test
-  public void testBytesRecord() throws Exception {
-    Buffer bytes = ProtobufWriter.encode(visitor -> {
-      visitor.init(DATA_TYPE);
-      visitor.enter(BYTES);
-      visitor.visitBytes(BYTES, "hello".getBytes());
-      visitor.leave(BYTES);
-      visitor.destroy();
-    });
-    DataTypesProto.ScalarTypes dataTypes = DataTypesProto.ScalarTypes.parseFrom(bytes.getBytes());
-    assertEquals("hello", dataTypes.getBytes().toStringUtf8());
-    ScalarTypes d = new ScalarTypes();
-    d.setBytes(Buffer.buffer("hello"));
-    bytes = ProtobufWriter.encode(visitor -> {
-      ProtoWriter.emit(d, visitor);
-    });
-    dataTypes = DataTypesProto.ScalarTypes.parseFrom(bytes.getBytes());
-    assertEquals("hello", dataTypes.getBytes().toStringUtf8());
+    assertEquals(expected, expected.getParserForType().parseFrom(bytes));
   }
 
   @Test
   public void testReadOversizedBoolean() throws Exception {
     byte[] data = { (byte)(BOOL.number() * 8), -128, -128, -128, -128, -128, -128, -128, -128, -128, 1 };
     RecordingVisitor visitor = new RecordingVisitor();
-    ProtobufReader.parse(DATA_TYPE, visitor, Buffer.buffer(data));
+    ProtobufReader.parse(SCALAR_TYPES, visitor, Buffer.buffer(data));
     RecordingVisitor.Checker checker = visitor.checker();
-    checker.init(DATA_TYPE);
+    checker.init(SCALAR_TYPES);
     checker.visitBool(BOOL, true);
   }
 }
