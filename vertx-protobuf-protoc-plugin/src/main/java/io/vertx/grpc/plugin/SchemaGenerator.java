@@ -32,16 +32,20 @@ class SchemaGenerator {
 
     public final String identifier;
     public final String name;
+    public final String jsonName;
+    public final boolean repeated;
     public final String messageTypeIdentifier;
     public final String messageName;
     public final int number;
     public final String typeExpr;
 
-    public FieldDeclaration(String identifier, String name, String messageTypeIdentifier, int number, String messageName, String typeExpr) {
+    public FieldDeclaration(String identifier, String name, boolean repeated, String jsonName, String messageTypeIdentifier, int number, String messageName, String typeExpr) {
       this.identifier = identifier;
       this.name = name;
+      this.jsonName = jsonName;
       this.messageTypeIdentifier = messageTypeIdentifier;
       this.messageName = messageName;
+      this.repeated = repeated;
       this.number = number;
       this.typeExpr = typeExpr;
     }
@@ -112,7 +116,7 @@ class SchemaGenerator {
           default:
             return;
         }
-        list2.add(new FieldDeclaration(identifier, field.getName(), messageTypeRef, number, field.getContainingType().getName(), typeExpr));
+        list2.add(new FieldDeclaration(identifier, field.getName(), field.isRepeated(), field.getJsonName(), messageTypeRef, number, field.getContainingType().getName(), typeExpr));
       });
     });
 
@@ -143,12 +147,17 @@ class SchemaGenerator {
         writer.println(";");
       }
     }
-    writer.println("    private final java.util.Map<Integer, FieldLiteral> fields;");
+    writer.println("    private final java.util.Map<Integer, FieldLiteral> byNumber;");
+    writer.println("    private final java.util.Map<String, FieldLiteral> byJsonName;");
     writer.println("    MessageLiteral(String name) {");
-    writer.println("      this.fields = new java.util.HashMap<>();");
+    writer.println("      this.byNumber = new java.util.HashMap<>();");
+    writer.println("      this.byJsonName = new java.util.HashMap<>();");
     writer.println("    }");
     writer.println("    public Field field(int number) {");
-    writer.println("      return fields.get(number);");
+    writer.println("      return byNumber.get(number);");
+    writer.println("    }");
+    writer.println("    public Field field(String name) {");
+    writer.println("      return byJsonName.get(name);");
     writer.println("    }");
     writer.println("    static {");
     for (FieldDeclaration decl : list2) {
@@ -162,7 +171,7 @@ class SchemaGenerator {
     writer.println("  public enum FieldLiteral implements Field {");
     for (Iterator<FieldDeclaration> it  = list2.iterator();it.hasNext();) {
       FieldDeclaration decl = it.next();
-      writer.print("    " + decl.messageName + "_" + decl.name + "(MessageLiteral." + decl.messageName + ", " + decl.number + ", " + decl.typeExpr + ")");
+      writer.print("    " + decl.messageName + "_" + decl.name + "(MessageLiteral." + decl.messageName + ", " + decl.number + ", " + decl.typeExpr + ", " + decl.repeated + ", \"" + decl.jsonName + "\")");
       if (it.hasNext()) {
         writer.println(",");
       } else {
@@ -173,10 +182,14 @@ class SchemaGenerator {
     writer.println("    private final MessageLiteral owner;");
     writer.println("    private final int number;");
     writer.println("    private final io.vertx.protobuf.schema.Type type;");
-    writer.println("    FieldLiteral(MessageLiteral owner, int number, io.vertx.protobuf.schema.Type type) {");
+    writer.println("    private final boolean repeated;");
+    writer.println("    private final String jsonName;");
+    writer.println("    FieldLiteral(MessageLiteral owner, int number, io.vertx.protobuf.schema.Type type, boolean repeated, String jsonName) {");
     writer.println("      this.owner = owner;");
     writer.println("      this.number = number;");
     writer.println("      this.type = type;");
+    writer.println("      this.repeated = repeated;");
+    writer.println("      this.jsonName = jsonName;");
     writer.println("    }");
     writer.println("    public MessageType owner() {");
     writer.println("      return owner;");
@@ -184,12 +197,16 @@ class SchemaGenerator {
     writer.println("    public int number() {");
     writer.println("      return number;");
     writer.println("    }");
+    writer.println("    public boolean isRepeated() {");
+    writer.println("      return repeated;");
+    writer.println("    }");
     writer.println("    public io.vertx.protobuf.schema.Type type() {");
     writer.println("      return type;");
     writer.println("    }");
     writer.println("    static {");
     for (FieldDeclaration decl : list2) {
-      writer.println("      MessageLiteral." + decl.messageName + ".fields.put(" + decl.number + ", FieldLiteral." + decl.messageName + "_" + decl.name + ");");
+      writer.println("      MessageLiteral." + decl.messageName + ".byNumber.put(" + decl.number + ", FieldLiteral." + decl.messageName + "_" + decl.name + ");");
+      writer.println("      MessageLiteral." + decl.messageName + ".byJsonName.put(\"" + decl.jsonName + "\", FieldLiteral." + decl.messageName + "_" + decl.name + ");");
     }
     writer.println("    }");
     writer.println("  }");

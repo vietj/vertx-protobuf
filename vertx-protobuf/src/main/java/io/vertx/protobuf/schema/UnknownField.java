@@ -53,6 +53,11 @@ class UnknownField implements Field, Type {
   }
 
   @Override
+  public boolean isRepeated() {
+    return false;
+  }
+
+  @Override
   public int hashCode() {
     return number;
   }

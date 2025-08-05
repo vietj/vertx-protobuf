@@ -16,6 +16,11 @@ public class DefaultField implements Field {
     return owner;
   }
 
+  @Override
+  public boolean isRepeated() {
+    return false;
+  }
+
   public int number() {
     return number;
   }

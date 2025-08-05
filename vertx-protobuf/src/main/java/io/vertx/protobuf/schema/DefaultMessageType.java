@@ -37,6 +37,11 @@ public class DefaultMessageType implements MessageType {
   }
 
   @Override
+  public Field field(String name) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public String toString() {
     return "MessageType[name=" + name + "]";
   }

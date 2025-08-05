@@ -100,6 +100,9 @@ public class Main {
         break;
       }
       case JSON_PAYLOAD: {
+        String json = request.getJsonPayload();
+        int a = 0;
+
 //        try {
 //          JsonFormat.Parser parser = JsonFormat.parser().usingTypeRegistry(typeRegistry);
 //          if (request.getTestCategory()

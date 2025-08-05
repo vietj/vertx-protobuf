@@ -1,18 +1,15 @@
 package io.vertx.tests.protobuf;
 
-import com.google.protobuf.CodedInputStream;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.json.DecodeException;
-import io.vertx.protobuf.ProtobufDecoder;
 import io.vertx.protobuf.ProtobufReader;
 import io.vertx.protobuf.ProtobufWriter;
 import io.vertx.protobuf.schema.DefaultMessageType;
 import io.vertx.protobuf.schema.DefaultSchema;
 import io.vertx.protobuf.schema.Field;
 import io.vertx.protobuf.schema.ScalarType;
-import io.vertx.tests.protobuf.datatypes.DataTypes;
-import io.vertx.tests.protobuf.datatypes.DataTypesProto;
+import io.vertx.tests.protobuf.datatypes.ScalarTypes;
 import io.vertx.tests.protobuf.datatypes.ProtoWriter;
+import io.vertx.tests.protobuf.datatypes.DataTypesProto;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -21,29 +18,30 @@ public class DataTypeTest {
 
   private static final DefaultSchema SCHEMA = new DefaultSchema();
   private static final DefaultMessageType DATA_TYPE = SCHEMA.of("DataType");
-  private static final Field STRING = DATA_TYPE.addField(1, ScalarType.STRING);
-  private static final Field BYTES = DATA_TYPE.addField(2, ScalarType.BYTES);
-  private static final Field FLOAT = DATA_TYPE.addField(3, ScalarType.FLOAT);
-  private static final Field DOUBLE = DATA_TYPE.addField(4, ScalarType.DOUBLE);
-  private static final Field INT32 = DATA_TYPE.addField(5, ScalarType.INT32);
-  private static final Field INT64 = DATA_TYPE.addField(6, ScalarType.INT64);
-  private static final Field UINT32 = DATA_TYPE.addField(7, ScalarType.UINT32);
-  private static final Field UINT64 = DATA_TYPE.addField(8, ScalarType.UINT64);
-  private static final Field SINT32 = DATA_TYPE.addField(9, ScalarType.SINT32);
-  private static final Field SINT64 = DATA_TYPE.addField(10, ScalarType.SINT64);
-  private static final Field FIXED32 = DATA_TYPE.addField(11, ScalarType.FIXED32);
-  private static final Field FIXED64 = DATA_TYPE.addField(12, ScalarType.FIXED64);
-  private static final Field SFIXED32 = DATA_TYPE.addField(13, ScalarType.SFIXED32);
-  private static final Field SFIXED64 = DATA_TYPE.addField(14, ScalarType.SFIXED64);
-  private static final Field BOOL = DATA_TYPE.addField(15, ScalarType.BOOL);
 
-  private void testDataType(RecordingVisitor visitor, DataTypesProto.DataTypes expected) throws Exception {
+  private static final Field INT32 = DATA_TYPE.addField(1, ScalarType.INT32);
+  private static final Field UINT32 = DATA_TYPE.addField(2, ScalarType.UINT32);
+  private static final Field SINT32 = DATA_TYPE.addField(3, ScalarType.SINT32);
+  private static final Field INT64 = DATA_TYPE.addField(4, ScalarType.INT64);
+  private static final Field UINT64 = DATA_TYPE.addField(5, ScalarType.UINT64);
+  private static final Field SINT64 = DATA_TYPE.addField(6, ScalarType.SINT64);
+  private static final Field BOOL = DATA_TYPE.addField(7, ScalarType.BOOL);
+  private static final Field FIXED32 = DATA_TYPE.addField(8, ScalarType.FIXED32);
+  private static final Field SFIXED32 = DATA_TYPE.addField(9, ScalarType.SFIXED32);
+  private static final Field FLOAT = DATA_TYPE.addField(10, ScalarType.FLOAT);
+  private static final Field FIXED64 = DATA_TYPE.addField(11, ScalarType.FIXED64);
+  private static final Field SFIXED64 = DATA_TYPE.addField(12, ScalarType.SFIXED64);
+  private static final Field DOUBLE = DATA_TYPE.addField(13, ScalarType.DOUBLE);
+  private static final Field STRING = DATA_TYPE.addField(14, ScalarType.STRING);
+  private static final Field BYTES = DATA_TYPE.addField(15, ScalarType.BYTES);
+
+  private void testDataType(RecordingVisitor visitor, DataTypesProto.ScalarTypes expected) throws Exception {
     byte[] bytes = expected.toByteArray();
     RecordingVisitor.Checker checker = visitor.checker();
     ProtobufReader.parse(DATA_TYPE, checker, Buffer.buffer(bytes));
     assertTrue(checker.isEmpty());
     bytes = ProtobufWriter.encode(visitor::apply).getBytes();
-    assertEquals(expected, DataTypesProto.DataTypes.parseFrom(bytes));
+    assertEquals(expected, DataTypesProto.ScalarTypes.parseFrom(bytes));
   }
 
   @Test
@@ -59,7 +57,7 @@ public class DataTypeTest {
     visitor.init(DATA_TYPE);
     visitor.visitFloat(FLOAT, value);
     visitor.destroy();
-    testDataType(visitor, DataTypesProto.DataTypes.newBuilder().setFloat(value).build());
+    testDataType(visitor, DataTypesProto.ScalarTypes.newBuilder().setFloat(value).build());
   }
 
   @Test
@@ -75,7 +73,7 @@ public class DataTypeTest {
     visitor.init(DATA_TYPE);
     visitor.visitDouble(DOUBLE, value);
     visitor.destroy();
-    testDataType(visitor, DataTypesProto.DataTypes.newBuilder().setDouble(value).build());
+    testDataType(visitor, DataTypesProto.ScalarTypes.newBuilder().setDouble(value).build());
   }
 
   @Test
@@ -91,7 +89,7 @@ public class DataTypeTest {
     visitor.init(DATA_TYPE);
     visitor.visitInt32(INT32, value);
     visitor.destroy();
-    testDataType(visitor, DataTypesProto.DataTypes.newBuilder().setInt32(value).build());
+    testDataType(visitor, DataTypesProto.ScalarTypes.newBuilder().setInt32(value).build());
   }
 
   @Test
@@ -107,7 +105,7 @@ public class DataTypeTest {
     visitor.init(DATA_TYPE);
     visitor.visitUInt32(UINT32, value);
     visitor.destroy();
-    testDataType(visitor, DataTypesProto.DataTypes.newBuilder().setUint32(value).build());
+    testDataType(visitor, DataTypesProto.ScalarTypes.newBuilder().setUint32(value).build());
   }
 
   @Test
@@ -123,7 +121,7 @@ public class DataTypeTest {
     visitor.init(DATA_TYPE);
     visitor.visitSInt32(SINT32, value);
     visitor.destroy();
-    testDataType(visitor, DataTypesProto.DataTypes.newBuilder().setSint32(value).build());
+    testDataType(visitor, DataTypesProto.ScalarTypes.newBuilder().setSint32(value).build());
   }
 
   @Test
@@ -139,7 +137,7 @@ public class DataTypeTest {
     visitor.init(DATA_TYPE);
     visitor.visitInt64(INT64, value);
     visitor.destroy();
-    testDataType(visitor, DataTypesProto.DataTypes.newBuilder().setInt64(value).build());
+    testDataType(visitor, DataTypesProto.ScalarTypes.newBuilder().setInt64(value).build());
   }
 
   @Test
@@ -153,7 +151,7 @@ public class DataTypeTest {
     visitor.init(DATA_TYPE);
     visitor.visitUInt64(UINT64, value);
     visitor.destroy();
-    testDataType(visitor, DataTypesProto.DataTypes.newBuilder().setUint64(value).build());
+    testDataType(visitor, DataTypesProto.ScalarTypes.newBuilder().setUint64(value).build());
   }
 
   @Test
@@ -169,7 +167,7 @@ public class DataTypeTest {
     visitor.init(DATA_TYPE);
     visitor.visitSInt64(SINT64, value);
     visitor.destroy();
-    testDataType(visitor, DataTypesProto.DataTypes.newBuilder().setSint64(value).build());
+    testDataType(visitor, DataTypesProto.ScalarTypes.newBuilder().setSint64(value).build());
   }
 
   @Test
@@ -183,7 +181,7 @@ public class DataTypeTest {
     visitor.init(DATA_TYPE);
     visitor.visitFixed32(FIXED32, value);
     visitor.destroy();
-    testDataType(visitor, DataTypesProto.DataTypes.newBuilder().setFixed32(value).build());
+    testDataType(visitor, DataTypesProto.ScalarTypes.newBuilder().setFixed32(value).build());
   }
 
   @Test
@@ -197,7 +195,7 @@ public class DataTypeTest {
     visitor.init(DATA_TYPE);
     visitor.visitFixed64(FIXED64, value);
     visitor.destroy();
-    testDataType(visitor, DataTypesProto.DataTypes.newBuilder().setFixed64(value).build());
+    testDataType(visitor, DataTypesProto.ScalarTypes.newBuilder().setFixed64(value).build());
   }
 
   @Test
@@ -211,7 +209,7 @@ public class DataTypeTest {
     visitor.init(DATA_TYPE);
     visitor.visitSFixed32(SFIXED32, value);
     visitor.destroy();
-    testDataType(visitor, DataTypesProto.DataTypes.newBuilder().setSfixed32(value).build());
+    testDataType(visitor, DataTypesProto.ScalarTypes.newBuilder().setSfixed32(value).build());
   }
 
   @Test
@@ -225,7 +223,7 @@ public class DataTypeTest {
     visitor.init(DATA_TYPE);
     visitor.visitSFixed64(SFIXED64, value);
     visitor.destroy();
-    testDataType(visitor, DataTypesProto.DataTypes.newBuilder().setSfixed64(value).build());
+    testDataType(visitor, DataTypesProto.ScalarTypes.newBuilder().setSfixed64(value).build());
   }
 
   @Test
@@ -237,14 +235,14 @@ public class DataTypeTest {
       visitor.leave(STRING);
       visitor.destroy();
     });
-    DataTypesProto.DataTypes dataTypes = DataTypesProto.DataTypes.parseFrom(bytes.getBytes());
+    DataTypesProto.ScalarTypes dataTypes = DataTypesProto.ScalarTypes.parseFrom(bytes.getBytes());
     assertEquals("hello", dataTypes.getString());
-    DataTypes d = new DataTypes();
+    ScalarTypes d = new ScalarTypes();
     d.setString("hello");
     bytes = ProtobufWriter.encode(visitor -> {
       ProtoWriter.emit(d, visitor);
     });
-    dataTypes = DataTypesProto.DataTypes.parseFrom(bytes.getBytes());
+    dataTypes = DataTypesProto.ScalarTypes.parseFrom(bytes.getBytes());
     assertEquals("hello", dataTypes.getString());
   }
 
@@ -257,20 +255,20 @@ public class DataTypeTest {
       visitor.leave(BYTES);
       visitor.destroy();
     });
-    DataTypesProto.DataTypes dataTypes = DataTypesProto.DataTypes.parseFrom(bytes.getBytes());
+    DataTypesProto.ScalarTypes dataTypes = DataTypesProto.ScalarTypes.parseFrom(bytes.getBytes());
     assertEquals("hello", dataTypes.getBytes().toStringUtf8());
-    DataTypes d = new DataTypes();
+    ScalarTypes d = new ScalarTypes();
     d.setBytes(Buffer.buffer("hello"));
     bytes = ProtobufWriter.encode(visitor -> {
       ProtoWriter.emit(d, visitor);
     });
-    dataTypes = DataTypesProto.DataTypes.parseFrom(bytes.getBytes());
+    dataTypes = DataTypesProto.ScalarTypes.parseFrom(bytes.getBytes());
     assertEquals("hello", dataTypes.getBytes().toStringUtf8());
   }
 
   @Test
   public void testReadOversizedBoolean() throws Exception {
-    byte[] data = { 120, -128, -128, -128, -128, -128, -128, -128, -128, -128, 1 };
+    byte[] data = { (byte)(BOOL.number() * 8), -128, -128, -128, -128, -128, -128, -128, -128, -128, 1 };
     RecordingVisitor visitor = new RecordingVisitor();
     ProtobufReader.parse(DATA_TYPE, visitor, Buffer.buffer(data));
     RecordingVisitor.Checker checker = visitor.checker();

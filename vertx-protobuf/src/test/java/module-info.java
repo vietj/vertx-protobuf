@@ -18,4 +18,5 @@ open module io.vertx.tests {
   requires jmh.core;
   requires io.netty.codec.http;
     requires com.google.common;
+    requires com.fasterxml.jackson.core;
 }
