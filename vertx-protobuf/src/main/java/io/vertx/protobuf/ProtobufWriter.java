@@ -79,14 +79,14 @@ public class ProtobufWriter {
 
     @Override
     public void visitBytes(Field field, byte[] bytes) {
-      enter(field);
+      enterLengthDelimited(field);
       lengths[depth] += bytes.length;
-      leave(field);
+      leaveLengthDelimited(field);
     }
 
     @Override
     public void visitString(Field field, String s) {
-      enter(field);
+      enterLengthDelimited(field);
       int length = 0;
       int a = s.length();
       for (int i = 0;i < a;i++) {
@@ -99,7 +99,7 @@ public class ProtobufWriter {
         }
       }
       lengths[depth] += length;
-      leave(field);
+      leaveLengthDelimited(field);
     }
 
     @Override
@@ -111,14 +111,18 @@ public class ProtobufWriter {
     }
 
     @Override
-    public void enterRepetition(Field field) {
-      assert field.type().wireType() != WireType.LEN;
-      packed = true;
-      enter(field);
+    public void enter(Field field) {
+      enterLengthDelimited(field);
     }
 
     @Override
-    public void enter(Field field) {
+    public void enterRepetition(Field field) {
+      assert field.type().wireType() != WireType.LEN;
+      packed = true;
+      enterLengthDelimited(field);
+    }
+
+    private void enterLengthDelimited(Field field) {
       numbers[depth] = field.number();
       depth++;
       indices[depth] = ptr++;
@@ -129,11 +133,15 @@ public class ProtobufWriter {
     public void leaveRepetition(Field field) {
       assert field.type().wireType() != WireType.LEN;
       packed = false;
-      leave(field);
+      leaveLengthDelimited(field);
     }
 
     @Override
     public void leave(Field field) {
+      leaveLengthDelimited(field);
+    }
+
+    private void leaveLengthDelimited(Field field) {
       int l = lengths[depth];
       lengths[depth] = 0;
       int index = indices[depth];
@@ -199,27 +207,31 @@ public class ProtobufWriter {
 
     @Override
     public void visitBytes(Field field, byte[] bytes) {
-      enter(field);
+      enterLengthDelimited(field);
       encoder.writeBytes(bytes);
-      leave(field);
+      leaveLengthDelimited(field);
     }
 
     @Override
     public void visitString(Field field, String s) {
-      enter(field);
+      enterLengthDelimited(field);
       encoder.writeString(s);
-      leave(field);
+      leaveLengthDelimited(field);
     }
 
     @Override
     public void enterRepetition(Field field) {
       assert field.type().wireType() != WireType.LEN;
       packed = true;
-      enter(field);
+      enterLengthDelimited(field);
     }
 
     @Override
     public void enter(Field field) {
+      enterLengthDelimited(field);
+    }
+
+    private void enterLengthDelimited(Field field) {
       encoder.writeTag(field.number(), WireType.LEN.id);
       encoder.writeVarInt32(state.capture[ptr_++]);
     }
@@ -228,12 +240,15 @@ public class ProtobufWriter {
     public void leaveRepetition(Field field) {
       assert field.type().wireType() != WireType.LEN;
       packed = false;
-      leave(field);
+      leaveLengthDelimited(field);
     }
 
     @Override
     public void leave(Field field) {
-      packed = false;
+      leaveLengthDelimited(field);
+    }
+
+    private void leaveLengthDelimited(Field field) {
     }
 
     @Override
