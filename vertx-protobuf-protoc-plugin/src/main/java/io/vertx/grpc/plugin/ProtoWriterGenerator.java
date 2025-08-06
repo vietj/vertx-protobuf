@@ -316,7 +316,7 @@ class ProtoWriterGenerator {
     } else {
       if (field.repeated) {
         if (field.packed) {
-          content.println("visitor.enter(SchemaLiterals.FieldLiteral." + field.identifier + ");");
+          content.println("visitor.enterRepetition(SchemaLiterals.FieldLiteral." + field.identifier + ");");
         }
         content.println("      for (" + field.javaTypeInternal + " c : v) {");
 //        if (field.typeTo.lengthDelimited) {
@@ -328,7 +328,7 @@ class ProtoWriterGenerator {
 //        }
         content.println("      }");
         if (field.packed) {
-          content.println("visitor.leave(SchemaLiterals.FieldLiteral." + field.identifier + ");");
+          content.println("visitor.leaveRepetition(SchemaLiterals.FieldLiteral." + field.identifier + ");");
         }
       } else {
 //        if (field.typeTo.lengthDelimited) {

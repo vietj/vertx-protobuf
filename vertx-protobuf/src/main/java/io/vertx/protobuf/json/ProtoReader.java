@@ -66,6 +66,11 @@ public class ProtoReader implements RecordVisitor {
   }
 
   @Override
+  public void enterRepetition(Field field) {
+
+  }
+
+  @Override
   public void enter(Field field) {
     MessageType mt = (MessageType) field.type();
     current.add(mt);
@@ -78,6 +83,11 @@ public class ProtoReader implements RecordVisitor {
     } else {
       throw new UnsupportedOperationException();
     }
+  }
+
+  @Override
+  public void leaveRepetition(Field field) {
+
   }
 
   @Override

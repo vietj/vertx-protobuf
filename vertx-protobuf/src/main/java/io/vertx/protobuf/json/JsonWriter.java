@@ -110,6 +110,11 @@ public class JsonWriter implements RecordVisitor {
   }
 
   @Override
+  public void enterRepetition(Field field) {
+
+  }
+
+  @Override
   public void enter(Field field) {
     if (field.type() instanceof MessageType) {
       try {
@@ -118,6 +123,11 @@ public class JsonWriter implements RecordVisitor {
         throw new EncodeException(e.getMessage());
       }
     }
+  }
+
+  @Override
+  public void leaveRepetition(Field field) {
+
   }
 
   @Override

@@ -143,6 +143,7 @@ public class RepetitionTest {
     Packed msg = (Packed) reader.stack.pop();
     assertEquals(Arrays.asList(0, 1, 2, 3, 4), msg.getInt32());
     byte[] actual = ProtobufWriter.encode(visitor -> ProtoWriter.emit(msg, visitor)).getBytes();
+    assertEquals(5, actual[1]);
     RepetitionProto.Packed blah = RepetitionProto.Packed.parseFrom(actual);
     assertEquals(Arrays.asList(0, 1, 2, 3, 4), blah.getInt32List());
   }

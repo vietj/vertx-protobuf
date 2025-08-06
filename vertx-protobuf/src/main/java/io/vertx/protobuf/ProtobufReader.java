@@ -106,9 +106,9 @@ public class ProtobufReader {
       visitor.leave(field);
       decoder.len(to);
     } else if (field.type() instanceof EnumType) {
-      visitor.enter(field);
+      visitor.enterRepetition(field);
       parsePackedVarInt32(decoder, field, len, visitor);
-      visitor.leave(field);
+      visitor.leaveRepetition(field);
     } else {
       ScalarType builtInType = (ScalarType) field.type();
       switch (builtInType.id()) {
@@ -126,7 +126,7 @@ public class ProtobufReader {
           break;
         default:
           // Packed
-          visitor.enter(field);
+          visitor.enterRepetition(field);
           switch (builtInType.wireType()) {
             case VARINT:
               parsePackedVarInt32(decoder, field, len, visitor);
@@ -140,7 +140,7 @@ public class ProtobufReader {
             default:
               throw new UnsupportedOperationException("" + field.type());
           }
-          visitor.leave(field);
+          visitor.leaveRepetition(field);
       }
     }
   }

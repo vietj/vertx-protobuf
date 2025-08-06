@@ -353,8 +353,18 @@ public class RecordingVisitor implements RecordVisitor {
   }
 
   @Override
+  public void enterRepetition(Field field) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public void enter(Field field) {
     log.add(new Enter(field));
+  }
+
+  @Override
+  public void leaveRepetition(Field field) {
+    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -504,9 +514,19 @@ public class RecordingVisitor implements RecordVisitor {
     }
 
     @Override
+    public void enterRepetition(Field field) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public void enter(Field field) {
       Enter enter = expecting(Enter.class);
       assertEquals(enter.field, field);
+    }
+
+    @Override
+    public void leaveRepetition(Field field) {
+      throw new UnsupportedOperationException();
     }
 
     @Override

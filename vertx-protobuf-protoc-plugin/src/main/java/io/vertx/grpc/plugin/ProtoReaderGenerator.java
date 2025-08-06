@@ -491,6 +491,18 @@ class ProtoReaderGenerator {
       "  }");
 
     // **************
+    // REPETITION
+    // **************
+
+    // Should implement the list thingy ?????
+    out.println(
+      "  public void enterRepetition(Field field) {",
+      "  }",
+      "  public void leaveRepetition(Field field) {",
+      "  }"
+      );
+
+    // **************
     // DESTROY
     // **************
 

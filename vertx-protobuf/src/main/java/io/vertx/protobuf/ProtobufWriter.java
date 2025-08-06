@@ -111,8 +111,14 @@ public class ProtobufWriter {
     }
 
     @Override
+    public void enterRepetition(Field field) {
+      assert field.type().wireType() != WireType.LEN;
+      packed = true;
+      enter(field);
+    }
+
+    @Override
     public void enter(Field field) {
-      packed = field.type().wireType() != WireType.LEN;
       numbers[depth] = field.number();
       depth++;
       indices[depth] = ptr++;
@@ -120,8 +126,14 @@ public class ProtobufWriter {
     }
 
     @Override
-    public void leave(Field field) {
+    public void leaveRepetition(Field field) {
+      assert field.type().wireType() != WireType.LEN;
       packed = false;
+      leave(field);
+    }
+
+    @Override
+    public void leave(Field field) {
       int l = lengths[depth];
       lengths[depth] = 0;
       int index = indices[depth];
@@ -200,10 +212,23 @@ public class ProtobufWriter {
     }
 
     @Override
+    public void enterRepetition(Field field) {
+      assert field.type().wireType() != WireType.LEN;
+      packed = true;
+      enter(field);
+    }
+
+    @Override
     public void enter(Field field) {
-      packed = field.type().wireType() != WireType.LEN;
       encoder.writeTag(field.number(), WireType.LEN.id);
       encoder.writeVarInt32(state.capture[ptr_++]);
+    }
+
+    @Override
+    public void leaveRepetition(Field field) {
+      assert field.type().wireType() != WireType.LEN;
+      packed = false;
+      leave(field);
     }
 
     @Override

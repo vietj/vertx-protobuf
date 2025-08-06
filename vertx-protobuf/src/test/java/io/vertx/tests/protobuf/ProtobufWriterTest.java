@@ -23,9 +23,9 @@ public class ProtobufWriterTest {
     DefaultField field = msg.addField(1, ScalarType.UINT64);
     Buffer output = ProtobufWriter.encode(visitor -> {
       visitor.init(msg);
-      visitor.enter(field);
+      visitor.enterRepetition(field);
       visitor.visitUInt64(field, -1);
-      visitor.leave(field);
+      visitor.leaveRepetition(field);
     });
     assertEquals(10, output.getByte(1));
   }
@@ -40,9 +40,9 @@ public class ProtobufWriterTest {
     Buffer output = ProtobufWriter.encode(visitor -> {
       visitor.init(msg);
       visitor.enter(nestedField);
-      visitor.enter(fixed32Field);
+      visitor.enterRepetition(fixed32Field);
       visitor.visitFixed32(fixed32Field, 1);
-      visitor.leave(fixed32Field);
+      visitor.leaveRepetition(fixed32Field);
       visitor.leave(nestedField);
     });
     assertEquals(7, output.getByte(1));
