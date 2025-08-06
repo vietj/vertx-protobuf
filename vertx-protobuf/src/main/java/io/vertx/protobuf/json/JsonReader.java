@@ -73,14 +73,14 @@ public class JsonReader {
         String text = parser.getText();
         switch (field.type().id()) {
           case STRING:
-            visitor.enter(field);
+//            visitor.enter(field);
             visitor.visitString(field, text);
-            visitor.leave(field);
+//            visitor.leave(field);
             break;
           case BYTES:
-            visitor.enter(field);
+//            visitor.enter(field);
             visitor.visitBytes(field, Base64.getDecoder().decode(text));
-            visitor.leave(field);
+//            visitor.leave(field);
             break;
           case FIXED64:
             visitor.visitFixed64(field, Long.parseLong(text));

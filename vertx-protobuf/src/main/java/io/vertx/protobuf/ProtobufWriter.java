@@ -79,11 +79,14 @@ public class ProtobufWriter {
 
     @Override
     public void visitBytes(Field field, byte[] bytes) {
+      enter(field);
       lengths[depth] += bytes.length;
+      leave(field);
     }
 
     @Override
     public void visitString(Field field, String s) {
+      enter(field);
       int length = 0;
       int a = s.length();
       for (int i = 0;i < a;i++) {
@@ -96,6 +99,7 @@ public class ProtobufWriter {
         }
       }
       lengths[depth] += length;
+      leave(field);
     }
 
     @Override
@@ -183,12 +187,16 @@ public class ProtobufWriter {
 
     @Override
     public void visitBytes(Field field, byte[] bytes) {
+      enter(field);
       encoder.writeBytes(bytes);
+      leave(field);
     }
 
     @Override
     public void visitString(Field field, String s) {
+      enter(field);
       encoder.writeString(s);
+      leave(field);
     }
 
     @Override

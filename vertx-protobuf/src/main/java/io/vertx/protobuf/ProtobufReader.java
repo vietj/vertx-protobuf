@@ -114,15 +114,15 @@ public class ProtobufReader {
       switch (builtInType.id()) {
         case STRING:
           String s = decoder.readString(len);
-          visitor.enter(field);
+//          visitor.enter(field);
           visitor.visitString(field, s);
-          visitor.leave(field);
+//          visitor.leave(field);
           break;
         case BYTES:
           byte[] bytes = decoder.readBytes(len);
-          visitor.enter(field);
+//          visitor.enter(field);
           visitor.visitBytes(field, bytes);
-          visitor.leave(field);
+//          visitor.leave(field);
           break;
         default:
           // Packed

@@ -237,9 +237,9 @@ public abstract class DataTypeTestBase {
   public void testStringRecord() throws Exception {
     RecordingVisitor visitor = new RecordingVisitor();
     visitor.init(SCALAR_TYPES);
-    visitor.enter(STRING);
+//    visitor.enter(STRING);
     visitor.visitString(STRING, "hello");
-    visitor.leave(STRING);
+//    visitor.leave(STRING);
     visitor.destroy();
     DataTypesProto.ScalarTypes dataTypes = DataTypesProto.ScalarTypes.newBuilder().setString("hello").build();
     ScalarTypes d = new ScalarTypes();
@@ -251,9 +251,9 @@ public abstract class DataTypeTestBase {
   public void testBytesRecord() throws Exception {
     RecordingVisitor visitor = new RecordingVisitor();
     visitor.init(SCALAR_TYPES);
-    visitor.enter(BYTES);
+//    visitor.enter(BYTES);
     visitor.visitBytes(BYTES, "hello".getBytes());
-    visitor.leave(BYTES);
+//    visitor.leave(BYTES);
     visitor.destroy();
     DataTypesProto.ScalarTypes dataTypes = DataTypesProto.ScalarTypes.newBuilder().setBytes(ByteString.copyFromUtf8("hello")).build();
     testDataType(visitor, dataTypes);
