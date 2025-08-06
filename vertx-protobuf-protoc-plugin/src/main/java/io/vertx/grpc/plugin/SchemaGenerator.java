@@ -4,6 +4,7 @@ import com.google.protobuf.Descriptors;
 import com.google.protobuf.compiler.PluginProtos;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -14,61 +15,18 @@ class SchemaGenerator {
   private final String javaPkgFqn;
   private final List<Descriptors.Descriptor> fileDesc;
 
+  private List<MessageTypeDeclaration> list = new ArrayList<>();
+  private List<FieldDeclaration> list2 = new ArrayList<>();
+
   public SchemaGenerator(String javaPkgFqn, List<Descriptors.Descriptor> fileDesc) {
     this.javaPkgFqn = javaPkgFqn;
     this.fileDesc = fileDesc;
+
+
+
   }
 
-  public static class EnumTypeDeclaration {
-
-    public final String name;
-    public final Map<Integer, String> numberToIdentifier;
-
-    public EnumTypeDeclaration(String name) {
-      this.name = name;
-      this.numberToIdentifier = new LinkedHashMap<>();
-    }
-  }
-
-  public static class MessageTypeDeclaration {
-
-    public final String identifier;
-    public final String name;
-
-    public MessageTypeDeclaration(String identifier, String name) {
-      this.identifier = identifier;
-      this.name = name;
-    }
-  }
-
-  public static class FieldDeclaration {
-
-    public final String identifier;
-    public final String name;
-    public final String jsonName;
-    public final boolean repeated;
-    public final boolean packed;
-    public final String messageTypeIdentifier;
-    public final String messageName;
-    public final int number;
-    public final String typeExpr;
-
-    public FieldDeclaration(String identifier, String name, boolean repeated, boolean packed, String jsonName, String messageTypeIdentifier, int number, String messageName, String typeExpr) {
-      this.identifier = identifier;
-      this.name = name;
-      this.jsonName = jsonName;
-      this.messageTypeIdentifier = messageTypeIdentifier;
-      this.messageName = messageName;
-      this.repeated = repeated;
-      this.packed = packed;
-      this.number = number;
-      this.typeExpr = typeExpr;
-    }
-  }
-
-  PluginProtos.CodeGeneratorResponse.File generate() {
-    List<MessageTypeDeclaration> list = new ArrayList<>();
-    List<FieldDeclaration> list2 = new ArrayList<>();
+  private void init() {
     Map<Descriptors.EnumDescriptor, EnumTypeDeclaration> list3 = new LinkedHashMap<>();
     fileDesc.forEach(messageType -> {
       list.add(new MessageTypeDeclaration(Utils.schemaIdentifier(messageType), messageType.getName()));
@@ -127,7 +85,7 @@ class SchemaGenerator {
             typeExpr = "ScalarType.SFIXED64";
             break;
           case MESSAGE:
-            typeExpr = Utils.extractJavaPkgFqn(field.getMessageType().getFile()) + ".SchemaLiterals.MessageLiteral." + Utils.literalIdentifier(field.getMessageType());
+            typeExpr = Utils.extractJavaPkgFqn(field.getMessageType().getFile()) + ".MessageLiteral." + Utils.literalIdentifier(field.getMessageType());
             break;
           default:
             return;
@@ -145,6 +103,136 @@ class SchemaGenerator {
         }
       });
     });
+  }
+
+  public static class EnumTypeDeclaration {
+
+    public final String name;
+    public final Map<Integer, String> numberToIdentifier;
+
+    public EnumTypeDeclaration(String name) {
+      this.name = name;
+      this.numberToIdentifier = new LinkedHashMap<>();
+    }
+  }
+
+  public static class MessageTypeDeclaration {
+
+    public final String identifier;
+    public final String name;
+
+    public MessageTypeDeclaration(String identifier, String name) {
+      this.identifier = identifier;
+      this.name = name;
+    }
+  }
+
+  public static class FieldDeclaration {
+
+    public final String identifier;
+    public final String name;
+    public final String jsonName;
+    public final boolean repeated;
+    public final boolean packed;
+    public final String messageTypeIdentifier;
+    public final String messageName;
+    public final int number;
+    public final String typeExpr;
+
+    public FieldDeclaration(String identifier, String name, boolean repeated, boolean packed, String jsonName, String messageTypeIdentifier, int number, String messageName, String typeExpr) {
+      this.identifier = identifier;
+      this.name = name;
+      this.jsonName = jsonName;
+      this.messageTypeIdentifier = messageTypeIdentifier;
+      this.messageName = messageName;
+      this.repeated = repeated;
+      this.packed = packed;
+      this.number = number;
+      this.typeExpr = typeExpr;
+    }
+  }
+
+  List<PluginProtos.CodeGeneratorResponse.File> generate() {
+    init();
+    return Arrays.asList(generateFieldLiterals(), generateMessageLiterals());
+  }
+
+  PluginProtos.CodeGeneratorResponse.File generateFieldLiterals() {
+    GenWriter writer = new GenWriter();
+
+    writer.println(
+      "package " + javaPkgFqn + ";",
+      "",
+      "import io.vertx.protobuf.schema.Schema;",
+      "import io.vertx.protobuf.schema.DefaultSchema;",
+      "import io.vertx.protobuf.schema.MessageType;",
+      "import io.vertx.protobuf.schema.DefaultMessageType;",
+      "import io.vertx.protobuf.schema.ScalarType;",
+      "import io.vertx.protobuf.schema.EnumType;",
+      "import io.vertx.protobuf.schema.DefaultEnumType;",
+      "import io.vertx.protobuf.schema.Field;",
+      "",
+      "public enum FieldLiteral implements Field {",
+      "");
+
+    for (Iterator<FieldDeclaration> it  = list2.iterator();it.hasNext();) {
+      FieldDeclaration decl = it.next();
+      writer.print("  " + decl.messageName + "_" + decl.name + "(MessageLiteral." + decl.messageName + ", " + decl.number + ", " + decl.typeExpr + ", " + decl.repeated + ", " + decl.packed + ", \"" + decl.jsonName + "\")");
+      if (it.hasNext()) {
+        writer.println(",");
+      } else {
+        writer.println(";");
+      }
+    }
+
+    writer.println("  private final MessageLiteral owner;");
+    writer.println("  private final int number;");
+    writer.println("  private final io.vertx.protobuf.schema.Type type;");
+    writer.println("  private final boolean repeated;");
+    writer.println("  private final boolean packed;");
+    writer.println("  private final String jsonName;");
+    writer.println("  FieldLiteral(MessageLiteral owner, int number, io.vertx.protobuf.schema.Type type, boolean repeated, boolean packed, String jsonName) {");
+    writer.println("    this.owner = owner;");
+    writer.println("    this.number = number;");
+    writer.println("    this.type = type;");
+    writer.println("    this.repeated = repeated;");
+    writer.println("    this.packed = packed;");
+    writer.println("    this.jsonName = jsonName;");
+    writer.println("  }");
+    writer.println("  public MessageType owner() {");
+    writer.println("    return owner;");
+    writer.println("  }");
+    writer.println("  public int number() {");
+    writer.println("    return number;");
+    writer.println("  }");
+    writer.println("  public String jsonName() {");
+    writer.println("    return jsonName;");
+    writer.println("  }");
+    writer.println("  public boolean isRepeated() {");
+    writer.println("    return repeated;");
+    writer.println("  }");
+    writer.println("  public boolean isPacked() {");
+    writer.println("    return packed;");
+    writer.println("  }");
+    writer.println("  public io.vertx.protobuf.schema.Type type() {");
+    writer.println("    return type;");
+    writer.println("  }");
+    writer.println("  static {");
+    for (FieldDeclaration decl : list2) {
+      writer.println("    MessageLiteral." + decl.messageName + ".byNumber.put(" + decl.number + ", FieldLiteral." + decl.messageName + "_" + decl.name + ");");
+      writer.println("    MessageLiteral." + decl.messageName + ".byJsonName.put(\"" + decl.jsonName + "\", FieldLiteral." + decl.messageName + "_" + decl.name + ");");
+    }
+    writer.println("  }");
+    writer.println("}");
+
+    return PluginProtos.CodeGeneratorResponse.File
+      .newBuilder()
+      .setName(Utils.absoluteFileName(javaPkgFqn, "FieldLiteral"))
+      .setContent(writer.toString())
+      .build();
+  }
+
+  PluginProtos.CodeGeneratorResponse.File generateMessageLiterals() {
 
 
     GenWriter writer = new GenWriter();
@@ -161,10 +249,9 @@ class SchemaGenerator {
       "import io.vertx.protobuf.schema.DefaultEnumType;",
       "import io.vertx.protobuf.schema.Field;",
       "",
-      "public class SchemaLiterals {",
+      "public enum MessageLiteral implements MessageType {",
       "");
 
-    writer.println("  public enum MessageLiteral implements MessageType {");
     for (Iterator<MessageTypeDeclaration> it  = list.iterator();it.hasNext();) {
       MessageTypeDeclaration decl = it.next();
       writer.print("    " + decl.name + "(\"" + decl.name +  "\")");
@@ -174,85 +261,30 @@ class SchemaGenerator {
         writer.println(";");
       }
     }
-    writer.println("    private final java.util.Map<Integer, FieldLiteral> byNumber;");
-    writer.println("    private final java.util.Map<String, FieldLiteral> byJsonName;");
-    writer.println("    MessageLiteral(String name) {");
-    writer.println("      this.byNumber = new java.util.HashMap<>();");
-    writer.println("      this.byJsonName = new java.util.HashMap<>();");
-    writer.println("    }");
-    writer.println("    public Field field(int number) {");
-    writer.println("      return byNumber.get(number);");
-    writer.println("    }");
-    writer.println("    public Field fieldByJsonName(String name) {");
-    writer.println("      return byJsonName.get(name);");
-    writer.println("    }");
-    writer.println("    static {");
+    writer.println("  final java.util.Map<Integer, FieldLiteral> byNumber;");
+    writer.println("  final java.util.Map<String, FieldLiteral> byJsonName;");
+    writer.println("  MessageLiteral(String name) {");
+    writer.println("    this.byNumber = new java.util.HashMap<>();");
+    writer.println("    this.byJsonName = new java.util.HashMap<>();");
+    writer.println("  }");
+    writer.println("  public Field field(int number) {");
+    writer.println("    return byNumber.get(number);");
+    writer.println("  }");
+    writer.println("  public Field fieldByJsonName(String name) {");
+    writer.println("    return byJsonName.get(name);");
+    writer.println("  }");
+    writer.println("  static {");
     for (FieldDeclaration decl : list2) {
       // Force init
-      writer.println("      Object o = FieldLiteral." + decl.messageName + "_" + decl.name + ";");
+      writer.println("    Object o = FieldLiteral." + decl.messageName + "_" + decl.name + ";");
       break;
     }
-    writer.println("    }");
     writer.println("  }");
-
-    writer.println("  public enum FieldLiteral implements Field {");
-    for (Iterator<FieldDeclaration> it  = list2.iterator();it.hasNext();) {
-      FieldDeclaration decl = it.next();
-      writer.print("    " + decl.messageName + "_" + decl.name + "(MessageLiteral." + decl.messageName + ", " + decl.number + ", " + decl.typeExpr + ", " + decl.repeated + ", " + decl.packed + ", \"" + decl.jsonName + "\")");
-      if (it.hasNext()) {
-        writer.println(",");
-      } else {
-        writer.println(";");
-      }
-    }
-
-    writer.println("    private final MessageLiteral owner;");
-    writer.println("    private final int number;");
-    writer.println("    private final io.vertx.protobuf.schema.Type type;");
-    writer.println("    private final boolean repeated;");
-    writer.println("    private final boolean packed;");
-    writer.println("    private final String jsonName;");
-    writer.println("    FieldLiteral(MessageLiteral owner, int number, io.vertx.protobuf.schema.Type type, boolean repeated, boolean packed, String jsonName) {");
-    writer.println("      this.owner = owner;");
-    writer.println("      this.number = number;");
-    writer.println("      this.type = type;");
-    writer.println("      this.repeated = repeated;");
-    writer.println("      this.packed = packed;");
-    writer.println("      this.jsonName = jsonName;");
-    writer.println("    }");
-    writer.println("    public MessageType owner() {");
-    writer.println("      return owner;");
-    writer.println("    }");
-    writer.println("    public int number() {");
-    writer.println("      return number;");
-    writer.println("    }");
-    writer.println("    public String jsonName() {");
-    writer.println("      return jsonName;");
-    writer.println("    }");
-    writer.println("    public boolean isRepeated() {");
-    writer.println("      return repeated;");
-    writer.println("    }");
-    writer.println("    public boolean isPacked() {");
-    writer.println("      return packed;");
-    writer.println("    }");
-    writer.println("    public io.vertx.protobuf.schema.Type type() {");
-    writer.println("      return type;");
-    writer.println("    }");
-    writer.println("    static {");
-    for (FieldDeclaration decl : list2) {
-      writer.println("      MessageLiteral." + decl.messageName + ".byNumber.put(" + decl.number + ", FieldLiteral." + decl.messageName + "_" + decl.name + ");");
-      writer.println("      MessageLiteral." + decl.messageName + ".byJsonName.put(\"" + decl.jsonName + "\", FieldLiteral." + decl.messageName + "_" + decl.name + ");");
-    }
-    writer.println("    }");
-    writer.println("  }");
-
-    writer.println(
-      "",
-      "}");
+    writer.println("}");
 
     return PluginProtos.CodeGeneratorResponse.File
       .newBuilder()
-      .setName(Utils.absoluteFileName(javaPkgFqn, "SchemaLiterals"))
+      .setName(Utils.absoluteFileName(javaPkgFqn, "MessageLiteral"))
       .setContent(writer.toString())
       .build();
   }

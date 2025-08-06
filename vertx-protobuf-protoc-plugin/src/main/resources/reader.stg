@@ -39,7 +39,7 @@ unit(pkg, string_field, varint32_field, bytes_field, double_field) ::= <<
 >>
 
 bilto(field) ::= <<
-if (field == SchemaLiterals.<field.identifier>) {
+if (field == <field.identifier>) {
   <if(field.mapEntry)>
   stack.push(value);
   <elseif(field.repeated)>

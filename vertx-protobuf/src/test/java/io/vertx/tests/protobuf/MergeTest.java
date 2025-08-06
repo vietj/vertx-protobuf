@@ -2,13 +2,11 @@ package io.vertx.tests.protobuf;
 
 import io.vertx.core.buffer.Buffer;
 import io.vertx.protobuf.ProtobufReader;
-import io.vertx.protobuf.ProtobufWriter;
 import io.vertx.tests.merge.MergeProto;
 import io.vertx.tests.merge.Container;
 import io.vertx.tests.merge.Nested;
 import io.vertx.tests.merge.ProtoReader;
-import io.vertx.tests.merge.ProtoWriter;
-import io.vertx.tests.merge.SchemaLiterals;
+import io.vertx.tests.merge.MessageLiteral;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -35,7 +33,7 @@ public class MergeTest {
     aggregated.appendBytes(bytes1);
     aggregated.appendBytes(bytes2);
     ProtoReader reader = new ProtoReader();
-    ProtobufReader.parse(SchemaLiterals.MessageLiteral.Container, reader, aggregated);
+    ProtobufReader.parse(MessageLiteral.Container, reader, aggregated);
     Container msg = (Container) reader.stack.pop();
     assertEquals(1, (int)msg.getInt32());
     assertEquals(1L, (long)msg.getInt64());
@@ -60,7 +58,7 @@ public class MergeTest {
     aggregated.appendBytes(bytes1);
     aggregated.appendBytes(bytes2);
     ProtoReader reader = new ProtoReader();
-    ProtobufReader.parse(SchemaLiterals.MessageLiteral.Container, reader, aggregated);
+    ProtobufReader.parse(MessageLiteral.Container, reader, aggregated);
     Container msg = (Container) reader.stack.pop();
     Integer i = msg.getOneOf().asOneOfInt32().get();
     assertEquals(4, (int)i);

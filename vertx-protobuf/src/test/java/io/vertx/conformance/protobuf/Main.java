@@ -10,7 +10,7 @@ import io.vertx.protobuf.ProtobufWriter;
 import io.vertx.protobuf.com.google.protobuf_test_messages.proto3.ProtoWriter;
 import io.vertx.protobuf.com.google.protobuf_test_messages.proto3.TestAllTypesProto3;
 import io.vertx.protobuf.com.google.protobuf_test_messages.proto3.ProtoReader;
-import io.vertx.protobuf.com.google.protobuf_test_messages.proto3.SchemaLiterals;
+import io.vertx.protobuf.com.google.protobuf_test_messages.proto3.MessageLiteral;
 
 public class Main {
 
@@ -70,7 +70,7 @@ public class Main {
           ProtoReader reader = new ProtoReader();
           try {
             Buffer buffer = Buffer.buffer(request.getProtobufPayload().toByteArray());
-            ProtobufReader.parse(SchemaLiterals.MessageLiteral.TestAllTypesProto3, reader, buffer);
+            ProtobufReader.parse(MessageLiteral.TestAllTypesProto3, reader, buffer);
           } catch (DecodeException | IndexOutOfBoundsException e) {
             return Conformance.ConformanceResponse.newBuilder().setParseError(e.getMessage() != null ? e.getMessage() : e.getClass().getName()).build();
           }

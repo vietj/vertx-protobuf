@@ -105,7 +105,7 @@ class ProtoWriterGenerator {
     for (Descriptors.Descriptor d : all) {
       content.println(
         "  public static void emit(" + Utils.javaTypeOf(d) + " value, RecordVisitor visitor) {",
-        "    visitor.init(SchemaLiterals.MessageLiteral." + Utils.literalIdentifier(d) + ");",
+        "    visitor.init(MessageLiteral." + Utils.literalIdentifier(d) + ");",
         "    visit(value, visitor);",
         "    visitor.destroy();",
         "  }");
@@ -272,69 +272,69 @@ class ProtoWriterGenerator {
       // Message
       if (field.map) {
         content.println("      for (java.util.Map.Entry<" + field.keyJavaType + ", " + field.valueJavaType + "> entry : v.entrySet()) {");
-        content.println("        visitor.enter(SchemaLiterals.FieldLiteral." + field.identifier + ");");
+        content.println("        visitor.enter(FieldLiteral." + field.identifier + ");");
 //        if (field.keyTypeTo.lengthDelimited) {
-//          content.println("        visitor.enter(SchemaLiterals.FieldLiteral." + field.keyIdentifier + ");");
+//          content.println("        visitor.enter(FieldLiteral." + field.keyIdentifier + ");");
 //        }
-        content.println("        visitor." + field.keyTypeTo.visitMethod + "(SchemaLiterals.FieldLiteral." + field.keyIdentifier + ", " + field.keyTypeTo.fn.apply("entry.getKey()") + ");");
+        content.println("        visitor." + field.keyTypeTo.visitMethod + "(FieldLiteral." + field.keyIdentifier + ", " + field.keyTypeTo.fn.apply("entry.getKey()") + ");");
 //        if (field.keyTypeTo.lengthDelimited) {
-//          content.println("        visitor.leave(SchemaLiterals.FieldLiteral." + field.keyIdentifier + ");");
+//          content.println("        visitor.leave(FieldLiteral." + field.keyIdentifier + ");");
 //        }
         if (field.valueTypeTo == null) {
           // Message
           content.println(
-            "        visitor.enter(SchemaLiterals.FieldLiteral." + field.valueIdentifier + ");",
+            "        visitor.enter(FieldLiteral." + field.valueIdentifier + ");",
             "        visit(entry.getValue(), visitor);",
-            "        visitor.leave(SchemaLiterals.FieldLiteral." + field.valueIdentifier + ");");
+            "        visitor.leave(FieldLiteral." + field.valueIdentifier + ");");
         } else {
 //          if (field.valueTypeTo.lengthDelimited) {
-//            content.println("        visitor.enter(SchemaLiterals.FieldLiteral." + field.valueIdentifier + ");");
+//            content.println("        visitor.enter(FieldLiteral." + field.valueIdentifier + ");");
 //          }
-          content.println("        visitor." + field.valueTypeTo.visitMethod + "(SchemaLiterals.FieldLiteral." + field.valueIdentifier + ", " + field.valueTypeTo.fn.apply("entry.getValue()") + ");");
+          content.println("        visitor." + field.valueTypeTo.visitMethod + "(FieldLiteral." + field.valueIdentifier + ", " + field.valueTypeTo.fn.apply("entry.getValue()") + ");");
 //          if (field.valueTypeTo.lengthDelimited) {
-//            content.println("        visitor.leave(SchemaLiterals.FieldLiteral." + field.valueIdentifier + ");");
+//            content.println("        visitor.leave(FieldLiteral." + field.valueIdentifier + ");");
 //          }
         }
         content.println(
-          "        visitor.leave(SchemaLiterals.FieldLiteral." + field.identifier + ");",
+          "        visitor.leave(FieldLiteral." + field.identifier + ");",
           "      }");
       } else {
         if (field.repeated) {
           content.println(
-            "      visitor.enterRepetition(SchemaLiterals.FieldLiteral." + field.identifier + ");",
+            "      visitor.enterRepetition(FieldLiteral." + field.identifier + ");",
             "      for (" + field.javaTypeInternal + " c : v) {",
-            "        visitor.enter(SchemaLiterals.FieldLiteral." + field.identifier + ");",
+            "        visitor.enter(FieldLiteral." + field.identifier + ");",
             "        " + field.protoWriterFqn + ".visit(c, visitor);",
-            "        visitor.leave(SchemaLiterals.FieldLiteral." + field.identifier + ");",
+            "        visitor.leave(FieldLiteral." + field.identifier + ");",
             "      }",
-            "      visitor.leaveRepetition(SchemaLiterals.FieldLiteral." + field.identifier + ");");
+            "      visitor.leaveRepetition(FieldLiteral." + field.identifier + ");");
         } else {
           content.println(
-            "      visitor.enter(SchemaLiterals.FieldLiteral." + field.identifier + ");",
+            "      visitor.enter(FieldLiteral." + field.identifier + ");",
             "      " + field.protoWriterFqn + ".visit(v, visitor);",
-            "      visitor.leave(SchemaLiterals.FieldLiteral." + field.identifier + ");");
+            "      visitor.leave(FieldLiteral." + field.identifier + ");");
         }
       }
     } else {
       if (field.repeated) {
-        content.println("visitor.enterRepetition(SchemaLiterals.FieldLiteral." + field.identifier + ");");
+        content.println("visitor.enterRepetition(FieldLiteral." + field.identifier + ");");
         content.println("      for (" + field.javaTypeInternal + " c : v) {");
 //        if (field.typeTo.lengthDelimited) {
-//          content.println("        visitor.enter(SchemaLiterals.FieldLiteral." + field.identifier + ");");
+//          content.println("        visitor.enter(FieldLiteral." + field.identifier + ");");
 //        }
-        content.println("        visitor." + field.typeTo.visitMethod + "(SchemaLiterals.FieldLiteral." + field.identifier + ", " + field.typeTo.fn.apply("c") + ");");
+        content.println("        visitor." + field.typeTo.visitMethod + "(FieldLiteral." + field.identifier + ", " + field.typeTo.fn.apply("c") + ");");
 //        if (field.typeTo.lengthDelimited) {
-//          content.println("        visitor.leave(SchemaLiterals.FieldLiteral." + field.identifier + ");");
+//          content.println("        visitor.leave(FieldLiteral." + field.identifier + ");");
 //        }
         content.println("      }");
-        content.println("visitor.leaveRepetition(SchemaLiterals.FieldLiteral." + field.identifier + ");");
+        content.println("visitor.leaveRepetition(FieldLiteral." + field.identifier + ");");
       } else {
 //        if (field.typeTo.lengthDelimited) {
-//          content.println("      visitor.enter(SchemaLiterals.FieldLiteral." + field.identifier + ");");
+//          content.println("      visitor.enter(FieldLiteral." + field.identifier + ");");
 //        }
-        content.println("      visitor." + field.typeTo.visitMethod + "(SchemaLiterals.FieldLiteral." + field.identifier + ", " + field.typeTo.fn.apply("v") + ");");
+        content.println("      visitor." + field.typeTo.visitMethod + "(FieldLiteral." + field.identifier + ", " + field.typeTo.fn.apply("v") + ");");
 //        if (field.typeTo.lengthDelimited) {
-//          content.println("      visitor.leave(SchemaLiterals.FieldLiteral." + field.identifier + ");");
+//          content.println("      visitor.leave(FieldLiteral." + field.identifier + ");");
 //        }
       }
     }

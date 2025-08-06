@@ -166,7 +166,8 @@ public class VertxGrpcGeneratorImpl extends Generator {
 
       files.add(new MessageBaseGenerator(javaPkgFqn).generate());
       files.addAll(new ElementGenerator(javaPkgFqn, new ArrayList<>(messages.values()), enums).generate());
-      files.add(new SchemaGenerator(javaPkgFqn, new ArrayList<>(messages.values())).generate());
+//      files.add(new SchemaGenerator(javaPkgFqn, new ArrayList<>(messages.values())).generate());
+      files.addAll(new SchemaGenerator(javaPkgFqn, new ArrayList<>(messages.values())).generate());
       files.add(new ProtoReaderGenerator(javaPkgFqn, new ArrayList<>(messages.values())).generate());
       files.add(new ProtoWriterGenerator(javaPkgFqn, new ArrayList<>(messages.values())).generate());
     });

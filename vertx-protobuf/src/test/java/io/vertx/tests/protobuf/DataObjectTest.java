@@ -34,7 +34,7 @@ public class DataObjectTest {
       .putMapStringInt32("the-key-2", 5)
       .build().toByteArray();
     io.vertx.tests.protobuf.ProtoReader reader = new io.vertx.tests.protobuf.ProtoReader();
-    ProtobufReader.parse(SchemaLiterals.MessageLiteral.SimpleMessage, reader, Buffer.buffer(bytes));
+    ProtobufReader.parse(MessageLiteral.SimpleMessage, reader, Buffer.buffer(bytes));
     SimpleMessage msg = (SimpleMessage) reader.stack.pop();
     assertEquals("hello", msg.getStringField());
     assertEquals("hello", msg.getBytesField().toString());
@@ -70,7 +70,7 @@ public class DataObjectTest {
   public void testStringValue() {
     byte[] bytes = com.google.protobuf.Value.newBuilder().setStringValue("hello").build().toByteArray();
     io.vertx.protobuf.com.google.protobuf.ProtoReader reader = new io.vertx.protobuf.com.google.protobuf.ProtoReader();
-    ProtobufReader.parse(SchemaLiterals.VALUE, reader, Buffer.buffer(bytes));
+    ProtobufReader.parse(VALUE, reader, Buffer.buffer(bytes));
     Value msg = (Value) reader.stack.pop();
     assertEquals("hello", msg.getStringValue());
   }
@@ -86,7 +86,7 @@ public class DataObjectTest {
       .build()).build().toByteArray();
     io.vertx.protobuf.com.google.protobuf.ProtoReader reader = new io.vertx.protobuf.com.google.protobuf.ProtoReader();
     Buffer buffer = Buffer.buffer(bytes);
-    ProtobufReader.parse(SchemaLiterals.VALUE, reader, buffer);
+    ProtobufReader.parse(VALUE, reader, buffer);
     Value msg = (Value) reader.stack.pop();
     assertNotNull(msg.getStructValue());
     assertEquals("string", msg.getStructValue().getFields().get("foo").getStringValue());
@@ -120,7 +120,7 @@ public class DataObjectTest {
     byte[] bytes = ImportingProto.Container.newBuilder().setSimpleMessage(TestProto.SimpleMessage.newBuilder().setStringField("the-string").build()).build().toByteArray();
     io.vertx.tests.importing.ProtoReader reader = new io.vertx.tests.importing.ProtoReader();
     Buffer buffer = Buffer.buffer(bytes);
-    ProtobufReader.parse(io.vertx.tests.importing.SchemaLiterals.MessageLiteral.Container, reader, buffer);
+    ProtobufReader.parse(io.vertx.tests.importing.MessageLiteral.Container, reader, buffer);
     Container msg = (Container) reader.stack.pop();
     assertEquals("the-string", msg.getSimpleMessage().getStringField());
   }

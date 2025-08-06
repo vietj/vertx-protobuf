@@ -9,7 +9,8 @@ import io.vertx.tests.repetition.Packed;
 import io.vertx.tests.repetition.ProtoReader;
 import io.vertx.tests.repetition.ProtoWriter;
 import io.vertx.tests.repetition.Repeated;
-import io.vertx.tests.repetition.SchemaLiterals;
+import io.vertx.tests.repetition.MessageLiteral;
+import io.vertx.tests.repetition.FieldLiteral;
 import io.vertx.tests.repetition.RepetitionProto;
 import org.junit.Test;
 
@@ -22,11 +23,11 @@ public class RepetitionTest {
   @Test
   public void testParseUnpackedInt32Repetition() {
     RecordingVisitor visitor = new RecordingVisitor();
-    visitor.init(SchemaLiterals.MessageLiteral.Repeated);
-    visitor.enterRepetition(SchemaLiterals.FieldLiteral.Repeated_int32);
-    visitor.visitInt32(SchemaLiterals.FieldLiteral.Repeated_int32, 0);
-    visitor.visitInt32(SchemaLiterals.FieldLiteral.Repeated_int32, 1);
-    visitor.leaveRepetition(SchemaLiterals.FieldLiteral.Repeated_int32);
+    visitor.init(MessageLiteral.Repeated);
+    visitor.enterRepetition(FieldLiteral.Repeated_int32);
+    visitor.visitInt32(FieldLiteral.Repeated_int32, 0);
+    visitor.visitInt32(FieldLiteral.Repeated_int32, 1);
+    visitor.leaveRepetition(FieldLiteral.Repeated_int32);
     visitor.destroy();
     assertRepetition(RepetitionProto.Repeated.newBuilder().addInt32(0).addInt32(1).build(), visitor);
   }
@@ -34,11 +35,11 @@ public class RepetitionTest {
   @Test
   public void testParsePackedInt32Repetition() {
     RecordingVisitor visitor = new RecordingVisitor();
-    visitor.init(SchemaLiterals.MessageLiteral.Packed);
-    visitor.enterRepetition(SchemaLiterals.FieldLiteral.Packed_int32);
-    visitor.visitInt32(SchemaLiterals.FieldLiteral.Packed_int32, 0);
-    visitor.visitInt32(SchemaLiterals.FieldLiteral.Packed_int32, 1);
-    visitor.leaveRepetition(SchemaLiterals.FieldLiteral.Packed_int32);
+    visitor.init(MessageLiteral.Packed);
+    visitor.enterRepetition(FieldLiteral.Packed_int32);
+    visitor.visitInt32(FieldLiteral.Packed_int32, 0);
+    visitor.visitInt32(FieldLiteral.Packed_int32, 1);
+    visitor.leaveRepetition(FieldLiteral.Packed_int32);
     visitor.destroy();
     assertRepetition(RepetitionProto.Packed.newBuilder().addInt32(0).addInt32(1).build(), visitor);
   }
@@ -46,11 +47,11 @@ public class RepetitionTest {
   @Test
   public void testParseUnpackedStringRepetition() {
     RecordingVisitor visitor = new RecordingVisitor();
-    visitor.init(SchemaLiterals.MessageLiteral.Repeated);
-    visitor.enterRepetition(SchemaLiterals.FieldLiteral.Repeated_string);
-    visitor.visitString(SchemaLiterals.FieldLiteral.Repeated_string, "s1");
-    visitor.visitString(SchemaLiterals.FieldLiteral.Repeated_string, "s2");
-    visitor.leaveRepetition(SchemaLiterals.FieldLiteral.Repeated_string);
+    visitor.init(MessageLiteral.Repeated);
+    visitor.enterRepetition(FieldLiteral.Repeated_string);
+    visitor.visitString(FieldLiteral.Repeated_string, "s1");
+    visitor.visitString(FieldLiteral.Repeated_string, "s2");
+    visitor.leaveRepetition(FieldLiteral.Repeated_string);
     visitor.destroy();
     assertRepetition(RepetitionProto.Repeated.newBuilder().addString("s1").addString("s2").build(), visitor);
   }
@@ -58,25 +59,25 @@ public class RepetitionTest {
   @Test
   public void testParseUnpackedEmbeddedRepetition() {
     RecordingVisitor visitor = new RecordingVisitor();
-    visitor.init(SchemaLiterals.MessageLiteral.Repeated);
-    visitor.enterRepetition(SchemaLiterals.FieldLiteral.Repeated_embedded);
-    visitor.enter(SchemaLiterals.FieldLiteral.Repeated_embedded);
-    visitor.leave(SchemaLiterals.FieldLiteral.Repeated_embedded);
-    visitor.enter(SchemaLiterals.FieldLiteral.Repeated_embedded);
-    visitor.visitInt32(SchemaLiterals.FieldLiteral.Embedded_value, 1);
-    visitor.enterRepetition(SchemaLiterals.FieldLiteral.Embedded_repeated);
-    visitor.visitInt32(SchemaLiterals.FieldLiteral.Embedded_repeated, 1);
-    visitor.visitInt32(SchemaLiterals.FieldLiteral.Embedded_repeated, 2);
-    visitor.leaveRepetition(SchemaLiterals.FieldLiteral.Embedded_repeated);
-    visitor.enterRepetition(SchemaLiterals.FieldLiteral.Embedded_packed);
-    visitor.visitInt32(SchemaLiterals.FieldLiteral.Embedded_packed, 3);
-    visitor.visitInt32(SchemaLiterals.FieldLiteral.Embedded_packed, 4);
-    visitor.leaveRepetition(SchemaLiterals.FieldLiteral.Embedded_packed);
-    visitor.leave(SchemaLiterals.FieldLiteral.Repeated_embedded);
-    visitor.enter(SchemaLiterals.FieldLiteral.Repeated_embedded);
-    visitor.visitInt32(SchemaLiterals.FieldLiteral.Embedded_value, 2);
-    visitor.leave(SchemaLiterals.FieldLiteral.Repeated_embedded);
-    visitor.leaveRepetition(SchemaLiterals.FieldLiteral.Repeated_embedded);
+    visitor.init(MessageLiteral.Repeated);
+    visitor.enterRepetition(FieldLiteral.Repeated_embedded);
+    visitor.enter(FieldLiteral.Repeated_embedded);
+    visitor.leave(FieldLiteral.Repeated_embedded);
+    visitor.enter(FieldLiteral.Repeated_embedded);
+    visitor.visitInt32(FieldLiteral.Embedded_value, 1);
+    visitor.enterRepetition(FieldLiteral.Embedded_repeated);
+    visitor.visitInt32(FieldLiteral.Embedded_repeated, 1);
+    visitor.visitInt32(FieldLiteral.Embedded_repeated, 2);
+    visitor.leaveRepetition(FieldLiteral.Embedded_repeated);
+    visitor.enterRepetition(FieldLiteral.Embedded_packed);
+    visitor.visitInt32(FieldLiteral.Embedded_packed, 3);
+    visitor.visitInt32(FieldLiteral.Embedded_packed, 4);
+    visitor.leaveRepetition(FieldLiteral.Embedded_packed);
+    visitor.leave(FieldLiteral.Repeated_embedded);
+    visitor.enter(FieldLiteral.Repeated_embedded);
+    visitor.visitInt32(FieldLiteral.Embedded_value, 2);
+    visitor.leave(FieldLiteral.Repeated_embedded);
+    visitor.leaveRepetition(FieldLiteral.Repeated_embedded);
     visitor.destroy();
     assertRepetition(RepetitionProto.Repeated.newBuilder()
       .addEmbedded(RepetitionProto.Embedded.newBuilder().setValue(0).build())
@@ -87,12 +88,12 @@ public class RepetitionTest {
 
   private void assertRepetition(RepetitionProto.Repeated repeated, RecordingVisitor visitor) {
     byte[] bytes = repeated.toByteArray();
-    ProtobufReader.parse(SchemaLiterals.MessageLiteral.Repeated, visitor.checker(), Buffer.buffer(bytes));
+    ProtobufReader.parse(MessageLiteral.Repeated, visitor.checker(), Buffer.buffer(bytes));
   }
 
   private void assertRepetition(RepetitionProto.Packed repeated, RecordingVisitor visitor) {
     byte[] bytes = repeated.toByteArray();
-    ProtobufReader.parse(SchemaLiterals.MessageLiteral.Packed, visitor.checker(), Buffer.buffer(bytes));
+    ProtobufReader.parse(MessageLiteral.Packed, visitor.checker(), Buffer.buffer(bytes));
   }
 
   @Test
@@ -132,7 +133,7 @@ public class RepetitionTest {
       .addFloat(1F)
       .build().toByteArray();
     ProtoReader reader = new ProtoReader();
-    ProtobufReader.parse(SchemaLiterals.MessageLiteral.Repeated, reader, Buffer.buffer(bytes));
+    ProtobufReader.parse(MessageLiteral.Repeated, reader, Buffer.buffer(bytes));
     Repeated msg = (Repeated) reader.stack.pop();
     assertEquals(Arrays.asList("0", "1"), msg.getString());
     assertEquals(Arrays.asList(Buffer.buffer("0"), Buffer.buffer("1")), msg.getBytes());
@@ -185,7 +186,7 @@ public class RepetitionTest {
       .addFloat(1F)
       .build().toByteArray();
     ProtoReader reader = new ProtoReader();
-    ProtobufReader.parse(SchemaLiterals.MessageLiteral.Packed, reader, Buffer.buffer(bytes));
+    ProtobufReader.parse(MessageLiteral.Packed, reader, Buffer.buffer(bytes));
     Packed msg = (Packed) reader.stack.pop();
     assertEquals(Arrays.asList(0, 1), msg.getInt32());
     assertEquals(Arrays.asList(0L, 1L), msg.getInt64());
@@ -213,7 +214,7 @@ public class RepetitionTest {
       .addInt32(4)
       .build().toByteArray();
     ProtoReader reader = new ProtoReader();
-    ProtobufReader.parse(SchemaLiterals.MessageLiteral.Packed, reader, Buffer.buffer(expected));
+    ProtobufReader.parse(MessageLiteral.Packed, reader, Buffer.buffer(expected));
     Packed msg = (Packed) reader.stack.pop();
     assertEquals(Arrays.asList(0, 1, 2, 3, 4), msg.getInt32());
     byte[] actual = ProtobufWriter.encode(visitor -> ProtoWriter.emit(msg, visitor)).getBytes();

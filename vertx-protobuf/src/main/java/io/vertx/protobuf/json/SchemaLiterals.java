@@ -21,7 +21,7 @@ class SchemaLiterals {
     static final Field fields;
 
     static {
-      TYPE = SchemaLiterals.SCHEMA.of("Struct");
+      TYPE = SCHEMA.of("Struct");
       fields = Struct.TYPE.field(1);
     }
   }
@@ -37,7 +37,7 @@ class SchemaLiterals {
     static final Field list_value;
 
     static {
-      TYPE = SchemaLiterals.SCHEMA.of("Value");
+      TYPE = SCHEMA.of("Value");
       null_value = TYPE.field(1);
       number_value = TYPE.field(2);
       string_value = TYPE.field(3);
@@ -53,7 +53,7 @@ class SchemaLiterals {
     static final Field values;
 
     static {
-      TYPE = SchemaLiterals.SCHEMA.of("ListValue");
+      TYPE = SCHEMA.of("ListValue");
       values = TYPE.field(1);
     }
   }

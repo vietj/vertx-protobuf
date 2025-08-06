@@ -231,8 +231,8 @@ class ProtoReaderGenerator {
     out.println(
       "",
       "  public void init(MessageType type) {",
-      "    if (type instanceof SchemaLiterals.MessageLiteral) {",
-      "      SchemaLiterals.MessageLiteral literal = (SchemaLiterals.MessageLiteral)type;",
+      "    if (type instanceof MessageLiteral) {",
+      "      MessageLiteral literal = (MessageLiteral)type;",
       "      switch (literal) {"
     );
     for (Descriptors.Descriptor messageType : fileDesc) {
@@ -294,8 +294,8 @@ class ProtoReaderGenerator {
       out.println(
         "",
         "  public void " + visitMethod.methodStart + " {",
-        "    if (field instanceof SchemaLiterals.FieldLiteral) {");
-      out.println("      SchemaLiterals.FieldLiteral fieldLiteral = (SchemaLiterals.FieldLiteral)field;");
+        "    if (field instanceof FieldLiteral) {");
+      out.println("      FieldLiteral fieldLiteral = (FieldLiteral)field;");
       out.println("      switch (fieldLiteral) {");
       for (FieldDescriptor fd : collected.stream().filter(f -> visitMethod.type == f.type).collect(Collectors.toList())) {
         out.println("        case " + fd.identifier + ": {");
@@ -357,8 +357,8 @@ class ProtoReaderGenerator {
     out.println(
       "",
       "  public void enter(Field field) {",
-      "    if (field instanceof SchemaLiterals.FieldLiteral) {",
-      "      SchemaLiterals.FieldLiteral literal = (SchemaLiterals.FieldLiteral)field;",
+      "    if (field instanceof FieldLiteral) {",
+      "      FieldLiteral literal = (FieldLiteral)field;",
       "      switch (literal) {");
 
     collected
@@ -418,8 +418,8 @@ class ProtoReaderGenerator {
     out.println(
       "",
       "  public void leave(Field field) {",
-      "    if (field instanceof SchemaLiterals.FieldLiteral) {",
-      "      SchemaLiterals.FieldLiteral literal = (SchemaLiterals.FieldLiteral)field;",
+      "    if (field instanceof FieldLiteral) {",
+      "      FieldLiteral literal = (FieldLiteral)field;",
       "      switch (literal) {");
     collected
       .stream()
@@ -493,8 +493,8 @@ class ProtoReaderGenerator {
     out.println(
       "",
       "  public void enterRepetition(Field field) {",
-      "    if (field instanceof SchemaLiterals.FieldLiteral) {",
-      "      SchemaLiterals.FieldLiteral literal = (SchemaLiterals.FieldLiteral)field;",
+      "    if (field instanceof FieldLiteral) {",
+      "      FieldLiteral literal = (FieldLiteral)field;",
       "      switch (literal) {");
 
     collected
@@ -523,8 +523,8 @@ class ProtoReaderGenerator {
     out.println(
       "",
       "  public void leaveRepetition(Field field) {",
-      "    if (field instanceof SchemaLiterals.FieldLiteral) {",
-      "      SchemaLiterals.FieldLiteral literal = (SchemaLiterals.FieldLiteral)field;",
+      "    if (field instanceof FieldLiteral) {",
+      "      FieldLiteral literal = (FieldLiteral)field;",
       "      switch (literal) {");
     collected
       .stream()

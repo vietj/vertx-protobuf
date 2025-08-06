@@ -5,7 +5,7 @@ import io.vertx.protobuf.ProtobufReader;
 import io.vertx.protobuf.ProtobufWriter;
 import io.vertx.tests.oneof.ProtoWriter;
 import io.vertx.tests.oneof.ProtoReader;
-import io.vertx.tests.oneof.SchemaLiterals;
+import io.vertx.tests.oneof.MessageLiteral;
 import io.vertx.tests.oneof.AppleMsg;
 import io.vertx.tests.oneof.BananaMsg;
 import io.vertx.tests.oneof.Container;
@@ -22,7 +22,7 @@ public class OneOfTest {
   public void testOneOf() throws Exception {
     byte[] bytes = OneOfProto.Container.newBuilder().setBanana(OneOfProto.BananaMsg.newBuilder().setWeight(15).build()).build().toByteArray();
     ProtoReader reader = new ProtoReader();
-    ProtobufReader.parse(SchemaLiterals.MessageLiteral.Container, reader, Buffer.buffer(bytes));
+    ProtobufReader.parse(MessageLiteral.Container, reader, Buffer.buffer(bytes));
     Container msg = (Container) reader.stack.pop();
     assertNotNull(msg.getFruit());
     assertEquals(Container.FruitDiscriminant.BANANA, msg.getFruit().discriminant());

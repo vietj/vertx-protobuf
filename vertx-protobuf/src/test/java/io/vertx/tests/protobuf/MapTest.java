@@ -11,7 +11,8 @@ import io.vertx.tests.map.MapProto;
 import io.vertx.tests.map.MapValueVariant;
 import io.vertx.tests.map.ProtoReader;
 import io.vertx.tests.map.ProtoWriter;
-import io.vertx.tests.map.SchemaLiterals;
+import io.vertx.tests.map.FieldLiteral;
+import io.vertx.tests.map.MessageLiteral;
 import io.vertx.tests.map.Value;
 import org.junit.Assert;
 import org.junit.Test;
@@ -19,37 +20,35 @@ import org.junit.Test;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Predicate;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 public class MapTest {
 
   @Test
   public void testEmptyMapKeyVariant() throws Exception {
-    testEmptyMapKeyVariant(SchemaLiterals.FieldLiteral.MapKeyVariant_string, MapKeyVariant::getString, "");
-    testEmptyMapKeyVariant(SchemaLiterals.FieldLiteral.MapKeyVariant_int32, MapKeyVariant::getInt32, 0);
-    testEmptyMapKeyVariant(SchemaLiterals.FieldLiteral.MapKeyVariant_int64, MapKeyVariant::getInt64, 0L);
-    testEmptyMapKeyVariant(SchemaLiterals.FieldLiteral.MapKeyVariant_uint32, MapKeyVariant::getUint32, 0);
-    testEmptyMapKeyVariant(SchemaLiterals.FieldLiteral.MapKeyVariant_uint64, MapKeyVariant::getUint64, 0L);
-    testEmptyMapKeyVariant(SchemaLiterals.FieldLiteral.MapKeyVariant_sint32, MapKeyVariant::getSint32, 0);
-    testEmptyMapKeyVariant(SchemaLiterals.FieldLiteral.MapKeyVariant_sint64, MapKeyVariant::getSint64, 0L);
-    testEmptyMapKeyVariant(SchemaLiterals.FieldLiteral.MapKeyVariant_bool, MapKeyVariant::getBool, false);
-    testEmptyMapKeyVariant(SchemaLiterals.FieldLiteral.MapKeyVariant_fixed64, MapKeyVariant::getFixed64, 0L);
-    testEmptyMapKeyVariant(SchemaLiterals.FieldLiteral.MapKeyVariant_sfixed64, MapKeyVariant::getSfixed64, 0L);
-    testEmptyMapKeyVariant(SchemaLiterals.FieldLiteral.MapKeyVariant_fixed32, MapKeyVariant::getFixed32, 0);
-    testEmptyMapKeyVariant(SchemaLiterals.FieldLiteral.MapKeyVariant_sfixed32, MapKeyVariant::getSfixed32, 0);
+    testEmptyMapKeyVariant(FieldLiteral.MapKeyVariant_string, MapKeyVariant::getString, "");
+    testEmptyMapKeyVariant(FieldLiteral.MapKeyVariant_int32, MapKeyVariant::getInt32, 0);
+    testEmptyMapKeyVariant(FieldLiteral.MapKeyVariant_int64, MapKeyVariant::getInt64, 0L);
+    testEmptyMapKeyVariant(FieldLiteral.MapKeyVariant_uint32, MapKeyVariant::getUint32, 0);
+    testEmptyMapKeyVariant(FieldLiteral.MapKeyVariant_uint64, MapKeyVariant::getUint64, 0L);
+    testEmptyMapKeyVariant(FieldLiteral.MapKeyVariant_sint32, MapKeyVariant::getSint32, 0);
+    testEmptyMapKeyVariant(FieldLiteral.MapKeyVariant_sint64, MapKeyVariant::getSint64, 0L);
+    testEmptyMapKeyVariant(FieldLiteral.MapKeyVariant_bool, MapKeyVariant::getBool, false);
+    testEmptyMapKeyVariant(FieldLiteral.MapKeyVariant_fixed64, MapKeyVariant::getFixed64, 0L);
+    testEmptyMapKeyVariant(FieldLiteral.MapKeyVariant_sfixed64, MapKeyVariant::getSfixed64, 0L);
+    testEmptyMapKeyVariant(FieldLiteral.MapKeyVariant_fixed32, MapKeyVariant::getFixed32, 0);
+    testEmptyMapKeyVariant(FieldLiteral.MapKeyVariant_sfixed32, MapKeyVariant::getSfixed32, 0);
   }
 
   public <K> void testEmptyMapKeyVariant(Field mapField, Function<MapKeyVariant, Map<K, Integer>> extractor, K expected) throws Exception {
     Buffer buffer = ProtobufWriter.encode(visitor -> {
-      visitor.init(SchemaLiterals.MessageLiteral.MapKeyVariant);
+      visitor.init(MessageLiteral.MapKeyVariant);
       visitor.enter(mapField);
       visitor.leave(mapField);
     });
     ProtoReader reader = new ProtoReader();
-    ProtobufReader.parse(SchemaLiterals.MessageLiteral.MapKeyVariant, reader, buffer);
+    ProtobufReader.parse(MessageLiteral.MapKeyVariant, reader, buffer);
     MapKeyVariant map = (MapKeyVariant) reader.stack.pop();
     Map<K, Integer> entries = extractor.apply(map);
     assertEquals(1, entries.size());
@@ -60,9 +59,9 @@ public class MapTest {
 
   @Test
   public void testReorderedMapKeyVariant() throws Exception {
-    Field mapField = SchemaLiterals.FieldLiteral.MapKeyVariant_string;
+    Field mapField = FieldLiteral.MapKeyVariant_string;
     Buffer buffer = ProtobufWriter.encode(visitor -> {
-      visitor.init(SchemaLiterals.MessageLiteral.MapKeyVariant);
+      visitor.init(MessageLiteral.MapKeyVariant);
       visitor.enter(mapField);
       visitor.visitVarInt32(((MessageType)mapField.type()).field(2), 4);
 //      visitor.enter(((MessageType) mapField.type()).field(1));
@@ -71,7 +70,7 @@ public class MapTest {
       visitor.leave(mapField);
     });
     ProtoReader reader = new ProtoReader();
-    ProtobufReader.parse(SchemaLiterals.MessageLiteral.MapKeyVariant, reader, buffer);
+    ProtobufReader.parse(MessageLiteral.MapKeyVariant, reader, buffer);
     MapKeyVariant map = (MapKeyVariant) reader.stack.pop();
     Map<String, Integer> entries = map.getString();
     assertEquals(1, entries.size());
@@ -84,23 +83,23 @@ public class MapTest {
 
   @Test
   public void testEmptyMapValueVariant() throws Exception {
-    testEmptyMapValueVariant(SchemaLiterals.FieldLiteral.MapValueVariant_string_v, MapValueVariant::getStringV, "");
-    testEmptyMapValueVariant(SchemaLiterals.FieldLiteral.MapValueVariant_bytes_v, MapValueVariant::getBytesV, Buffer.buffer());
-    testEmptyMapValueVariant(SchemaLiterals.FieldLiteral.MapValueVariant_int32_v, MapValueVariant::getInt32V, 0);
-    testEmptyMapValueVariant(SchemaLiterals.FieldLiteral.MapValueVariant_int64_v, MapValueVariant::getInt64V, 0L);
-    testEmptyMapValueVariant(SchemaLiterals.FieldLiteral.MapValueVariant_uint32_v, MapValueVariant::getUint32V, 0);
-    testEmptyMapValueVariant(SchemaLiterals.FieldLiteral.MapValueVariant_uint64_v, MapValueVariant::getUint64V, 0L);
-    testEmptyMapValueVariant(SchemaLiterals.FieldLiteral.MapValueVariant_sint32_v, MapValueVariant::getSint32V, 0);
-    testEmptyMapValueVariant(SchemaLiterals.FieldLiteral.MapValueVariant_sint64_v, MapValueVariant::getSint64V, 0L);
-    testEmptyMapValueVariant(SchemaLiterals.FieldLiteral.MapKeyVariant_bool, MapValueVariant::getBoolV, false);
-    testEmptyMapValueVariant(SchemaLiterals.FieldLiteral.MapValueVariant__enum_v, MapValueVariant::getEnumV, Enum.constant_0);
-    testEmptyMapValueVariant(SchemaLiterals.FieldLiteral.MapValueVariant_fixed64_v, MapValueVariant::getFixed64V, 0L);
-    testEmptyMapValueVariant(SchemaLiterals.FieldLiteral.MapValueVariant_sfixed64_v, MapValueVariant::getSfixed64V, 0L);
-    testEmptyMapValueVariant(SchemaLiterals.FieldLiteral.MapValueVariant__double_v, MapValueVariant::getDoubleV, 0D);
-    testEmptyMapValueVariant(SchemaLiterals.FieldLiteral.MapValueVariant_fixed32_v, MapValueVariant::getFixed32V, 0);
-    testEmptyMapValueVariant(SchemaLiterals.FieldLiteral.MapValueVariant_sfixed32_v, MapValueVariant::getSfixed32V, 0);
-    testEmptyMapValueVariant(SchemaLiterals.FieldLiteral.MapValueVariant__float_v, MapValueVariant::getFloatV, 0F);
-    this.<Value>testEmptyMapValueVariant(SchemaLiterals.FieldLiteral.MapValueVariant__message_v, MapValueVariant::getMessageV, Assert::assertNotNull);
+    testEmptyMapValueVariant(FieldLiteral.MapValueVariant_string_v, MapValueVariant::getStringV, "");
+    testEmptyMapValueVariant(FieldLiteral.MapValueVariant_bytes_v, MapValueVariant::getBytesV, Buffer.buffer());
+    testEmptyMapValueVariant(FieldLiteral.MapValueVariant_int32_v, MapValueVariant::getInt32V, 0);
+    testEmptyMapValueVariant(FieldLiteral.MapValueVariant_int64_v, MapValueVariant::getInt64V, 0L);
+    testEmptyMapValueVariant(FieldLiteral.MapValueVariant_uint32_v, MapValueVariant::getUint32V, 0);
+    testEmptyMapValueVariant(FieldLiteral.MapValueVariant_uint64_v, MapValueVariant::getUint64V, 0L);
+    testEmptyMapValueVariant(FieldLiteral.MapValueVariant_sint32_v, MapValueVariant::getSint32V, 0);
+    testEmptyMapValueVariant(FieldLiteral.MapValueVariant_sint64_v, MapValueVariant::getSint64V, 0L);
+    testEmptyMapValueVariant(FieldLiteral.MapKeyVariant_bool, MapValueVariant::getBoolV, false);
+    testEmptyMapValueVariant(FieldLiteral.MapValueVariant__enum_v, MapValueVariant::getEnumV, Enum.constant_0);
+    testEmptyMapValueVariant(FieldLiteral.MapValueVariant_fixed64_v, MapValueVariant::getFixed64V, 0L);
+    testEmptyMapValueVariant(FieldLiteral.MapValueVariant_sfixed64_v, MapValueVariant::getSfixed64V, 0L);
+    testEmptyMapValueVariant(FieldLiteral.MapValueVariant__double_v, MapValueVariant::getDoubleV, 0D);
+    testEmptyMapValueVariant(FieldLiteral.MapValueVariant_fixed32_v, MapValueVariant::getFixed32V, 0);
+    testEmptyMapValueVariant(FieldLiteral.MapValueVariant_sfixed32_v, MapValueVariant::getSfixed32V, 0);
+    testEmptyMapValueVariant(FieldLiteral.MapValueVariant__float_v, MapValueVariant::getFloatV, 0F);
+    this.<Value>testEmptyMapValueVariant(FieldLiteral.MapValueVariant__message_v, MapValueVariant::getMessageV, Assert::assertNotNull);
   }
 
   public <V> void testEmptyMapValueVariant(Field mapField, Function<MapValueVariant, Map<Integer, V>> extractor, V expected) throws Exception {
@@ -109,12 +108,12 @@ public class MapTest {
 
   public <V> void testEmptyMapValueVariant(Field mapField, Function<MapValueVariant, Map<Integer, V>> extractor, Consumer<V> predicate) throws Exception {
     Buffer buffer = ProtobufWriter.encode(visitor -> {
-      visitor.init(SchemaLiterals.MessageLiteral.MapValueVariant);
+      visitor.init(MessageLiteral.MapValueVariant);
       visitor.enter(mapField);
       visitor.leave(mapField);
     });
     ProtoReader reader = new ProtoReader();
-    ProtobufReader.parse(SchemaLiterals.MessageLiteral.MapValueVariant, reader, buffer);
+    ProtobufReader.parse(MessageLiteral.MapValueVariant, reader, buffer);
     MapValueVariant map = (MapValueVariant) reader.stack.pop();
     Map<Integer, V> entries = extractor.apply(map);
     assertEquals(1, entries.size());

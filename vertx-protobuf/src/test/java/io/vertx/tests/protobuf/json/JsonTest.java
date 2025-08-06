@@ -2,17 +2,13 @@ package io.vertx.tests.protobuf.json;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonParser;
 import com.google.protobuf.util.JsonFormat;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.json.jackson.JacksonCodec;
-import io.vertx.protobuf.ProtobufReader;
 import io.vertx.protobuf.json.JsonReader;
 import io.vertx.protobuf.json.JsonWriter;
+import io.vertx.tests.protobuf.MessageLiteral;
 import io.vertx.tests.protobuf.ProtoReader;
 import io.vertx.tests.protobuf.ProtoWriter;
-import io.vertx.tests.protobuf.SchemaLiterals;
 import io.vertx.tests.protobuf.SimpleMessage;
 import io.vertx.tests.protobuf.TestProto;
 import org.junit.Test;
@@ -36,7 +32,7 @@ public class JsonTest {
 
     ProtoReader pr = new ProtoReader();
 
-    JsonReader.parse(json, SchemaLiterals.MessageLiteral.SimpleMessage, pr);
+    JsonReader.parse(json, MessageLiteral.SimpleMessage, pr);
 
     SimpleMessage pop = (SimpleMessage) pr.stack.pop();
 

@@ -28,14 +28,14 @@ public class UnknownTest {
         .build()
       ).build().toByteArray();
     RecordingVisitor visitor = new RecordingVisitor();
-    ProtobufReader.parse(SchemaLiterals.MessageLiteral.Message, visitor, Buffer.buffer(bytes));
+    ProtobufReader.parse(MessageLiteral.Message, visitor, Buffer.buffer(bytes));
     RecordingVisitor.Checker checker = visitor.checker();
-    checker.init(SchemaLiterals.MessageLiteral.Message);
-    Field uf2 = SchemaLiterals.MessageLiteral.Message.unknownField(2, WireType.LEN);
+    checker.init(MessageLiteral.Message);
+    Field uf2 = MessageLiteral.Message.unknownField(2, WireType.LEN);
     checker.enter(uf2);
     checker.visitBytes(uf2, "Hello".getBytes(StandardCharsets.UTF_8));
     checker.leave(uf2);
-    Field uf3 = SchemaLiterals.MessageLiteral.Message.unknownField(3, WireType.LEN);
+    Field uf3 = MessageLiteral.Message.unknownField(3, WireType.LEN);
     checker.enter(uf3);
     checker.visitBytes(uf3, "World".getBytes(StandardCharsets.UTF_8));
     checker.leave(uf3);
@@ -49,10 +49,10 @@ public class UnknownTest {
       .setUnknownFields(UnknownFieldSet.newBuilder().addField(2, UnknownFieldSet.Field.newBuilder().addFixed32(15).build()).build())
       .build().toByteArray();
     RecordingVisitor visitor = new RecordingVisitor();
-    ProtobufReader.parse(SchemaLiterals.MessageLiteral.Message, visitor, Buffer.buffer(bytes));
+    ProtobufReader.parse(MessageLiteral.Message, visitor, Buffer.buffer(bytes));
     RecordingVisitor.Checker checker = visitor.checker();
-    checker.init(SchemaLiterals.MessageLiteral.Message);
-    checker.visitFixed32(SchemaLiterals.MessageLiteral.Message.unknownField(2, WireType.I32), 15);
+    checker.init(MessageLiteral.Message);
+    checker.visitFixed32(MessageLiteral.Message.unknownField(2, WireType.I32), 15);
     checker.destroy();
     assertTrue(checker.isEmpty());
   }
@@ -63,10 +63,10 @@ public class UnknownTest {
       .setUnknownFields(UnknownFieldSet.newBuilder().addField(2, UnknownFieldSet.Field.newBuilder().addFixed64(15L).build()).build())
       .build().toByteArray();
     RecordingVisitor visitor = new RecordingVisitor();
-    ProtobufReader.parse(SchemaLiterals.MessageLiteral.Message, visitor, Buffer.buffer(bytes));
+    ProtobufReader.parse(MessageLiteral.Message, visitor, Buffer.buffer(bytes));
     RecordingVisitor.Checker checker = visitor.checker();
-    checker.init(SchemaLiterals.MessageLiteral.Message);
-    checker.visitFixed64(SchemaLiterals.MessageLiteral.Message.unknownField(2, WireType.I64), 15L);
+    checker.init(MessageLiteral.Message);
+    checker.visitFixed64(MessageLiteral.Message.unknownField(2, WireType.I64), 15L);
     checker.destroy();
     assertTrue(checker.isEmpty());
   }
@@ -77,10 +77,10 @@ public class UnknownTest {
       .setUnknownFields(UnknownFieldSet.newBuilder().addField(2, UnknownFieldSet.Field.newBuilder().addVarint(15L).build()).build())
       .build().toByteArray();
     RecordingVisitor visitor = new RecordingVisitor();
-    ProtobufReader.parse(SchemaLiterals.MessageLiteral.Message, visitor, Buffer.buffer(bytes));
+    ProtobufReader.parse(MessageLiteral.Message, visitor, Buffer.buffer(bytes));
     RecordingVisitor.Checker checker = visitor.checker();
-    checker.init(SchemaLiterals.MessageLiteral.Message);
-    checker.visitVarInt64(SchemaLiterals.MessageLiteral.Message.unknownField(2, WireType.VARINT), 15L);
+    checker.init(MessageLiteral.Message);
+    checker.visitVarInt64(MessageLiteral.Message.unknownField(2, WireType.VARINT), 15L);
     checker.destroy();
     assertTrue(checker.isEmpty());
   }
@@ -97,15 +97,15 @@ public class UnknownTest {
         .build()
       ).build().toByteArray();
     ProtoReader reader = new ProtoReader();
-    ProtobufReader.parse(SchemaLiterals.MessageLiteral.Message, reader, Buffer.buffer(bytes));
+    ProtobufReader.parse(MessageLiteral.Message, reader, Buffer.buffer(bytes));
     Message msg = (Message) reader.stack.pop();
     assertNotNull(msg.unknownFields);
     assertEquals(Map.of(
-      SchemaLiterals.MessageLiteral.Message.unknownField(2, WireType.LEN), Collections.singletonList(Buffer.buffer("Hello")),
-      SchemaLiterals.MessageLiteral.Message.unknownField(3, WireType.LEN), Collections.singletonList(Buffer.buffer("World")),
-      SchemaLiterals.MessageLiteral.Message.unknownField(4, WireType.I64), Arrays.asList(15L, 20L),
-      SchemaLiterals.MessageLiteral.Message.unknownField(5, WireType.I32), Collections.singletonList(17),
-      SchemaLiterals.MessageLiteral.Message.unknownField(6, WireType.VARINT), Collections.singletonList(18L)
+      MessageLiteral.Message.unknownField(2, WireType.LEN), Collections.singletonList(Buffer.buffer("Hello")),
+      MessageLiteral.Message.unknownField(3, WireType.LEN), Collections.singletonList(Buffer.buffer("World")),
+      MessageLiteral.Message.unknownField(4, WireType.I64), Arrays.asList(15L, 20L),
+      MessageLiteral.Message.unknownField(5, WireType.I32), Collections.singletonList(17),
+      MessageLiteral.Message.unknownField(6, WireType.VARINT), Collections.singletonList(18L)
     )
       , msg.unknownFields);
     bytes = ProtobufWriter.encodeToByteArray(visitor -> ProtoWriter.emit(msg, visitor));
