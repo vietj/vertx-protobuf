@@ -7,6 +7,7 @@ import java.util.OptionalInt;
 public class DefaultEnumType implements EnumType {
 
   private final Map<String, Integer> numberByName = new HashMap<>();
+  private final Map<Integer, String> nameByNumber = new HashMap<>();
 
   @Override
   public TypeID id() {
@@ -15,6 +16,7 @@ public class DefaultEnumType implements EnumType {
 
   public DefaultEnumType addValue(int number, String name) {
     numberByName.put(name, number);
+    nameByNumber.put(number, name);
     return this;
   }
 
@@ -27,5 +29,10 @@ public class DefaultEnumType implements EnumType {
   public OptionalInt numberOf(String name) {
     Integer number = numberByName.get(name);
     return number != null ? OptionalInt.of(number) : OptionalInt.empty();
+  }
+
+  @Override
+  public String nameOf(int number) {
+    return nameByNumber.get(number);
   }
 }

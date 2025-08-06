@@ -4,8 +4,10 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.google.protobuf.util.JsonFormat;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.jackson.JacksonCodec;
+import io.vertx.protobuf.ProtobufReader;
 import io.vertx.protobuf.json.JsonReader;
 import io.vertx.protobuf.json.JsonWriter;
 import io.vertx.tests.protobuf.ProtoReader;
@@ -42,7 +44,6 @@ public class JsonTest {
     assertEquals(4, (int)pop.getInt32Field());
     assertEquals(Arrays.asList("s1", "s2"), pop.getStringListField());
 
-
     StringWriter out = new StringWriter();
     JsonGenerator generator = JsonFactory.builder().build().createGenerator(out);
     JsonWriter writer = new JsonWriter(generator);
@@ -50,14 +51,7 @@ public class JsonTest {
 
     generator.close();
 
-    JsonObject j = new JsonObject(out.toString());
-    assertEquals("the-string", j.getString("stringField"));
-    assertEquals(4, (int)j.getInteger("int32Field"));
-    assertEquals(Arrays.asList("s1", "s2"), j.getJsonArray("stringListField"));
-
-
-
-
+    JsonObject actual = new JsonObject(out.toString());
+    assertEquals(new JsonObject(json), actual);
   }
-
 }

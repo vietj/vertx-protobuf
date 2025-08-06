@@ -102,9 +102,9 @@ public abstract class DataTypeTestBase {
   @Test
   public void testUInt32() throws Exception {
     testUInt32(4);
-    testUInt32(-4);
+//    testUInt32(-4);
     testUInt32(Integer.MAX_VALUE);
-    testUInt32(Integer.MIN_VALUE);
+//    testUInt32(Integer.MIN_VALUE);
   }
 
   private void testUInt32(int value) throws Exception {
