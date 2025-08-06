@@ -256,7 +256,9 @@ public class ProtobufReader {
             throw new UnsupportedOperationException("Todo");
         }
       } else {
-        if (field.isRepeated() && !field.isPacked()) {
+        // Repeated unpacked
+        // we must check that wire type of type len matches the field declared wire type otherwise it is an unpacked field that is packed
+        if (field.isRepeated() && !field.isPacked() && (wireType != WireType.LEN || field.type().wireType() == WireType.LEN)) {
           ParsingContext ctx = contexts[depth];
           if (ctx == null) {
             ctx = new ParsingContext();

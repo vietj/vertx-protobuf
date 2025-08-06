@@ -22,7 +22,11 @@ public class ConformanceTest {
 
   @Test
   public void testConformance() throws Exception {
-    byte[] bytes = { -126, 7, 9, 18, 7, 8, 1, 16, 1, -56, 5, 1, -126, 7, 7, 18, 5, 16, 1, -56, 5, 1 };
+
+    // Recommended.Proto3.ProtobufInput.ValidDataRepeated.ENUM.PackedInput.UnpackedOutput.ProtobufOutput
+    byte[] bytes ={ 8, -128, -128, -128, -128, -8, -1, -1, -1, -1, 1 };
+
+
 
     // Expected
     // [-48, 41, 123,
@@ -37,6 +41,14 @@ public class ConformanceTest {
     // -48, 41, 123,
     // -48, 41, -56, 3]
 
+    // 0
+    // 1
+    // 2
+    // -1
+    // -1
+    // 1
+
+
     ProtoReader reader = new ProtoReader();
     Buffer buffer = Buffer.buffer(bytes);
     TestMessagesProto3.TestAllTypesProto3 d = TestMessagesProto3.TestAllTypesProto3.parseFrom(bytes);
@@ -49,6 +61,7 @@ public class ConformanceTest {
     //    System.out.println("d = " + d);
     ProtobufReader.parse(SchemaLiterals.MessageLiteral.TestAllTypesProto3, reader, buffer);
     TestAllTypesProto3 testMessage = (TestAllTypesProto3) reader.stack.pop();
+    List<TestAllTypesProto3.NestedEnum> a = testMessage.getUnpackedNestedEnum();
 
     Buffer result = ProtobufWriter.encode(visitor -> {
       ProtoWriter.emit(testMessage, visitor);
