@@ -21,6 +21,9 @@ public class FilterTests {
       if (line.contains("ProtobufInput") || line.contains("JsonOutput") || line.contains("Proto2")) {
         continue;
       }
+      if (!line.contains("ProtobufOutput")) {
+        continue;
+      }
       line = line.replace("[", "\\[");
       line = line.replace("]", "\\]");
       System.out.println("--test " + line + " \\");

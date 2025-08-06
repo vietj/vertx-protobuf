@@ -14,6 +14,7 @@ import io.vertx.protobuf.schema.TypeID;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.Base64;
+import java.util.Map;
 import java.util.Objects;
 import java.util.OptionalInt;
 
@@ -55,7 +56,6 @@ public class JsonReader {
   }
 
   private static void parseAny(JsonParser parser, Field field, RecordVisitor visitor) throws IOException, DecodeException {
-
     switch (parser.currentTokenId()) {
       case JsonTokenId.ID_START_OBJECT:
         visitor.enter(field);
@@ -160,13 +160,16 @@ public class JsonReader {
   }
 
   private static void parseObject(JsonParser parser, MessageType type, RecordVisitor visitor) throws IOException {
-    String key = parser.nextFieldName();
-    if (key == null) {
-      return;
+    assert parser.hasToken(JsonToken.START_OBJECT);
+
+    // Check Struct
+    // check is not great ... but well for now it's fine
+    if (type.name().equals("Struct")) {
+      throw new UnsupportedOperationException("Not yet implemented");
     }
 
-    do {
-      parser.nextToken();
+    while (parser.nextToken() == JsonToken.FIELD_NAME) {
+      String key = parser.currentName();
       Field field = type.fieldByJsonName(key);
       if (field == null) {
         field = type.fieldByName(key);
@@ -174,20 +177,14 @@ public class JsonReader {
       if (field == null) {
         throw new UnsupportedOperationException("Unknown field " + key);
       }
+      parser.nextToken();
       parseAny(parser, field, visitor);
-      key = parser.nextFieldName();
-    } while (key != null);
+    }
   }
 
   private static void parseArray(JsonParser parser, Field field, RecordVisitor visitor) throws IOException {
-    while (true) {
-      parser.nextToken();
-      int tokenId = parser.currentTokenId();
-      if (tokenId == JsonTokenId.ID_FIELD_NAME) {
-        throw new UnsupportedOperationException();
-      } else if (tokenId == JsonTokenId.ID_END_ARRAY) {
-        return;
-      }
+    assert parser.hasToken(JsonToken.START_ARRAY);
+    while (parser.nextToken() != JsonToken.END_ARRAY) {
       parseAny(parser, field, visitor);
     }
   }

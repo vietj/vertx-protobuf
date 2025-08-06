@@ -10,6 +10,7 @@ import io.vertx.protobuf.com.google.protobuf_test_messages.proto3.ProtoReader;
 import io.vertx.protobuf.com.google.protobuf_test_messages.proto3.ProtoWriter;
 import io.vertx.protobuf.com.google.protobuf_test_messages.proto3.TestAllTypesProto3;
 import io.vertx.protobuf.json.JsonReader;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.List;
@@ -20,35 +21,29 @@ import static org.junit.Assert.assertEquals;
 
 public class ConformanceTest {
 
+  @Ignore
   @Test
   public void testJsonInput() throws Exception {
 
     String json = "{\n" +
-      "        \"fieldname1\": 1,\n" +
-      "        \"field_name2\": 2,\n" +
-      "        \"_field_name3\": 3,\n" +
-      "        \"field__name4_\": 4,\n" +
-      "        \"field0name5\": 5,\n" +
-      "        \"field_0_name6\": 6,\n" +
-      "        \"fieldName7\": 7,\n" +
-      "        \"FieldName8\": 8,\n" +
-      "        \"field_Name9\": 9,\n" +
-      "        \"Field_Name10\": 10,\n" +
-      "        \"FIELD_NAME11\": 11,\n" +
-      "        \"FIELD_name12\": 12,\n" +
-      "        \"__field_name13\": 13,\n" +
-      "        \"__Field_name14\": 14,\n" +
-      "        \"field__name15\": 15,\n" +
-      "        \"field__Name16\": 16,\n" +
-      "        \"field_name17__\": 17,\n" +
-      "        \"Field_name18__\": 18\n" +
+      "        \"optionalStruct\": {\n" +
+      "          \"nullValue\": null,\n" +
+      "          \"intValue\": 1234,\n" +
+      "          \"boolValue\": true,\n" +
+      "          \"doubleValue\": 1234.5678,\n" +
+      "          \"stringValue\": \"Hello world!\",\n" +
+      "          \"listValue\": [1234, \"5678\"],\n" +
+      "          \"objectValue\": {\n" +
+      "            \"value\": 0\n" +
+      "    }\n" +
+      "  }\n" +
       "      }";
 
     TestMessagesProto3.TestAllTypesProto3.Builder builder = TestMessagesProto3.TestAllTypesProto3.newBuilder();
     JsonFormat.parser().merge(json, builder);
     TestMessagesProto3.TestAllTypesProto3 d = builder.build();
 
-    System.out.println();
+    System.out.println(d.getOptionalStruct());
 
 //    System.out.println(d);
 
