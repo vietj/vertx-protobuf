@@ -2,6 +2,7 @@ package io.vertx.protobuf.schema;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 public class DefaultMessageType implements MessageType {
@@ -29,9 +30,29 @@ public class DefaultMessageType implements MessageType {
     return WireType.LEN;
   }
 
+  public DefaultField addField(Consumer<DefaultFieldBuilder> cfg) {
+    DefaultFieldBuilder builder = new DefaultFieldBuilder();
+    cfg.accept(builder);
+    String name = builder.name;
+    String jsonName = name != null ? Field.toJsonName(builder.name) : null;
+    int number = builder.number;
+    if (number == 0) {
+      throw new IllegalArgumentException();
+    }
+    boolean packed = builder.packed != null ? builder.packed : builder.repeated;
+    DefaultField field = new DefaultField(this, number, name, jsonName, builder.repeated, packed, Objects.requireNonNull(builder.type));
+    if (byName.containsKey(name)) {
+      throw new IllegalStateException("Duplicate field " + name);
+    }
+    if (byJsonName.containsKey(jsonName)) {
+      throw new IllegalStateException("Duplicate field " + name);
+    }
+    return field;
+  }
+
   public DefaultField addField(int number, String name, Type type) {
     String jsonName = Field.toJsonName(name);
-    DefaultField field = new DefaultField(this, number, name, jsonName, type);
+    DefaultField field = new DefaultField(this, number, name, jsonName, false, false, type);
     if (byName.containsKey(name)) {
       throw new IllegalStateException("Duplicate field " + name);
     }
@@ -45,7 +66,7 @@ public class DefaultMessageType implements MessageType {
   }
 
   public DefaultField addField(int number, Type type) {
-    DefaultField field = new DefaultField(this, number, null, null, type);
+    DefaultField field = new DefaultField(this, number, null, null, false, false, type);
     fields.put(number, field);
     return field;
   }

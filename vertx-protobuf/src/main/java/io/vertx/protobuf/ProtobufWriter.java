@@ -117,9 +117,10 @@ public class ProtobufWriter {
 
     @Override
     public void enterRepetition(Field field) {
-      assert field.type().wireType() != WireType.LEN;
-      packed = true;
-      enterLengthDelimited(field);
+      if (field.isPacked()) {
+        packed = true;
+        enterLengthDelimited(field);
+      }
     }
 
     private void enterLengthDelimited(Field field) {
@@ -131,9 +132,10 @@ public class ProtobufWriter {
 
     @Override
     public void leaveRepetition(Field field) {
-      assert field.type().wireType() != WireType.LEN;
-      packed = false;
-      leaveLengthDelimited(field);
+      if (field.isPacked()) {
+        packed = false;
+        leaveLengthDelimited(field);
+      }
     }
 
     @Override
@@ -221,9 +223,10 @@ public class ProtobufWriter {
 
     @Override
     public void enterRepetition(Field field) {
-      assert field.type().wireType() != WireType.LEN;
-      packed = true;
-      enterLengthDelimited(field);
+      if (field.isPacked()) {
+        packed = true;
+        enterLengthDelimited(field);
+      }
     }
 
     @Override
@@ -238,9 +241,10 @@ public class ProtobufWriter {
 
     @Override
     public void leaveRepetition(Field field) {
-      assert field.type().wireType() != WireType.LEN;
-      packed = false;
-      leaveLengthDelimited(field);
+      if (field.isPacked()) {
+        packed = false;
+        leaveLengthDelimited(field);
+      }
     }
 
     @Override

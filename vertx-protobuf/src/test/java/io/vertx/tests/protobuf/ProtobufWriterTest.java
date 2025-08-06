@@ -20,7 +20,7 @@ public class ProtobufWriterTest {
   public void testWritePackedUInt64() {
     DefaultSchema schema = new DefaultSchema();
     DefaultMessageType msg = schema.of("msg");
-    DefaultField field = msg.addField(1, ScalarType.UINT64);
+    DefaultField field = msg.addField(builder -> builder.number(1).type(ScalarType.UINT64).repeated(true));
     Buffer output = ProtobufWriter.encode(visitor -> {
       visitor.init(msg);
       visitor.enterRepetition(field);
@@ -36,7 +36,7 @@ public class ProtobufWriterTest {
     DefaultMessageType msg = schema.of("msg");
     DefaultMessageType nested = schema.of("msg");
     DefaultField nestedField = msg.addField(1, nested);
-    DefaultField fixed32Field = nested.addField(89, ScalarType.FIXED32);
+    DefaultField fixed32Field = nested.addField(builder -> builder.number(89).type(ScalarType.FIXED32).repeated(true));
     Buffer output = ProtobufWriter.encode(visitor -> {
       visitor.init(msg);
       visitor.enter(nestedField);

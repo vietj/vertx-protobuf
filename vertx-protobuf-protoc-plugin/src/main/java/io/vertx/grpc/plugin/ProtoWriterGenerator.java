@@ -301,11 +301,13 @@ class ProtoWriterGenerator {
       } else {
         if (field.repeated) {
           content.println(
+            "      visitor.enterRepetition(SchemaLiterals.FieldLiteral." + field.identifier + ");",
             "      for (" + field.javaTypeInternal + " c : v) {",
             "        visitor.enter(SchemaLiterals.FieldLiteral." + field.identifier + ");",
             "        " + field.protoWriterFqn + ".visit(c, visitor);",
             "        visitor.leave(SchemaLiterals.FieldLiteral." + field.identifier + ");",
-            "      }");
+            "      }",
+            "      visitor.leaveRepetition(SchemaLiterals.FieldLiteral." + field.identifier + ");");
         } else {
           content.println(
             "      visitor.enter(SchemaLiterals.FieldLiteral." + field.identifier + ");",
@@ -315,9 +317,7 @@ class ProtoWriterGenerator {
       }
     } else {
       if (field.repeated) {
-        if (field.packed) {
-          content.println("visitor.enterRepetition(SchemaLiterals.FieldLiteral." + field.identifier + ");");
-        }
+        content.println("visitor.enterRepetition(SchemaLiterals.FieldLiteral." + field.identifier + ");");
         content.println("      for (" + field.javaTypeInternal + " c : v) {");
 //        if (field.typeTo.lengthDelimited) {
 //          content.println("        visitor.enter(SchemaLiterals.FieldLiteral." + field.identifier + ");");
@@ -327,9 +327,7 @@ class ProtoWriterGenerator {
 //          content.println("        visitor.leave(SchemaLiterals.FieldLiteral." + field.identifier + ");");
 //        }
         content.println("      }");
-        if (field.packed) {
-          content.println("visitor.leaveRepetition(SchemaLiterals.FieldLiteral." + field.identifier + ");");
-        }
+        content.println("visitor.leaveRepetition(SchemaLiterals.FieldLiteral." + field.identifier + ");");
       } else {
 //        if (field.typeTo.lengthDelimited) {
 //          content.println("      visitor.enter(SchemaLiterals.FieldLiteral." + field.identifier + ");");

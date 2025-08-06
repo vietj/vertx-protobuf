@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.google.protobuf.util.JsonFormat;
+import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.jackson.JacksonCodec;
 import io.vertx.protobuf.json.JsonReader;
 import io.vertx.protobuf.json.JsonWriter;
@@ -48,7 +49,11 @@ public class JsonTest {
     ProtoWriter.emit(pop, writer);
 
     generator.close();
-    System.out.println(out.toString());
+
+    JsonObject j = new JsonObject(out.toString());
+    assertEquals("the-string", j.getString("stringField"));
+    assertEquals(4, (int)j.getInteger("int32Field"));
+    assertEquals(Arrays.asList("s1", "s2"), j.getJsonArray("stringListField"));
 
 
 

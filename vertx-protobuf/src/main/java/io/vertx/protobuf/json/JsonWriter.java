@@ -111,7 +111,12 @@ public class JsonWriter implements RecordVisitor {
 
   @Override
   public void enterRepetition(Field field) {
-
+    try {
+      generator.writeFieldName(field.jsonName());
+      generator.writeStartArray();
+    } catch (IOException e) {
+      throw new EncodeException(e.getMessage());
+    }
   }
 
   @Override
@@ -127,7 +132,11 @@ public class JsonWriter implements RecordVisitor {
 
   @Override
   public void leaveRepetition(Field field) {
-
+    try {
+      generator.writeEndArray();
+    } catch (IOException e) {
+      throw new EncodeException(e.getMessage());
+    }
   }
 
   @Override
@@ -144,6 +153,7 @@ public class JsonWriter implements RecordVisitor {
   @Override
   public void visitString(Field field, String s) {
     try {
+      // Need to check whether in
       generator.writeFieldName(field.jsonName());
       generator.writeString(s);
     } catch (IOException e) {

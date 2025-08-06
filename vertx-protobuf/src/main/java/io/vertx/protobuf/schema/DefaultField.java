@@ -1,20 +1,22 @@
 package io.vertx.protobuf.schema;
 
-import java.util.Objects;
-
 public class DefaultField implements Field {
 
   private final DefaultMessageType owner;
   private final int number;
   private final String name;
   private final String jsonName;
+  private final boolean repeated;
+  private final boolean packed;
   private final Type type;
 
-  DefaultField(DefaultMessageType owner, int number, String name, String jsonName, Type type) {
+  DefaultField(DefaultMessageType owner, int number, String name, String jsonName, boolean repeated, boolean packed, Type type) {
     this.owner = owner;
     this.number = number;
     this.jsonName = jsonName;
     this.name = name;
+    this.repeated = repeated;
+    this.packed = packed;
     this.type = type;
   }
 
@@ -29,12 +31,12 @@ public class DefaultField implements Field {
 
   @Override
   public boolean isPacked() {
-    return false;
+    return packed;
   }
 
   @Override
   public boolean isRepeated() {
-    return false;
+    return repeated;
   }
 
   public int number() {
