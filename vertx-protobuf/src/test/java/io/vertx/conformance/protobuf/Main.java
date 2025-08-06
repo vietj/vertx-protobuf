@@ -11,6 +11,7 @@ import io.vertx.protobuf.com.google.protobuf_test_messages.proto3.ProtoWriter;
 import io.vertx.protobuf.com.google.protobuf_test_messages.proto3.TestAllTypesProto3;
 import io.vertx.protobuf.com.google.protobuf_test_messages.proto3.ProtoReader;
 import io.vertx.protobuf.com.google.protobuf_test_messages.proto3.MessageLiteral;
+import io.vertx.protobuf.json.JsonReader;
 
 public class Main {
 
@@ -62,90 +63,25 @@ public class Main {
     }
 */
 
-    switch (request.getPayloadCase()) {
-      case PROTOBUF_PAYLOAD: {
-
-        if (messageType.equals("protobuf_test_messages.proto3.TestAllTypesProto3")) {
+    if (messageType.equals("protobuf_test_messages.proto3.TestAllTypesProto3")) {
 //          TestAllTypesProto3.
-          ProtoReader reader = new ProtoReader();
-          try {
+      ProtoReader reader = new ProtoReader();
+      try {
+        switch (request.getPayloadCase()) {
+          case PROTOBUF_PAYLOAD:
             Buffer buffer = Buffer.buffer(request.getProtobufPayload().toByteArray());
             ProtobufReader.parse(MessageLiteral.TestAllTypesProto3, reader, buffer);
-          } catch (DecodeException | IndexOutOfBoundsException e) {
-            return Conformance.ConformanceResponse.newBuilder().setParseError(e.getMessage() != null ? e.getMessage() : e.getClass().getName()).build();
-          }
-          testMessage = (TestAllTypesProto3) reader.stack.pop();
-        } else {
-          throw new UnsupportedOperationException("Invalid " + messageType);
+            break;
+          case JSON_PAYLOAD:
+            JsonReader.parse(request.getJsonPayload(), MessageLiteral.TestAllTypesProto3, reader);
+            break;
         }
-
-        String s = "";
-        String t = "";
-/*
-        try {
-          testMessage =
-            parseBinary(
-              request.getProtobufPayload(),
-              (Parser<AbstractMessage>)
-                createTestMessage(messageType).getMethod("parser").invoke(null),
-              extensions);
-        } catch (InvalidProtocolBufferException e) {
-          return Conformance.ConformanceResponse.newBuilder()
-            .setParseError(e.getMessage())
-            .build();
-        } catch (Exception e) {
-          throw new RuntimeException(e);
-        }
-*/
-        break;
+      } catch (DecodeException | IndexOutOfBoundsException e) {
+        return Conformance.ConformanceResponse.newBuilder().setParseError(e.getMessage() != null ? e.getMessage() : e.getClass().getName()).build();
       }
-      case JSON_PAYLOAD: {
-        String json = request.getJsonPayload();
-        int a = 0;
-
-//        try {
-//          JsonFormat.Parser parser = JsonFormat.parser().usingTypeRegistry(typeRegistry);
-//          if (request.getTestCategory()
-//            == Conformance.TestCategory.JSON_IGNORE_UNKNOWN_PARSING_TEST) {
-//            parser = parser.ignoringUnknownFields();
-//          }
-//          AbstractMessage.Builder<?> builder =
-//            (AbstractMessage.Builder<?>)
-//              createTestMessage(messageType).getMethod("newBuilder").invoke(null);
-//          parser.merge(request.getJsonPayload(), builder);
-//          testMessage = (AbstractMessage) builder.build();
-//        } catch (InvalidProtocolBufferException e) {
-//          return Conformance.ConformanceResponse.newBuilder()
-//            .setParseError(e.getMessage())
-//            .build();
-//        } catch (Exception e) {
-//          throw new RuntimeException(e);
-//        }
-//        break;
-      }
-      case TEXT_PAYLOAD: {
-//        try {
-//          AbstractMessage.Builder<?> builder =
-//            (AbstractMessage.Builder<?>)
-//              createTestMessage(messageType).getMethod("newBuilder").invoke(null);
-//          TextFormat.merge(request.getTextPayload(), extensions, builder);
-//          testMessage = (AbstractMessage) builder.build();
-//        } catch (TextFormat.ParseException e) {
-//          return Conformance.ConformanceResponse.newBuilder()
-//            .setParseError(e.getMessage())
-//            .build();
-//        } catch (Exception e) {
-//          throw new RuntimeException(e);
-//        }
-//        break;
-      }
-      case PAYLOAD_NOT_SET: {
-        throw new IllegalArgumentException("Request didn't have payload.");
-      }
-
-      default: {
-        throw new IllegalArgumentException("Unexpected payload case.");
-      }
+      testMessage = (TestAllTypesProto3) reader.stack.pop();
+    } else {
+      throw new UnsupportedOperationException("Invalid " + messageType);
     }
 
     switch (request.getRequestedOutputFormat()) {

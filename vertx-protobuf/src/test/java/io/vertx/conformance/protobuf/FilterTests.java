@@ -4,7 +4,6 @@ import com.google.common.io.LineReader;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.file.Files;
 
 public class FilterTests {
 
@@ -19,7 +18,7 @@ public class FilterTests {
       if (line == null) {
         break;
       }
-      if (line.contains("JsonInput") || line.contains("JsonOutput") || line.contains("Proto2")) {
+      if (line.contains("ProtobufInput") || line.contains("JsonOutput") || line.contains("Proto2")) {
         continue;
       }
       line = line.replace("[", "\\[");

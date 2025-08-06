@@ -169,7 +169,10 @@ public class JsonReader {
       parser.nextToken();
       Field field = type.fieldByJsonName(key);
       if (field == null) {
-        throw new UnsupportedOperationException();
+        field = type.fieldByName(key);
+      }
+      if (field == null) {
+        throw new UnsupportedOperationException("Unknown field " + key);
       }
       parseAny(parser, field, visitor);
       key = parser.nextFieldName();
