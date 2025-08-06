@@ -1,1 +1,1 @@
-Required.Proto3.JsonInput.ValueAcceptInteger.JsonOutput # Failed to parse input or produce output.
+Required.Proto3.ProtobufInput.ValidDataOneof.MESSAGE.Merge.ProtobufOutput # Failed to parse input or produce output.

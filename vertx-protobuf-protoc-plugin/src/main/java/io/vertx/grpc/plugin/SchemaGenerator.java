@@ -47,18 +47,20 @@ class SchemaGenerator {
     public final String name;
     public final String jsonName;
     public final boolean repeated;
+    public final boolean packed;
     public final String messageTypeIdentifier;
     public final String messageName;
     public final int number;
     public final String typeExpr;
 
-    public FieldDeclaration(String identifier, String name, boolean repeated, String jsonName, String messageTypeIdentifier, int number, String messageName, String typeExpr) {
+    public FieldDeclaration(String identifier, String name, boolean repeated, boolean packed, String jsonName, String messageTypeIdentifier, int number, String messageName, String typeExpr) {
       this.identifier = identifier;
       this.name = name;
       this.jsonName = jsonName;
       this.messageTypeIdentifier = messageTypeIdentifier;
       this.messageName = messageName;
       this.repeated = repeated;
+      this.packed = packed;
       this.number = number;
       this.typeExpr = typeExpr;
     }
@@ -130,7 +132,7 @@ class SchemaGenerator {
           default:
             return;
         }
-        list2.add(new FieldDeclaration(identifier, field.getName(), field.isRepeated(), field.getJsonName(), messageTypeRef, number, field.getContainingType().getName(), typeExpr));
+        list2.add(new FieldDeclaration(identifier, field.getName(), field.isRepeated(), field.isPacked(), field.getJsonName(), messageTypeRef, number, field.getContainingType().getName(), typeExpr));
         if (field.getType() == Descriptors.FieldDescriptor.Type.ENUM) {
           Descriptors.EnumDescriptor enumType = field.getEnumType();
           if (!list3.containsKey(enumType)) {
@@ -196,7 +198,7 @@ class SchemaGenerator {
     writer.println("  public enum FieldLiteral implements Field {");
     for (Iterator<FieldDeclaration> it  = list2.iterator();it.hasNext();) {
       FieldDeclaration decl = it.next();
-      writer.print("    " + decl.messageName + "_" + decl.name + "(MessageLiteral." + decl.messageName + ", " + decl.number + ", " + decl.typeExpr + ", " + decl.repeated + ", \"" + decl.jsonName + "\")");
+      writer.print("    " + decl.messageName + "_" + decl.name + "(MessageLiteral." + decl.messageName + ", " + decl.number + ", " + decl.typeExpr + ", " + decl.repeated + ", " + decl.packed + ", \"" + decl.jsonName + "\")");
       if (it.hasNext()) {
         writer.println(",");
       } else {
@@ -208,12 +210,14 @@ class SchemaGenerator {
     writer.println("    private final int number;");
     writer.println("    private final io.vertx.protobuf.schema.Type type;");
     writer.println("    private final boolean repeated;");
+    writer.println("    private final boolean packed;");
     writer.println("    private final String jsonName;");
-    writer.println("    FieldLiteral(MessageLiteral owner, int number, io.vertx.protobuf.schema.Type type, boolean repeated, String jsonName) {");
+    writer.println("    FieldLiteral(MessageLiteral owner, int number, io.vertx.protobuf.schema.Type type, boolean repeated, boolean packed, String jsonName) {");
     writer.println("      this.owner = owner;");
     writer.println("      this.number = number;");
     writer.println("      this.type = type;");
     writer.println("      this.repeated = repeated;");
+    writer.println("      this.packed = packed;");
     writer.println("      this.jsonName = jsonName;");
     writer.println("    }");
     writer.println("    public MessageType owner() {");
@@ -227,6 +231,9 @@ class SchemaGenerator {
     writer.println("    }");
     writer.println("    public boolean isRepeated() {");
     writer.println("      return repeated;");
+    writer.println("    }");
+    writer.println("    public boolean isPacked() {");
+    writer.println("      return packed;");
     writer.println("    }");
     writer.println("    public io.vertx.protobuf.schema.Type type() {");
     writer.println("      return type;");

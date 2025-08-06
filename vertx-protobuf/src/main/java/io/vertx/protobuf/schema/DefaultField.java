@@ -28,6 +28,11 @@ public class DefaultField implements Field {
   }
 
   @Override
+  public boolean isPacked() {
+    return false;
+  }
+
+  @Override
   public boolean isRepeated() {
     return false;
   }

@@ -21,6 +21,7 @@ public interface Field {
   int number();
   Type type();
   boolean isRepeated();
+  boolean isPacked();
   String jsonName();
   default boolean isUnknown() {
     return false;

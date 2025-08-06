@@ -22,6 +22,11 @@ class UnknownField implements Field, Type {
   }
 
   @Override
+  public boolean isPacked() {
+    return false;
+  }
+
+  @Override
   public Type type() {
     return this;
   }

@@ -39,6 +39,28 @@ public class RecordingVisitor implements RecordVisitor {
     }
   }
 
+  private static class EnterRepetition extends Action {
+    private final Field field;
+    public EnterRepetition(Field field) {
+      this.field = field;
+    }
+    @Override
+    protected void apply(RecordVisitor visitor) {
+      visitor.enterRepetition(field);
+    }
+  }
+
+  private static class LeaveRepetition extends Action {
+    private final Field field;
+    public LeaveRepetition(Field field) {
+      this.field = field;
+    }
+    @Override
+    protected void apply(RecordVisitor visitor) {
+      visitor.leaveRepetition(field);
+    }
+  }
+
   private static class Init extends Action {
     private final MessageType messageType;
     Init(MessageType messageType) {
@@ -354,7 +376,7 @@ public class RecordingVisitor implements RecordVisitor {
 
   @Override
   public void enterRepetition(Field field) {
-    throw new UnsupportedOperationException();
+    log.add(new EnterRepetition(field));
   }
 
   @Override
@@ -364,7 +386,7 @@ public class RecordingVisitor implements RecordVisitor {
 
   @Override
   public void leaveRepetition(Field field) {
-    throw new UnsupportedOperationException();
+    log.add(new LeaveRepetition(field));
   }
 
   @Override
@@ -515,7 +537,8 @@ public class RecordingVisitor implements RecordVisitor {
 
     @Override
     public void enterRepetition(Field field) {
-      throw new UnsupportedOperationException();
+      EnterRepetition enter = expecting(EnterRepetition.class);
+      assertEquals(enter.field, field);
     }
 
     @Override
@@ -526,7 +549,8 @@ public class RecordingVisitor implements RecordVisitor {
 
     @Override
     public void leaveRepetition(Field field) {
-      throw new UnsupportedOperationException();
+      LeaveRepetition leave = expecting(LeaveRepetition.class);
+      assertEquals(leave.field, field);
     }
 
     @Override

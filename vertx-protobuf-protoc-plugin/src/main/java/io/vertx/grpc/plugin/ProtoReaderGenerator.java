@@ -362,40 +362,38 @@ class ProtoReaderGenerator {
       "      switch (literal) {");
 
     collected
+      .stream()
+      .filter(field -> field.type == Descriptors.FieldDescriptor.Type.MESSAGE)
       .forEach(field -> {
         out.println("        case " + field.identifier + ": {");
-        if (field.type != Descriptors.FieldDescriptor.Type.MESSAGE) {
-          //
+        if (field.map) {
+          out.println("          " + field.mapJavaType + " entry = new " + field.mapJavaType + "();");
+          out.println("          stack.push(entry);");
         } else {
-          if (field.map) {
-            out.println("          " + field.mapJavaType + " entry = new " + field.mapJavaType + "();");
-            out.println("          stack.push(entry);");
+          if (field.imported) {
+            out.println(
+              "          RecordVisitor v = new " + field.typePkgFqn + ".ProtoReader(stack);",
+              "          v.init((MessageType)field.type());",
+              "          next = v;");
           } else {
-            if (field.imported) {
-              out.println(
-                "          RecordVisitor v = new " + field.typePkgFqn + ".ProtoReader(stack);",
-                "          v.init((MessageType)field.type());",
-                "          next = v;");
+            if (field.repeated) {
+              String initExpression = field.javaTypeInternal;
+              out.println("          " + initExpression + " v = " + "new " + initExpression + "().init()" + ";");
             } else {
-              if (field.repeated) {
-                String initExpression = field.javaTypeInternal;
-                out.println("          " + initExpression + " v = " + "new " + initExpression + "().init()" + ";");
+              String initExpression = field.javaType;
+              out.println("          " + field.containingJavaType + " container = (" + field.containingJavaType + ")stack.peek();");
+              out.println("          " + initExpression + " v;");
+              if (field.oneOf) {
+                out.println("          " + field.oneOfJavaType + "<?> oneOf = container." + field.getterMethod + "();");
+                out.println("          v = oneOf != null ? " + field.unwrapper.apply("oneOf") + " : " + "null;");
               } else {
-                String initExpression = field.javaType;
-                out.println("          " + field.containingJavaType + " container = (" + field.containingJavaType + ")stack.peek();");
-                out.println("          " + initExpression + " v;");
-                if (field.oneOf) {
-                  out.println("          " + field.oneOfJavaType + "<?> oneOf = container." + field.getterMethod + "();");
-                  out.println("          v = oneOf != null ? " + field.unwrapper.apply("oneOf") + " : " + "null;");
-                } else {
-                  out.println("          v = container." + field.getterMethod + "();");
-                }
-                out.println("          if (v == null) {");
-                out.println("            v = " + "new " + initExpression + "().init()" + ";");
-                out.println("          }");
+                out.println("          v = container." + field.getterMethod + "();");
               }
-              out.println("          stack.push(v);");
+              out.println("          if (v == null) {");
+              out.println("            v = " + "new " + initExpression + "().init()" + ";");
+              out.println("          }");
             }
+            out.println("          stack.push(v);");
           }
         }
         out.println("          break;");
@@ -424,55 +422,53 @@ class ProtoReaderGenerator {
       "      SchemaLiterals.FieldLiteral literal = (SchemaLiterals.FieldLiteral)field;",
       "      switch (literal) {");
     collected
+      .stream()
+      .filter(field -> field.type == Descriptors.FieldDescriptor.Type.MESSAGE)
       .forEach(field -> {
         out.println("        case " + field.identifier + ": {");
-        if (field.type != Descriptors.FieldDescriptor.Type.MESSAGE) {
-          //
+        if (field.map) {
+          out.println(
+            "          " + field.mapJavaType + " entry = (" + field.mapJavaType + ")stack.pop();",
+            "          " + field.mapValueJavaType + " value = entry.getValue();");
+          if (field.mapValueType == Descriptors.FieldDescriptor.Type.MESSAGE) {
+            out.println(
+              "          if (value == null) {",
+              "            value = new " + field.mapValueJavaType + "().init();",
+              "}");
+          }
+          out.println("          " + field.containingJavaType + " container = (" + field.containingJavaType + ")stack.peek();",
+            "          " + field.javaType + " entries = container." + field.getterMethod + "();",
+            "          if (entries == null) {",
+            "            entries = new java.util.HashMap<>();",
+            "            container." + field.setterMethod + "(entries);",
+            "          }",
+            "          entries.put(entry.getKey(), value);");
+        } else if (field.mapKeyEntry) {
+          out.println(
+            "          " + field.javaType + " v = (" + field.javaType + ")stack.pop();",
+            "          " + field.mapJavaType + " entry = (" + field.mapJavaType + ")stack.peek();",
+            "          entry.setKey(v);");
+        } else if (field.mapValueEntry) {
+          out.println(
+            "          " + field.javaType + " v = (" + field.javaType + ")stack.pop();",
+            "          " + field.mapJavaType + " entry = (" + field.mapJavaType + ")stack.peek();",
+            "          entry.setValue(v);");
         } else {
-          if (field.map) {
+          if (field.imported) {
             out.println(
-              "          " + field.mapJavaType + " entry = (" + field.mapJavaType + ")stack.pop();",
-              "          " + field.mapValueJavaType + " value = entry.getValue();");
-            if (field.mapValueType == Descriptors.FieldDescriptor.Type.MESSAGE) {
-              out.println(
-                "          if (value == null) {",
-                "            value = new " + field.mapValueJavaType + "().init();",
-                "}");
-            }
-            out.println("          " + field.containingJavaType + " container = (" + field.containingJavaType + ")stack.peek();",
-              "          " + field.javaType + " entries = container." + field.getterMethod + "();",
-              "          if (entries == null) {",
-              "            entries = new java.util.HashMap<>();",
-              "            container." + field.setterMethod + "(entries);",
-              "          }",
-              "          entries.put(entry.getKey(), value);");
-          } else if (field.mapKeyEntry) {
+              "          next.destroy();",
+              "          next = null;");
+          }
+          if (field.repeated) {
             out.println(
-              "          " + field.javaType + " v = (" + field.javaType + ")stack.pop();",
-              "          " + field.mapJavaType + " entry = (" + field.mapJavaType + ")stack.peek();",
-              "          entry.setKey(v);");
-          } else if (field.mapValueEntry) {
-            out.println(
-              "          " + field.javaType + " v = (" + field.javaType + ")stack.pop();",
-              "          " + field.mapJavaType + " entry = (" + field.mapJavaType + ")stack.peek();",
-              "          entry.setValue(v);");
+              "          " + field.javaTypeInternal + " value = (" + field.javaTypeInternal + ") stack.pop();",
+              "          " + field.containingJavaType + " container = (" + field.containingJavaType + ")stack.peek();",
+              "          container." + field.getterMethod + "().add(value);"
+            );
           } else {
-            if (field.imported) {
-              out.println(
-                "          next.destroy();",
-                "          next = null;");
-            }
-            if (field.repeated) {
-              out.println(
-                "          " + field.javaTypeInternal + " value = (" + field.javaTypeInternal + ") stack.pop();",
-                "          " + field.containingJavaType + " container = (" + field.containingJavaType + ")stack.peek();",
-                "          container." + field.getterMethod + "().add(value);"
-              );
-            } else {
-              out.println(
-                "          " + field.javaType + " v = (" + field.javaType + ")stack.pop();",
-                "          ((" + field.containingJavaType + ")stack.peek())." + field.setterMethod + "(" + field.wrapper.apply("v") + ");");
-            }
+            out.println(
+              "          " + field.javaType + " v = (" + field.javaType + ")stack.pop();",
+              "          ((" + field.containingJavaType + ")stack.peek())." + field.setterMethod + "(" + field.wrapper.apply("v") + ");");
           }
         }
         out.println("          break;");
@@ -491,16 +487,63 @@ class ProtoReaderGenerator {
       "  }");
 
     // **************
-    // REPETITION
+    // LEAVE REPETITION
     // **************
 
-    // Should implement the list thingy ?????
     out.println(
+      "",
       "  public void enterRepetition(Field field) {",
-      "  }",
+      "    if (field instanceof SchemaLiterals.FieldLiteral) {",
+      "      SchemaLiterals.FieldLiteral literal = (SchemaLiterals.FieldLiteral)field;",
+      "      switch (literal) {");
+
+    collected
+      .stream()
+      .filter(field -> field.repeated)
+      .forEach(field -> {
+        out.println("        case " + field.identifier + ": {");
+        out.println("          break;");
+        out.println("        }");
+      });
+    out.println("        default:");
+    out.println("          throw new UnsupportedOperationException();");
+    out.println("      }");
+    out.println(
+      "    } else if (next != null) {",
+      "      next.enterRepetition(field);",
+      "    } else {",
+      "      throw new UnsupportedOperationException();",
+      "    }",
+      "  }");
+
+    // **************
+    // LEAVE REPETITION
+    // **************
+
+    out.println(
+      "",
       "  public void leaveRepetition(Field field) {",
-      "  }"
-      );
+      "    if (field instanceof SchemaLiterals.FieldLiteral) {",
+      "      SchemaLiterals.FieldLiteral literal = (SchemaLiterals.FieldLiteral)field;",
+      "      switch (literal) {");
+    collected
+      .stream()
+      .filter(field -> field.repeated)
+      .forEach(field -> {
+        out.println("        case " + field.identifier + ": {");
+        out.println("          break;");
+        out.println("        }");
+      });
+    out.println(
+      "        default:",
+      "          throw new UnsupportedOperationException();",
+      "      }",
+      "    } else if (next != null) {",
+      "      next.leaveRepetition(field);",
+      "    } else {",
+      "      throw new UnsupportedOperationException();",
+      "    }",
+      "  }");
 
     // **************
     // DESTROY

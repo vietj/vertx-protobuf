@@ -9,6 +9,13 @@ import io.vertx.protobuf.schema.ScalarType;
 import io.vertx.protobuf.schema.TypeID;
 import io.vertx.protobuf.schema.WireType;
 
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
 public class ProtobufReader {
 
   private static final WireType[] wireTypes = {
@@ -45,10 +52,6 @@ public class ProtobufReader {
 
   private static void parseVarInt(ProtobufDecoder decoder, Field field, RecordVisitor visitor) {
     switch (field.type().id()) {
-      case BOOL:
-        assertTrue(decoder.readVarInt64());
-        visitor.visitVarInt64(field, decoder.longValue());
-        break;
       case SINT32:
       case ENUM:
       case UINT32:
@@ -59,6 +62,7 @@ public class ProtobufReader {
       case SINT64:
       case INT64:
       case UINT64:
+      case BOOL:
         assertTrue(decoder.readVarInt64());
         visitor.visitVarInt64(field, decoder.longValue());
         break;
@@ -95,16 +99,54 @@ public class ProtobufReader {
     unknownFieldHandler.visitVarInt64(messageType.unknownField(fieldNumber, WireType.VARINT), v);
   }
 
-  private static void parseLen(ProtobufDecoder decoder, Field field, RecordVisitor visitor) {
+  private static class Region {
+    final int from;
+    final int to;
+    Region(int from, int to) {
+      this.from = from;
+      this.to = to;
+    }
+  }
+
+  private static class ParsingContext {
+    Map<Integer, List<Region>> cumulations = new LinkedHashMap<>();
+  }
+
+  private void checkCumulation(ParsingContext ctx, ProtobufDecoder decoder, MessageType type, RecordVisitor visitor) {
+    int from = decoder.index();
+    int to = decoder.len();
+    for (Map.Entry<Integer, List<Region>> cumulation : ctx.cumulations.entrySet()) {
+      Field f = type.field(cumulation.getKey());
+      visitor.enterRepetition(f);
+      for (Region l : cumulation.getValue()) {
+        decoder.index(l.from);
+        decoder.len(l.to);
+        foo(decoder, f.type().wireType(), f, visitor);
+      }
+      visitor.leaveRepetition(f);
+    }
+    decoder.index(from);
+    decoder.len(to);
+  }
+
+  private void parseLen(ProtobufDecoder decoder, Field field, RecordVisitor visitor) {
     assertTrue(decoder.readVarInt32());
     int len = decoder.intValue();
     if (field.type() instanceof MessageType) {
       int to = decoder.len();
       decoder.len(decoder.index() + len);
+      depth++;
       visitor.enter(field);
-      parse(decoder, (MessageType) field.type(), visitor);
-      visitor.leave(field);
+      MessageType messageType = (MessageType) field.type();
+      parse(decoder, messageType, visitor);
+      ParsingContext ctx = contexts[depth];
+      contexts[depth] = null;
+      depth--;
+      if (ctx != null) {
+        checkCumulation(ctx, decoder, messageType, visitor);
+      }
       decoder.len(to);
+      visitor.leave(field);
     } else if (field.type() instanceof EnumType) {
       visitor.enterRepetition(field);
       parsePackedVarInt32(decoder, field, len, visitor);
@@ -145,14 +187,14 @@ public class ProtobufReader {
     }
   }
 
-  private static void parsePackedVarInt32(ProtobufDecoder decoder, Field field, int len, RecordVisitor visitor) {
+  private void parsePackedVarInt32(ProtobufDecoder decoder, Field field, int len, RecordVisitor visitor) {
     int to = decoder.index() + len;
     while (decoder.index() < to) {
       parseVarInt(decoder, field, visitor);
     }
   }
 
-  private static void parsePackedI64(ProtobufDecoder decoder, Field field, int len, RecordVisitor visitor) {
+  private void parsePackedI64(ProtobufDecoder decoder, Field field, int len, RecordVisitor visitor) {
     int to = decoder.index() + len;
     while (decoder.index() < to) {
       assertTrue(decoder.readI64());
@@ -161,7 +203,7 @@ public class ProtobufReader {
     }
   }
 
-  private static void parsePackedI32(ProtobufDecoder decoder, Field field, int len, RecordVisitor visitor) {
+  private void parsePackedI32(ProtobufDecoder decoder, Field field, int len, RecordVisitor visitor) {
     int to = decoder.index() + len;
     while (decoder.index() < to) {
       assertTrue(decoder.readI32());
@@ -171,13 +213,19 @@ public class ProtobufReader {
   }
 
   public static void parse(MessageType rootType, RecordVisitor visitor, Buffer buffer) {
+    ProtobufReader reader = new ProtobufReader();
     ProtobufDecoder decoder = new ProtobufDecoder(buffer);
     visitor.init(rootType);
-    parse(decoder, rootType, visitor);
+    reader.parse(decoder, rootType, visitor);
+    ParsingContext ctx = reader.contexts[0];
+    if (ctx != null) {
+      reader.contexts[0] = null;
+      reader.checkCumulation(ctx, decoder, rootType, visitor);
+    }
     visitor.destroy();
   }
 
-  private static void parse(ProtobufDecoder decoder, MessageType type, RecordVisitor visitor) {
+  private void parse(ProtobufDecoder decoder, MessageType type, RecordVisitor visitor) {
     while (decoder.isReadable()) {
       assertTrue(decoder.readTag());
       int fieldNumber  = decoder.fieldNumber();
@@ -208,25 +256,72 @@ public class ProtobufReader {
             throw new UnsupportedOperationException("Todo");
         }
       } else {
-        switch (wireType) {
-          case LEN:
-            parseLen(decoder, field, visitor);
-            break;
-          case I64:
-            parseI64(decoder, field, visitor);
-            break;
-          case I32:
-            parseI32(decoder, field, visitor);
-            break;
-          case VARINT:
-            parseVarInt(decoder, field, visitor);
-            break;
-          default:
-            throw new UnsupportedOperationException("Implement me " + field.type().wireType());
+        if (field.isRepeated() && !field.isPacked()) {
+          ParsingContext ctx = contexts[depth];
+          if (ctx == null) {
+            ctx = new ParsingContext();
+            contexts[depth] = ctx;
+          }
+          List<Region> cumulation = ctx.cumulations.get(field.number());
+          if (cumulation == null) {
+            cumulation = new ArrayList<>();
+            ctx.cumulations.put(field.number(), cumulation);
+          }
+          int from;
+          Region region;
+          switch (wireType) {
+            case VARINT:
+              from = decoder.index();
+              assertTrue(decoder.readVarInt64());
+              region = new Region(from, decoder.index());
+              break;
+            case I32:
+              region = new Region(decoder.index(), decoder.index() + 4);
+              decoder.skip(4);
+              break;
+            case I64:
+              region = new Region(decoder.index(), decoder.index() + 8);
+              decoder.skip(8);
+              break;
+            case LEN:
+              int a = decoder.index();
+              assertTrue(decoder.readVarInt32());
+              int len = decoder.intValue();
+              region = new Region(a, decoder.index() + len);
+              decoder.skip(len);
+              break;
+            default:
+              throw new UnsupportedOperationException();
+          }
+          cumulation.add(region);
+        } else {
+          foo(decoder, wireType, field, visitor);
         }
       }
-      }
+    }
   }
+
+  private void foo(ProtobufDecoder decoder, WireType wireType, Field field, RecordVisitor visitor) {
+    switch (wireType) {
+      case LEN:
+        parseLen(decoder, field, visitor);
+        break;
+      case I64:
+        parseI64(decoder, field, visitor);
+        break;
+      case I32:
+        parseI32(decoder, field, visitor);
+        break;
+      case VARINT:
+        parseVarInt(decoder, field, visitor);
+        break;
+      default:
+        throw new UnsupportedOperationException("Implement me " + field.type().wireType());
+    }
+  }
+
+  private int depth = 0;
+  private ParsingContext[] contexts = new ParsingContext[10];
 
   private static void assertTrue(boolean cond) {
     if (!cond) {

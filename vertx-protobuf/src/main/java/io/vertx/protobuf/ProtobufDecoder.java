@@ -28,6 +28,11 @@ public class ProtobufDecoder {
     return this;
   }
 
+  public ProtobufDecoder index(int index) {
+    idx = index;
+    return this;
+  }
+
   public int index() {
     return idx;
   }

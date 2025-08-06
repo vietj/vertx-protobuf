@@ -6,22 +6,23 @@ option java_package = "io.vertx.tests.repetition";
 option java_outer_classname = "RepetitionProto";
 
 message Repeated {
-  repeated string string = 1;
-  repeated bytes bytes = 2;
-  repeated int32 int32 = 3;
-  repeated int64 int64 = 4;
-  repeated uint32 uint32 = 5;
-  repeated uint64 uint64 = 6;
-  repeated sint32 sint32 = 7;
-  repeated sint64 sint64 = 8;
-  repeated bool bool = 9;
-  repeated Enum _enum = 10;
-  repeated fixed64 fixed64 = 11;
-  repeated sfixed64 sfixed64 = 12;
-  repeated double _double = 13;
-  repeated fixed32 fixed32 = 14;
-  repeated sfixed32 sfixed32 = 15;
-  repeated float _float = 16;
+  repeated string string = 1 [packed = false];
+  repeated bytes bytes = 2 [packed = false];
+  repeated int32 int32 = 3 [packed = false];
+  repeated int64 int64 = 4 [packed = false];
+  repeated uint32 uint32 = 5 [packed = false];
+  repeated uint64 uint64 = 6 [packed = false];
+  repeated sint32 sint32 = 7 [packed = false];
+  repeated sint64 sint64 = 8 [packed = false];
+  repeated bool bool = 9 [packed = false];
+  repeated Enum _enum = 10 [packed = false];
+  repeated fixed64 fixed64 = 11 [packed = false];
+  repeated sfixed64 sfixed64 = 12 [packed = false];
+  repeated double _double = 13 [packed = false];
+  repeated fixed32 fixed32 = 14 [packed = false];
+  repeated sfixed32 sfixed32 = 15 [packed = false];
+  repeated float _float = 16 [packed = false];
+  repeated Embedded embedded = 17 [packed = false];
 }
 
 message Packed {
@@ -44,4 +45,10 @@ message Packed {
 enum Enum {
   constant_0 = 0;
   constant_1 = 1;
+}
+
+message Embedded {
+  int32 value = 1;
+  repeated int32 repeated = 2 [packed = true];
+  repeated int32 packed = 3 [packed = false];
 }

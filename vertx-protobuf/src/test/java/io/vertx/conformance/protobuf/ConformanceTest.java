@@ -22,7 +22,7 @@ public class ConformanceTest {
 
   @Test
   public void testConformance() throws Exception {
-    byte[] bytes = { -46, 41, 3, 97, 98, 99, -48, 41, 123, -46, 41, 3, 100, 101, 102, -48, 41, -56, 3 };
+    byte[] bytes = { -126, 7, 9, 18, 7, 8, 1, 16, 1, -56, 5, 1, -126, 7, 7, 18, 5, 16, 1, -56, 5, 1 };
 
     // Expected
     // [-48, 41, 123,
@@ -53,6 +53,5 @@ public class ConformanceTest {
     Buffer result = ProtobufWriter.encode(visitor -> {
       ProtoWriter.emit(testMessage, visitor);
     });
-    System.out.println("a");
   }
 }
