@@ -8,5 +8,5 @@ option java_package = "io.vertx.protobuf.extension";
 option java_outer_classname = "VertxProto";
 
 extend google.protobuf.FileOptions {
-  optional string vertx_json_object = 4500;
+  optional bool vertx_json_object = 4500;
 }

@@ -87,17 +87,11 @@ class ElementGenerator {
 
     private List<Descriptors.FieldDescriptor> fields;
     private List<Descriptors.OneofDescriptor> oneOfs;
-    private String vertxJsonObject;
 
     public DataObjectElement(Descriptors.Descriptor descriptor) {
       super(descriptor);
-
-      String extension = descriptor.getFile().getOptions().getExtension(VertxProto.vertxJsonObject);
-
-
       fields = Utils.actualFields(descriptor);
       oneOfs = Utils.oneOfs(descriptor);
-      vertxJsonObject = extension;
     }
 
     @Override
@@ -106,7 +100,6 @@ class ElementGenerator {
     }
 
     void generate2(GenWriter writer) {
-      writer.println("// vertxJsonObject = " + vertxJsonObject);
       writer.println("public " + (container != null ? "static " : "") + "class " + descriptor.getName() + " extends MessageBase {");
       fields.forEach(fd -> {
         String javaType = Utils.javaTypeOf(fd);

@@ -9,7 +9,7 @@ import "vertx.proto";
 option java_package = "io.vertx.tests.json";
 option java_outer_classname = "JsonProto";
 
-option (io.vertx.protobuf.extension.vertx_json_object) = "the-string";
+option (io.vertx.protobuf.extension.vertx_json_object) = true;
 
 message Container {
   google.protobuf.Struct struct = 1;

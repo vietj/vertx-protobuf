@@ -53,7 +53,7 @@ class ProtoReaderGenerator {
     public String getterMethod;
     public String setterMethod;
     public String containingJavaType;
-    public String typePkgFqn;
+    public String protoReaderJavaType;
     public Function<String, String> wrapper;
     public Function<String, String> unwrapper;
     public boolean imported;
@@ -142,8 +142,18 @@ class ProtoReaderGenerator {
         descriptor.javaTypeInternal = Utils.javaTypeOfInternal(fd);
         descriptor.repeated = fd.isRepeated();
         descriptor.containingJavaType = Utils.javaTypeOf(fd.getContainingType());
-        descriptor.typePkgFqn = fd.getType() == Descriptors.FieldDescriptor.Type.MESSAGE ? Utils.extractJavaPkgFqn(fd.getMessageType().getFile()) : null;
-        descriptor.imported = fd.getType() == Descriptors.FieldDescriptor.Type.MESSAGE && !Utils.extractJavaPkgFqn(fd.getMessageType().getFile()).equals(javaPkgFqn);
+
+        if (fd.getType() == Descriptors.FieldDescriptor.Type.MESSAGE) {
+          if (Utils.isStruct(fd.getMessageType()) && Utils.useJsonObject(fd.getFile())) {
+            descriptor.protoReaderJavaType = "io.vertx.protobuf.json.ProtoReader";
+          } else {
+            descriptor.protoReaderJavaType = Utils.extractJavaPkgFqn(fd.getMessageType().getFile()) + ".ProtoReader";
+          }
+          descriptor.imported = !Utils.extractJavaPkgFqn(fd.getMessageType().getFile()).equals(javaPkgFqn);
+        } else {
+          descriptor.protoReaderJavaType = null;
+          descriptor.imported = false;
+        }
 
         if (fd.isMapField()) {
           Descriptors.FieldDescriptor blah = fd.getMessageType().getFields().get(1);
@@ -372,7 +382,7 @@ class ProtoReaderGenerator {
         } else {
           if (field.imported) {
             out.println(
-              "          RecordVisitor v = new " + field.typePkgFqn + ".ProtoReader(stack);",
+              "          RecordVisitor v = new " + field.protoReaderJavaType + "(stack);",
               "          v.init((MessageType)field.type());",
               "          next = v;");
           } else {

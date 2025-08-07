@@ -1,88 +1,99 @@
 package io.vertx.protobuf.json;
 
-import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.protobuf.RecordVisitor;
 import io.vertx.protobuf.schema.Field;
 import io.vertx.protobuf.schema.MessageType;
 
-import java.util.Stack;
+import java.util.ArrayDeque;
+import java.util.Deque;
 
 public class ProtoReader implements RecordVisitor {
 
-  final Stack<Object> stack = new Stack<>();
-  private final Stack<MessageType> current = new Stack<>();
+  final Deque<Object> stack ;
+
+  public ProtoReader() {
+    this(new ArrayDeque<>());
+  }
+
+  public ProtoReader(Deque<Object> stack) {
+    this.stack = stack;
+  }
 
   @Override
   public void init(MessageType type) {
-    current.add(type);
-    if (type == SchemaLiterals.Struct.TYPE) {
-      stack.add(new JsonObject());
+    if (type.name().equals("Struct")) {
+      stack.push(new JsonObject());
+    } else {
+      throw new UnsupportedOperationException();
     }
   }
 
   @Override
   public void visitBool(Field field, boolean v) {
-    visitValue(v);
+    append(v);
   }
 
   @Override
-  public void visitVarInt32(Field field, int v) {
-    if (field == SchemaLiterals.Value.null_value) {
-      // NULL
-      visitValue(null);
-    } else {
-      throw new UnsupportedOperationException();
-    }
+  public void visitEnum(Field field, int number) {
+    append(null);
   }
 
-  public void visitValue(Object value) {
-    MessageType m = current.peek();
-    if (m == SchemaLiterals.Value.TYPE) {
-      Object o = stack.peek();
-      if (o instanceof String) {
-        stack.add(value);
-      } else if (o instanceof JsonArray) {
-        ((JsonArray) o).add(value);
-      } else {
-        throw new UnsupportedOperationException();
-      }
-    } else if (m == SchemaLiterals.FieldsEntry.TYPE) {
-      stack.add(value);
+  private void append(Object value) {
+    Object container = stack.peek();
+    if (container instanceof Entry) {
+      ((Entry)container).value = value;
     } else {
-      throw new UnsupportedOperationException();
+      ((JsonArray)container).add(value);
     }
   }
 
   @Override
   public void visitString(Field field, String s) {
-    visitValue(s);
+    switch (field.number()) {
+      case 1:
+        // FieldsEntry
+        ((Entry)stack.peek()).key = s;
+        break;
+      case 3:
+        append(s);
+      break;
+    }
   }
 
   @Override
   public void visitDouble(Field field, double d) {
-    visitValue(d);
+    append(d);
   }
 
   @Override
   public void enterRepetition(Field field) {
-
   }
 
   @Override
   public void enter(Field field) {
     MessageType mt = (MessageType) field.type();
-    current.add(mt);
-    if (mt == SchemaLiterals.Struct.TYPE) {
-      stack.add(new JsonObject());
-    } else if (mt == SchemaLiterals.ListValue.TYPE) {
-      stack.add(new JsonArray());
-    } else if (mt == SchemaLiterals.FieldsEntry.TYPE) {
-    } else if (mt == SchemaLiterals.Value.TYPE) {
-    } else {
-      throw new UnsupportedOperationException();
+    switch (mt.name()) {
+      case "Struct":
+        stack.push(new JsonObject());
+        break;
+      case "ListValue":
+        stack.push(new JsonArray());
+        break;
+      case "FieldsEntry":
+        stack.push(new Entry());
+        break;
+      case "Value":
+        break;
+      default:
+        throw new UnsupportedOperationException(mt.name());
     }
+  }
+
+  private static class Entry {
+    String key;
+    Object value;
   }
 
   @Override
@@ -92,15 +103,23 @@ public class ProtoReader implements RecordVisitor {
 
   @Override
   public void leave(Field field) {
-    MessageType pop = current.pop();
-    if (pop == SchemaLiterals.FieldsEntry.TYPE) {
-      Object value = stack.pop();
-      String key = (String) stack.pop();
-      ((JsonObject) stack.peek()).put(key, value);
-    } else if (pop == SchemaLiterals.Struct.TYPE) {
-      visitValue(stack.pop());
-    } else if (pop == SchemaLiterals.ListValue.TYPE) {
-      visitValue(stack.pop());
+    Entry entry;
+    MessageType mt = (MessageType) field.type();
+    switch (mt.name()) {
+      case "Struct":
+        append(stack.pop());
+        break;
+      case "ListValue":
+        append(stack.pop());
+        break;
+      case "FieldsEntry":
+        entry = (Entry) stack.pop();
+        ((JsonObject)stack.peek()).put(entry.key, entry.value);
+        break;
+      case "Value":
+        break;
+      default:
+        throw new UnsupportedOperationException(mt.name());
     }
   }
 

@@ -4,6 +4,7 @@ import com.google.common.base.Strings;
 import com.google.protobuf.DescriptorProtos;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.compiler.PluginProtos;
+import io.vertx.protobuf.extension.VertxProto;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -22,6 +23,18 @@ public class Utils {
       }
     }
     return fields;
+  }
+
+  static boolean isStruct(Descriptors.FieldDescriptor desc) {
+    return desc.getType() == Descriptors.FieldDescriptor.Type.MESSAGE && desc.getMessageType().getFullName().equals("google.protobuf.Struct");
+  }
+
+  static boolean isStruct(Descriptors.Descriptor desc) {
+    return desc.getFullName().equals("google.protobuf.Struct");
+  }
+
+  static boolean useJsonObject(Descriptors.FileDescriptor fd) {
+    return fd.getOptions().getExtension(VertxProto.vertxJsonObject);
   }
 
   static boolean isOptional(Descriptors.FieldDescriptor field) {
@@ -166,8 +179,12 @@ public class Utils {
         pkg = extractJavaPkgFqn(field.getEnumType().getFile());
         return pkg + "." + simpleNameOf(field.getEnumType());
       case MESSAGE:
-        pkg = extractJavaPkgFqn(field.getMessageType().getFile());
-        return pkg + "." + simpleNameOf(field.getMessageType());
+        Descriptors.Descriptor messageType = field.getMessageType();
+        if (isStruct(messageType) && useJsonObject(field.getFile())) {
+          return "io.vertx.core.json.JsonObject";
+        }
+        pkg = extractJavaPkgFqn(messageType.getFile());
+        return pkg + "." + simpleNameOf(messageType);
       default:
         return null;
     }

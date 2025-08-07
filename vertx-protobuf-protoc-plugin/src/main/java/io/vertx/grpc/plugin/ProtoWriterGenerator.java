@@ -131,7 +131,16 @@ class ProtoWriterGenerator {
         field.fieldName = fd.getJsonName();
         field.repeated = fd.isRepeated();
         field.packed = fd.isPacked();
-        field.protoWriterFqn = fd.getType() == Descriptors.FieldDescriptor.Type.MESSAGE ? Utils.extractJavaPkgFqn(fd.getMessageType().getFile()) + ".ProtoWriter" : null;
+
+        if (fd.getType() == Descriptors.FieldDescriptor.Type.MESSAGE) {
+          if (Utils.isStruct(fd.getMessageType()) && Utils.useJsonObject(fd.getFile())) {
+            field.protoWriterFqn = "io.vertx.protobuf.json.ProtoWriter";
+          } else {
+            field.protoWriterFqn = Utils.extractJavaPkgFqn(fd.getMessageType().getFile()) + ".ProtoWriter";
+          }
+        } else {
+          field.protoWriterFqn = null;
+        }
 
         if (fd.isMapField()) {
           field.map = true;

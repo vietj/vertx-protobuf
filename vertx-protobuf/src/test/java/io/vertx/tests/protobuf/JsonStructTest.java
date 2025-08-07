@@ -15,7 +15,6 @@ import static org.junit.Assert.assertEquals;
 
 public class JsonStructTest {
 
-  @Ignore("broken")
   @Test
   public void testDecode() throws Exception {
     testDecodeJson(new JsonObject().put("string-1", "the-string-1").put("string-2", "the-string-2"));

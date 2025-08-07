@@ -10,6 +10,7 @@ class SchemaLiterals {
   private static final Schema SCHEMA;
 
   static {
+    // TODO : remove this
     SchemaCompiler compiler = new SchemaCompiler();
     compiler.compile(com.google.protobuf.Struct.getDescriptor());
     SCHEMA = compiler.schema();;

@@ -9,7 +9,6 @@ import io.vertx.protobuf.json.JsonWriter;
 import io.vertx.protobuf.schema.MessageType;
 import io.vertx.tests.protobuf.DataTypeTestBase;
 import io.vertx.tests.protobuf.RecordingVisitor;
-import io.vertx.tests.protobuf.datatypes.DataTypesProto;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;

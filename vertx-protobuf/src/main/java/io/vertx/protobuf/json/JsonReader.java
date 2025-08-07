@@ -37,7 +37,6 @@ public class JsonReader {
     //
     visitor.init(messageType);
 
-    Object res;
     JsonToken remaining;
     try {
       parser.nextToken();
@@ -161,24 +160,23 @@ public class JsonReader {
 
   private static void parseObject(JsonParser parser, MessageType type, RecordVisitor visitor) throws IOException {
     assert parser.hasToken(JsonToken.START_OBJECT);
-
     // Check Struct
     // check is not great ... but well for now it's fine
     if (type.name().equals("Struct")) {
-      throw new UnsupportedOperationException("Not yet implemented");
-    }
-
-    while (parser.nextToken() == JsonToken.FIELD_NAME) {
-      String key = parser.currentName();
-      Field field = type.fieldByJsonName(key);
-      if (field == null) {
-        field = type.fieldByName(key);
+      StructParser.parseObject(parser, type, visitor);
+    } else {
+      while (parser.nextToken() == JsonToken.FIELD_NAME) {
+        String key = parser.currentName();
+        Field field = type.fieldByJsonName(key);
+        if (field == null) {
+          field = type.fieldByName(key);
+        }
+        if (field == null) {
+          throw new UnsupportedOperationException("Unknown field " + key);
+        }
+        parser.nextToken();
+        parseAny(parser, field, visitor);
       }
-      if (field == null) {
-        throw new UnsupportedOperationException("Unknown field " + key);
-      }
-      parser.nextToken();
-      parseAny(parser, field, visitor);
     }
   }
 

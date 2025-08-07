@@ -50,7 +50,7 @@ public class ProtoWriter {
       visitor.visitString(SchemaLiterals.Value.string_value, (String) value);
 //      visitor.leave(SchemaLiterals.Value.string_value);
     } else if (value instanceof Boolean) {
-      visitor.visitVarInt32(SchemaLiterals.Value.bool_value, ((Boolean) value) ? 1 : 0);
+      visitor.visitVarInt64(SchemaLiterals.Value.bool_value, ((Boolean) value) ? 1 : 0);
     } else if (value instanceof Number) {
       visitor.visitDouble(SchemaLiterals.Value.number_value, ((Number) value).doubleValue());
     } else if (value instanceof JsonObject) {
