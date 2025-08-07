@@ -2,6 +2,7 @@ package io.vertx.grpc.plugin;
 
 import com.google.api.AnnotationsProto;
 import com.salesforce.jprotoc.ProtocPlugin;
+import io.vertx.protobuf.extension.VertxProto;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -19,7 +20,7 @@ public class VertxGrpcGenerator implements Callable<Integer> {
   @Override
   public Integer call() {
     VertxGrpcGeneratorImpl generator = new VertxGrpcGeneratorImpl();
-    ProtocPlugin.generate(List.of(generator), List.of(AnnotationsProto.http));
+    ProtocPlugin.generate(List.of(generator), List.of(AnnotationsProto.http, VertxProto.vertxJsonObject));
     return 0;
   }
 

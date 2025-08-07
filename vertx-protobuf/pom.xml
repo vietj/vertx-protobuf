@@ -47,6 +47,12 @@
     <!-- Test deps -->
     <dependency>
       <groupId>io.vertx</groupId>
+      <artifactId>vertx-protobuf-extension</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
       <artifactId>vertx-codegen-api</artifactId>
       <scope>test</scope>
     </dependency>

@@ -3,9 +3,13 @@ syntax = "proto3";
 package io.vertx.tests.json;
 
 import "google/protobuf/struct.proto";
+import "google/protobuf/descriptor.proto";
+import "vertx.proto";
 
 option java_package = "io.vertx.tests.json";
 option java_outer_classname = "JsonProto";
+
+option (io.vertx.protobuf.extension.vertx_json_object) = "the-string";
 
 message Container {
   google.protobuf.Struct struct = 1;

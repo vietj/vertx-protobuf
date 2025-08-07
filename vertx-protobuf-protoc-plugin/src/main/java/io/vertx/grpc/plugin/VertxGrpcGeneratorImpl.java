@@ -16,6 +16,7 @@ import com.google.protobuf.DescriptorProtos;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.DurationProto;
 import com.google.protobuf.EmptyProto;
+import com.google.protobuf.ExtensionRegistry;
 import com.google.protobuf.FieldMaskProto;
 import com.google.protobuf.JavaFeaturesProto;
 import com.google.protobuf.SourceContextProto;
@@ -26,6 +27,7 @@ import com.google.protobuf.WrappersProto;
 import com.google.protobuf.compiler.PluginProtos;
 import com.salesforce.jprotoc.Generator;
 import com.salesforce.jprotoc.GeneratorException;
+import io.vertx.protobuf.extension.VertxProto;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -47,10 +49,12 @@ public class VertxGrpcGeneratorImpl extends Generator {
   private static class Node {
     final DescriptorProtos.FileDescriptorProto fileDescProto;
     final List<Node> dependencies;
+    final boolean generate;
     Descriptors.FileDescriptor fileDesc;
-    Node(DescriptorProtos.FileDescriptorProto fileDescProto) {
+    Node(DescriptorProtos.FileDescriptorProto fileDescProto, boolean generate) {
       this.fileDescProto = fileDescProto;
       this.dependencies = new ArrayList<>();
+      this.generate = generate;
     }
     Descriptors.FileDescriptor build() throws Descriptors.DescriptorValidationException {
       if (fileDesc == null) {
@@ -73,7 +77,7 @@ public class VertxGrpcGeneratorImpl extends Generator {
 
     Map<String, Node> nodeMap = new LinkedHashMap<>();
     for (DescriptorProtos.FileDescriptorProto fileDescProto : protosToGenerate) {
-      nodeMap.put(fileDescProto.getName(), new Node(fileDescProto));
+      nodeMap.put(fileDescProto.getName(), new Node(fileDescProto, true));
     }
     Map<String, Node> wellKnownDependencies = new LinkedHashMap<>();
     for (Node node : nodeMap.values()) {
@@ -82,40 +86,43 @@ public class VertxGrpcGeneratorImpl extends Generator {
         if (depNode == null) {
           switch (dependency) {
             case "google/protobuf/any.proto":
-              depNode = new Node(AnyProto.getDescriptor().toProto());
+              depNode = new Node(AnyProto.getDescriptor().toProto(), true);
               break;
             case "google/protobuf/api.proto":
-              depNode = new Node(ApiProto.getDescriptor().toProto());
+              depNode = new Node(ApiProto.getDescriptor().toProto(), true);
               break;
             case "google/protobuf/descriptor.proto":
-              depNode = new Node(DescriptorProtos.getDescriptor().toProto());
+              depNode = new Node(DescriptorProtos.getDescriptor().toProto(), false);
               break;
             case "google/protobuf/duration.proto":
-              depNode = new Node(DurationProto.getDescriptor().toProto());
+              depNode = new Node(DurationProto.getDescriptor().toProto(), true);
               break;
             case "google/protobuf/empty.proto":
-              depNode = new Node(EmptyProto.getDescriptor().toProto());
+              depNode = new Node(EmptyProto.getDescriptor().toProto(), true);
               break;
             case "google/protobuf/field_mask.proto":
-              depNode = new Node(FieldMaskProto.getDescriptor().toProto());
+              depNode = new Node(FieldMaskProto.getDescriptor().toProto(), true);
               break;
             case "google/protobuf/java_features.proto":
-              depNode = new Node(JavaFeaturesProto.getDescriptor().toProto());
+              depNode = new Node(JavaFeaturesProto.getDescriptor().toProto(), true);
               break;
             case "google/protobuf/source_context.proto":
-              depNode = new Node(SourceContextProto.getDescriptor().toProto());
+              depNode = new Node(SourceContextProto.getDescriptor().toProto(), true);
               break;
             case "google/protobuf/struct.proto":
-              depNode = new Node(StructProto.getDescriptor().toProto());
+              depNode = new Node(StructProto.getDescriptor().toProto(), true);
               break;
             case "google/protobuf/timestamp.proto":
-              depNode = new Node(TimestampProto.getDescriptor().toProto());
+              depNode = new Node(TimestampProto.getDescriptor().toProto(), true);
               break;
             case "google/protobuf/type.proto":
-              depNode = new Node(TypeProto.getDescriptor().toProto());
+              depNode = new Node(TypeProto.getDescriptor().toProto(), true);
               break;
             case "google/protobuf/wrappers.proto":
-              depNode = new Node(WrappersProto.getDescriptor().toProto());
+              depNode = new Node(WrappersProto.getDescriptor().toProto(), true);
+              break;
+            case "vertx.proto":
+              depNode = new Node(VertxProto.getDescriptor().toProto(), false);
               break;
             default:
               throw new UnsupportedOperationException("Import not found " + dependency);
@@ -133,10 +140,12 @@ public class VertxGrpcGeneratorImpl extends Generator {
 
     List<PluginProtos.CodeGeneratorResponse.File> files = new ArrayList<>();
 
-
     Map<String, List<Descriptors.FileDescriptor>> byPkg = new LinkedHashMap<>();
-    for (Node fileDescProto : nodeMap.values()) {
-
+    nodeMap
+      .values()
+      .stream()
+      .filter(node -> node.generate)
+      .forEach(fileDescProto -> {
       Descriptors.FileDescriptor fileDesc;
       try {
         fileDesc = fileDescProto.build();
@@ -148,7 +157,7 @@ public class VertxGrpcGeneratorImpl extends Generator {
 
       String key = Utils.extractJavaPkgFqn(fileDesc);
       byPkg.computeIfAbsent(key, k -> new ArrayList<>()).add(fileDesc);
-    }
+    });
 
     byPkg.forEach((javaPkgFqn, v) -> {
       Map<String, Descriptors.Descriptor> messages = new LinkedHashMap<>();

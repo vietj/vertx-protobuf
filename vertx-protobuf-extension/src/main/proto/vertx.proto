@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package io.vertx.protobuf.extension;
+
+import "google/protobuf/descriptor.proto";
+
+option java_package = "io.vertx.protobuf.extension";
+option java_outer_classname = "VertxProto";
+
+extend google.protobuf.FileOptions {
+  optional string vertx_json_object = 4500;
+}
