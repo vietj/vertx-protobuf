@@ -14,7 +14,6 @@ import io.vertx.protobuf.schema.TypeID;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.Base64;
-import java.util.Map;
 import java.util.Objects;
 import java.util.OptionalInt;
 
@@ -33,10 +32,7 @@ public class JsonReader {
   }
 
   public static void parse(JsonParser parser, MessageType messageType, RecordVisitor visitor) throws DecodeException {
-
-    //
     visitor.init(messageType);
-
     JsonToken remaining;
     try {
       parser.nextToken();
@@ -72,14 +68,10 @@ public class JsonReader {
         String text = parser.getText();
         switch (field.type().id()) {
           case STRING:
-//            visitor.enter(field);
             visitor.visitString(field, text);
-//            visitor.leave(field);
             break;
           case BYTES:
-//            visitor.enter(field);
             visitor.visitBytes(field, Base64.getDecoder().decode(text));
-//            visitor.leave(field);
             break;
           case FIXED64:
             visitor.visitFixed64(field, Long.parseLong(text));
