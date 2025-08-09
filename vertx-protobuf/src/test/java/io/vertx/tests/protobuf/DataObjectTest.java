@@ -4,9 +4,9 @@ import com.google.protobuf.ByteString;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.protobuf.ProtobufReader;
 import io.vertx.protobuf.ProtobufWriter;
-import io.vertx.protobuf.com.google.protobuf.NullValue;
-import io.vertx.protobuf.com.google.protobuf.Struct;
-import io.vertx.protobuf.com.google.protobuf.Value;
+import io.vertx.protobuf.well_known_types.NullValue;
+import io.vertx.protobuf.well_known_types.Struct;
+import io.vertx.protobuf.well_known_types.Value;
 import io.vertx.tests.importing.Container;
 import io.vertx.tests.importing.ImportingProto;
 import org.junit.Ignore;
@@ -69,7 +69,7 @@ public class DataObjectTest {
   @Test
   public void testStringValue() {
     byte[] bytes = com.google.protobuf.Value.newBuilder().setStringValue("hello").build().toByteArray();
-    io.vertx.protobuf.com.google.protobuf.ProtoReader reader = new io.vertx.protobuf.com.google.protobuf.ProtoReader();
+    io.vertx.protobuf.ProtoReader reader = new io.vertx.protobuf.ProtoReader();
     ProtobufReader.parse(VALUE, reader, Buffer.buffer(bytes));
     Value msg = (Value) reader.stack.pop();
     assertEquals("hello", msg.getStringValue());
@@ -84,7 +84,7 @@ public class DataObjectTest {
       .putFields("daa", com.google.protobuf.Value.newBuilder().setNullValue(com.google.protobuf.NullValue.NULL_VALUE).build())
       .putFields("bii", com.google.protobuf.Value.newBuilder().setStructValue(com.google.protobuf.Struct.newBuilder()).build())
       .build()).build().toByteArray();
-    io.vertx.protobuf.com.google.protobuf.ProtoReader reader = new io.vertx.protobuf.com.google.protobuf.ProtoReader();
+    io.vertx.protobuf.ProtoReader reader = new io.vertx.protobuf.ProtoReader();
     Buffer buffer = Buffer.buffer(bytes);
     ProtobufReader.parse(VALUE, reader, buffer);
     Value msg = (Value) reader.stack.pop();
@@ -105,7 +105,7 @@ public class DataObjectTest {
     struct.getFields().put("juu", new Value().setNumberValue(5.1));
     struct.getFields().put("daa", new Value().setNullValue(NullValue.NULL_VALUE));
     Buffer result = ProtobufWriter.encode(visitor -> {
-      io.vertx.protobuf.com.google.protobuf.ProtoWriter.emit(struct, visitor);
+      io.vertx.protobuf.ProtoWriter.emit(struct, visitor);
     });
     com.google.protobuf.Struct res = com.google.protobuf.Struct.parseFrom(result.getBytes());
     assertEquals("string", res.getFieldsMap().get("foo").getStringValue());

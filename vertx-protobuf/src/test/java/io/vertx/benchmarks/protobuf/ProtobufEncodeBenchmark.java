@@ -6,7 +6,7 @@ import com.google.protobuf.Struct;
 import com.google.protobuf.Value;
 import io.vertx.core.json.JsonObject;
 import io.vertx.protobuf.ProtobufWriter;
-import io.vertx.protobuf.com.google.protobuf.ProtoWriter;
+import io.vertx.protobuf.well_known_types.ProtoWriter;
 import io.vertx.protobuf.json.Json;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Scope;
@@ -19,7 +19,7 @@ import java.io.ByteArrayOutputStream;
 public class ProtobufEncodeBenchmark extends BenchmarkBase {
 
   private Struct struct;
-  private io.vertx.protobuf.com.google.protobuf.Struct vertxStruct;
+  private io.vertx.protobuf.well_known_types.Struct vertxStruct;
   private JsonObject json;
 
   @Setup
@@ -48,17 +48,17 @@ public class ProtobufEncodeBenchmark extends BenchmarkBase {
         .put("the-number", 4)
         .put("the-boolean", true)
         .put("the-null", null));
-    vertxStruct = new io.vertx.protobuf.com.google.protobuf.Struct();
-    vertxStruct.getFields().put("the-string", new io.vertx.protobuf.com.google.protobuf.Value().setKind(io.vertx.protobuf.com.google.protobuf.Value.Kind.ofStringValue("the-string-value")));
-    vertxStruct.getFields().put("the-number", new io.vertx.protobuf.com.google.protobuf.Value().setKind(io.vertx.protobuf.com.google.protobuf.Value.Kind.ofNumberValue(4D)));
-    vertxStruct.getFields().put("the-boolean", new io.vertx.protobuf.com.google.protobuf.Value().setKind(io.vertx.protobuf.com.google.protobuf.Value.Kind.ofBoolValue(true)));
-    vertxStruct.getFields().put("the-null", new io.vertx.protobuf.com.google.protobuf.Value().setKind(io.vertx.protobuf.com.google.protobuf.Value.Kind.ofNullValue(io.vertx.protobuf.com.google.protobuf.NullValue.NULL_VALUE)));
-    io.vertx.protobuf.com.google.protobuf.Struct nested = new io.vertx.protobuf.com.google.protobuf.Struct();
-    nested.getFields().put("the-string", new io.vertx.protobuf.com.google.protobuf.Value().setKind(io.vertx.protobuf.com.google.protobuf.Value.Kind.ofStringValue("the-string-value")));
-    nested.getFields().put("the-number", new io.vertx.protobuf.com.google.protobuf.Value().setKind(io.vertx.protobuf.com.google.protobuf.Value.Kind.ofNumberValue(4D)));
-    nested.getFields().put("the-boolean", new io.vertx.protobuf.com.google.protobuf.Value().setKind(io.vertx.protobuf.com.google.protobuf.Value.Kind.ofBoolValue(true)));
-    nested.getFields().put("the-null", new io.vertx.protobuf.com.google.protobuf.Value().setKind(io.vertx.protobuf.com.google.protobuf.Value.Kind.ofNullValue(io.vertx.protobuf.com.google.protobuf.NullValue.NULL_VALUE)));
-    vertxStruct.getFields().put("the-object", new io.vertx.protobuf.com.google.protobuf.Value().setKind(io.vertx.protobuf.com.google.protobuf.Value.Kind.ofStructValue(nested)));
+    vertxStruct = new io.vertx.protobuf.well_known_types.Struct();
+    vertxStruct.getFields().put("the-string", new io.vertx.protobuf.well_known_types.Value().setKind(io.vertx.protobuf.well_known_types.Value.Kind.ofStringValue("the-string-value")));
+    vertxStruct.getFields().put("the-number", new io.vertx.protobuf.well_known_types.Value().setKind(io.vertx.protobuf.well_known_types.Value.Kind.ofNumberValue(4D)));
+    vertxStruct.getFields().put("the-boolean", new io.vertx.protobuf.well_known_types.Value().setKind(io.vertx.protobuf.well_known_types.Value.Kind.ofBoolValue(true)));
+    vertxStruct.getFields().put("the-null", new io.vertx.protobuf.well_known_types.Value().setKind(io.vertx.protobuf.well_known_types.Value.Kind.ofNullValue(io.vertx.protobuf.well_known_types.NullValue.NULL_VALUE)));
+    io.vertx.protobuf.well_known_types.Struct nested = new io.vertx.protobuf.well_known_types.Struct();
+    nested.getFields().put("the-string", new io.vertx.protobuf.well_known_types.Value().setKind(io.vertx.protobuf.well_known_types.Value.Kind.ofStringValue("the-string-value")));
+    nested.getFields().put("the-number", new io.vertx.protobuf.well_known_types.Value().setKind(io.vertx.protobuf.well_known_types.Value.Kind.ofNumberValue(4D)));
+    nested.getFields().put("the-boolean", new io.vertx.protobuf.well_known_types.Value().setKind(io.vertx.protobuf.well_known_types.Value.Kind.ofBoolValue(true)));
+    nested.getFields().put("the-null", new io.vertx.protobuf.well_known_types.Value().setKind(io.vertx.protobuf.well_known_types.Value.Kind.ofNullValue(io.vertx.protobuf.well_known_types.NullValue.NULL_VALUE)));
+    vertxStruct.getFields().put("the-object", new io.vertx.protobuf.well_known_types.Value().setKind(io.vertx.protobuf.well_known_types.Value.Kind.ofStructValue(nested)));
   }
 
   @Benchmark

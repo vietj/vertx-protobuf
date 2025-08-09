@@ -1,14 +1,14 @@
 package io.vertx.conformance.protobuf;
 
 import com.google.protobuf.util.JsonFormat;
+import com.google.protobuf_test_messages.proto3.MessageLiteral;
+import com.google.protobuf_test_messages.proto3.ProtoReader;
+import com.google.protobuf_test_messages.proto3.ProtoWriter;
+import com.google.protobuf_test_messages.proto3.TestAllTypesProto3;
 import com.google.protobuf_test_messages.proto3.TestMessagesProto3;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.protobuf.ProtobufReader;
 import io.vertx.protobuf.ProtobufWriter;
-import io.vertx.protobuf.com.google.protobuf_test_messages.proto3.MessageLiteral;
-import io.vertx.protobuf.com.google.protobuf_test_messages.proto3.ProtoReader;
-import io.vertx.protobuf.com.google.protobuf_test_messages.proto3.ProtoWriter;
-import io.vertx.protobuf.com.google.protobuf_test_messages.proto3.TestAllTypesProto3;
 import io.vertx.protobuf.json.JsonReader;
 import org.junit.Ignore;
 import org.junit.Test;
