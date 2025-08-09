@@ -10,6 +10,7 @@ import io.vertx.protobuf.schema.EnumType;
 import io.vertx.protobuf.schema.Field;
 import io.vertx.protobuf.schema.MessageType;
 import io.vertx.protobuf.schema.TypeID;
+import io.vertx.protobuf.well_known_types.MessageLiteral;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -152,10 +153,8 @@ public class JsonReader {
 
   private static void parseObject(JsonParser parser, MessageType type, RecordVisitor visitor) throws IOException {
     assert parser.hasToken(JsonToken.START_OBJECT);
-    // Check Struct
-    // check is not great ... but well for now it's fine
-    if (type.name().equals("Struct")) {
-      StructParser.parseObject(parser, type, visitor);
+    if (type == MessageLiteral.Struct) {
+      StructParser.parseObject(parser, visitor);
     } else {
       while (parser.nextToken() == JsonToken.FIELD_NAME) {
         String key = parser.currentName();

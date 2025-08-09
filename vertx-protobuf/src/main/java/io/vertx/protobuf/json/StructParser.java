@@ -5,78 +5,71 @@ import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.core.JsonTokenId;
 import io.vertx.core.json.DecodeException;
 import io.vertx.protobuf.RecordVisitor;
-import io.vertx.protobuf.schema.Field;
-import io.vertx.protobuf.schema.MessageType;
+import io.vertx.protobuf.well_known_types.FieldLiteral;
 
 import java.io.IOException;
 
 class StructParser {
 
-  static void parseObject(JsonParser parser, MessageType type, RecordVisitor visitor) throws IOException {
+  static void parseObject(JsonParser parser, RecordVisitor visitor) throws IOException {
     assert parser.hasToken(JsonToken.START_OBJECT);
-    Field fieldsEntry = type.field(1);
-    visitor.enterRepetition(fieldsEntry);
+    visitor.enterRepetition(FieldLiteral.Struct_fields);
     while (parser.nextToken() == JsonToken.FIELD_NAME) {
       String key = parser.currentName();
-      visitor.enter(fieldsEntry);
-      Field keyField = ((MessageType) fieldsEntry.type()).field(1);
-      Field valueField = ((MessageType) fieldsEntry.type()).field(2);
-      visitor.visitString(keyField, key);
+      visitor.enter(FieldLiteral.Struct_fields);
+      visitor.visitString(FieldLiteral.FieldsEntry_key, key);
       parser.nextToken();
-      visitor.enter(valueField);
-      parseAny(parser, (MessageType) valueField.type(), visitor);
-      visitor.leave(valueField);
-      visitor.leave(fieldsEntry);
+      visitor.enter(FieldLiteral.FieldsEntry_value);
+      parseAny(parser, visitor);
+      visitor.leave(FieldLiteral.FieldsEntry_value);
+      visitor.leave(FieldLiteral.Struct_fields);
     }
-    visitor.leaveRepetition(fieldsEntry);
+    visitor.leaveRepetition(FieldLiteral.Struct_fields);
   }
 
-  private static void parseAny(JsonParser parser, MessageType valueType, RecordVisitor visitor) throws IOException, DecodeException {
+  private static void parseAny(JsonParser parser, RecordVisitor visitor) throws IOException, DecodeException {
     switch (parser.currentTokenId()) {
       case JsonTokenId.ID_START_OBJECT:
-        Field f2 = valueType.field(5);
-        visitor.enter(f2);
-        parseObject(parser, (MessageType) f2.type(), visitor);
-        visitor.leave(f2);
+        visitor.enter(FieldLiteral.Value_struct_value);
+        parseObject(parser, visitor);
+        visitor.leave(FieldLiteral.Value_struct_value);
         break;
       case JsonTokenId.ID_START_ARRAY:
-        Field f = valueType.field(6);
-        visitor.enter(f);
-        parseArray(parser, (MessageType) f.type(), visitor);
-        visitor.leave(f);
+        visitor.enter(FieldLiteral.Value_list_value);
+        parseArray(parser, visitor);
+        visitor.leave(FieldLiteral.Value_list_value);
         break;
       case JsonTokenId.ID_STRING:
         String text = parser.getText();
-        visitor.visitString(valueType.field(3), text);
+        visitor.visitString(FieldLiteral.Value_string_value, text);
         break;
       case JsonTokenId.ID_NUMBER_FLOAT:
       case JsonTokenId.ID_NUMBER_INT:
         double number = parser.getDoubleValue();
-        visitor.visitDouble(valueType.field(2), number);
+        visitor.visitDouble(FieldLiteral.Value_number_value, number);
         break;
       case JsonTokenId.ID_TRUE:
-        visitor.visitBool(valueType.field(4), true);
+        visitor.visitBool(FieldLiteral.Value_bool_value, true);
         break;
       case JsonTokenId.ID_FALSE:
-        visitor.visitBool(valueType.field(4), false);
+        visitor.visitBool(FieldLiteral.Value_bool_value, false);
         break;
       case JsonTokenId.ID_NULL:
-        visitor.visitEnum(valueType.field(1), 0);
+        visitor.visitEnum(FieldLiteral.Value_null_value, 0);
         break;
       default:
         throw new DecodeException("Unexpected token"/*, parser.getCurrentLocation()*/);
     }
   }
 
-  private static void parseArray(JsonParser parser, MessageType type, RecordVisitor visitor) throws IOException {
+  private static void parseArray(JsonParser parser, RecordVisitor visitor) throws IOException {
     assert parser.hasToken(JsonToken.START_ARRAY);
-    Field values = type.field(1);
-    visitor.enterRepetition(values);
+    visitor.enterRepetition(FieldLiteral.ListValue_values);
     while (parser.nextToken() != JsonToken.END_ARRAY) {
-      visitor.enter(values);
-      parseAny(parser, (MessageType) values.type(), visitor);
-      visitor.leave(values);
+      visitor.enter(FieldLiteral.ListValue_values);
+      parseAny(parser, visitor);
+      visitor.leave(FieldLiteral.ListValue_values);
     }
-    visitor.leaveRepetition(values);
+    visitor.leaveRepetition(FieldLiteral.ListValue_values);
   }
 }

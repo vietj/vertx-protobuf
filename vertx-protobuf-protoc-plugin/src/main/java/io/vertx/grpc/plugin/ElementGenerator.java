@@ -104,7 +104,7 @@ class ElementGenerator {
       fields.forEach(fd -> {
         String javaType = Utils.javaTypeOf(fd);
         if (javaType != null) {
-          writer.print("  " + javaType + " " + fd.getJsonName());
+          writer.print("  " + javaType + " " + Utils.nameOf(fd));
           if (fd.isMapField()) {
             writer.println(" = new java.util.HashMap<>();");
           } else if (fd.isRepeated()) {
@@ -132,14 +132,14 @@ class ElementGenerator {
           String setter = Utils.setterOf(field);
           writer.println("  public " + javaType + " " + getter + "() {");
           if (field.getType() != Descriptors.FieldDescriptor.Type.MESSAGE && !field.isRepeated()) {
-            writer.println("    " + javaType + " val = this." + field.getJsonName() + ";");
+            writer.println("    " + javaType + " val = this." + Utils.nameOf(field) + ";");
             writer.println("    return val != null ? val : " + defaultValueOf(field) + ";");
           } else {
             writer.println("    return " + field.getJsonName() + ";");
           }
           writer.println("  };");
-          writer.println("  public " + descriptor.getName() + " " + setter + "(" + javaType + " " + field.getJsonName() + ") {");
-          writer.println("    this." + field.getJsonName() + " = " + field.getJsonName() + ";");
+          writer.println("  public " + descriptor.getName() + " " + setter + "(" + javaType + " " + Utils.nameOf(field) + ") {");
+          writer.println("    this." + Utils.nameOf(field) + " = " + Utils.nameOf(field) + ";");
           writer.println("    return this;");
           writer.println("  };");
         }

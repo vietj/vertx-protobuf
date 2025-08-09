@@ -20,4 +20,6 @@ module io.vertx.protobuf {
   exports io.vertx.protobuf.json;
   exports io.vertx.protobuf;
   exports io.vertx.protobuf.schema;
+  exports io.vertx.protobuf.well_known_types;
+
 }

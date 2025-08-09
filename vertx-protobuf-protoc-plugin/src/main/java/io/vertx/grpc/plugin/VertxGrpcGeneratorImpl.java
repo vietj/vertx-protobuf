@@ -86,40 +86,40 @@ public class VertxGrpcGeneratorImpl extends Generator {
         if (depNode == null) {
           switch (dependency) {
             case "google/protobuf/any.proto":
-              depNode = new Node(AnyProto.getDescriptor().toProto(), true);
+              depNode = new Node(AnyProto.getDescriptor().toProto(), false);
               break;
             case "google/protobuf/api.proto":
-              depNode = new Node(ApiProto.getDescriptor().toProto(), true);
+              depNode = new Node(ApiProto.getDescriptor().toProto(), false);
               break;
             case "google/protobuf/descriptor.proto":
               depNode = new Node(DescriptorProtos.getDescriptor().toProto(), false);
               break;
             case "google/protobuf/duration.proto":
-              depNode = new Node(DurationProto.getDescriptor().toProto(), true);
+              depNode = new Node(DurationProto.getDescriptor().toProto(), false);
               break;
             case "google/protobuf/empty.proto":
-              depNode = new Node(EmptyProto.getDescriptor().toProto(), true);
+              depNode = new Node(EmptyProto.getDescriptor().toProto(), false);
               break;
             case "google/protobuf/field_mask.proto":
-              depNode = new Node(FieldMaskProto.getDescriptor().toProto(), true);
+              depNode = new Node(FieldMaskProto.getDescriptor().toProto(), false);
               break;
             case "google/protobuf/java_features.proto":
-              depNode = new Node(JavaFeaturesProto.getDescriptor().toProto(), true);
+              depNode = new Node(JavaFeaturesProto.getDescriptor().toProto(), false);
               break;
             case "google/protobuf/source_context.proto":
-              depNode = new Node(SourceContextProto.getDescriptor().toProto(), true);
+              depNode = new Node(SourceContextProto.getDescriptor().toProto(), false);
               break;
             case "google/protobuf/struct.proto":
-              depNode = new Node(StructProto.getDescriptor().toProto(), true);
+              depNode = new Node(StructProto.getDescriptor().toProto(), false);
               break;
             case "google/protobuf/timestamp.proto":
-              depNode = new Node(TimestampProto.getDescriptor().toProto(), true);
+              depNode = new Node(TimestampProto.getDescriptor().toProto(), false);
               break;
             case "google/protobuf/type.proto":
-              depNode = new Node(TypeProto.getDescriptor().toProto(), true);
+              depNode = new Node(TypeProto.getDescriptor().toProto(), false);
               break;
             case "google/protobuf/wrappers.proto":
-              depNode = new Node(WrappersProto.getDescriptor().toProto(), true);
+              depNode = new Node(WrappersProto.getDescriptor().toProto(), false);
               break;
             case "vertx.proto":
               depNode = new Node(VertxProto.getDescriptor().toProto(), false);

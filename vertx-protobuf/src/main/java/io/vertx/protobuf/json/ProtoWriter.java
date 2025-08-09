@@ -3,13 +3,15 @@ package io.vertx.protobuf.json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.protobuf.RecordVisitor;
+import io.vertx.protobuf.well_known_types.FieldLiteral;
+import io.vertx.protobuf.well_known_types.MessageLiteral;
 
 import java.util.Map;
 
 public class ProtoWriter {
 
   public static void emit(JsonObject json, RecordVisitor visitor) {
-    visitor.init(SchemaLiterals.Struct.TYPE);
+    visitor.init(MessageLiteral.Struct);
     visit(json, visitor);
     visitor.destroy();
   }
@@ -17,50 +19,46 @@ public class ProtoWriter {
   public static void visit(JsonObject json, RecordVisitor visitor) {
     Map<String, Object> map = json.getMap();
     for (Map.Entry<String, Object> entry : map.entrySet()) {
-      visitor.enter(SchemaLiterals.Struct.fields); // fields
-//      visitor.enter(SchemaLiterals.FieldsEntry.key);
-      visitor.visitString(SchemaLiterals.FieldsEntry.key, entry.getKey());
-//      visitor.leave(SchemaLiterals.FieldsEntry.key);
-      visitor.enter(SchemaLiterals.FieldsEntry.value);
+      visitor.enter(FieldLiteral.Struct_fields); // fields
+      visitor.visitString(FieldLiteral.FieldsEntry_key, entry.getKey());
+      visitor.enter(FieldLiteral.FieldsEntry_value);
       visitValueInternal(entry.getValue(), visitor);
-      visitor.leave(SchemaLiterals.FieldsEntry.value);
-      visitor.leave(SchemaLiterals.Struct.fields);
+      visitor.leave(FieldLiteral.FieldsEntry_value);
+      visitor.leave(FieldLiteral.Struct_fields);
     }
   }
 
   public static void emit(JsonArray json, RecordVisitor visitor) {
-    visitor.init(SchemaLiterals.ListValue.TYPE);
+    visitor.init(MessageLiteral.ListValue);
     visit(json, visitor);
     visitor.destroy();
   }
 
   public static void visit(JsonArray json, RecordVisitor visitor) {
     for (Object value : json.getList()) {
-      visitor.enter(SchemaLiterals.ListValue.values); // values
+      visitor.enter(FieldLiteral.ListValue_values); // values
       visitValueInternal(value, visitor);
-      visitor.leave(SchemaLiterals.ListValue.values);
+      visitor.leave(FieldLiteral.ListValue_values);
     }
   }
 
   private static void visitValueInternal(Object value, RecordVisitor visitor) {
     if (value == null) {
-      visitor.visitVarInt32(SchemaLiterals.Value.null_value, 0);
+      visitor.visitVarInt32(FieldLiteral.Value_null_value, 0);
     } else if (value instanceof String) {
-//      visitor.enter(SchemaLiterals.Value.string_value);
-      visitor.visitString(SchemaLiterals.Value.string_value, (String) value);
-//      visitor.leave(SchemaLiterals.Value.string_value);
+      visitor.visitString(FieldLiteral.Value_string_value, (String) value);
     } else if (value instanceof Boolean) {
-      visitor.visitVarInt64(SchemaLiterals.Value.bool_value, ((Boolean) value) ? 1 : 0);
+      visitor.visitVarInt64(FieldLiteral.Value_bool_value, ((Boolean) value) ? 1 : 0);
     } else if (value instanceof Number) {
-      visitor.visitDouble(SchemaLiterals.Value.number_value, ((Number) value).doubleValue());
+      visitor.visitDouble(FieldLiteral.Value_number_value, ((Number) value).doubleValue());
     } else if (value instanceof JsonObject) {
-      visitor.enter(SchemaLiterals.Value.struct_value);
+      visitor.enter(FieldLiteral.Value_struct_value);
       visit((JsonObject) value, visitor);
-      visitor.leave(SchemaLiterals.Value.struct_value);
+      visitor.leave(FieldLiteral.Value_struct_value);
     } else if (value instanceof JsonArray) {
-      visitor.enter(SchemaLiterals.Value.list_value);
+      visitor.enter(FieldLiteral.Value_list_value);
       visit((JsonArray) value, visitor);
-      visitor.leave(SchemaLiterals.Value.list_value);
+      visitor.leave(FieldLiteral.Value_list_value);
     } else {
       throw new UnsupportedOperationException("" + value);
     }

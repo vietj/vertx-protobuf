@@ -5,6 +5,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.protobuf.ProtobufReader;
 import io.vertx.protobuf.ProtobufWriter;
 import io.vertx.protobuf.RecordVisitor;
+import io.vertx.protobuf.well_known_types.MessageLiteral;
 
 import java.util.function.Consumer;
 
@@ -26,7 +27,7 @@ public class Json {
 
   public static JsonObject parseStruct(Buffer buffer) {
     ProtoReader builder = new ProtoReader();
-    ProtobufReader.parse(SchemaLiterals.Struct.TYPE, builder, buffer);
+    ProtobufReader.parse(MessageLiteral.Struct, builder, buffer);
     return (JsonObject) builder.stack.pop();
   }
 }

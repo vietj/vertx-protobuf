@@ -5,6 +5,8 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.protobuf.RecordVisitor;
 import io.vertx.protobuf.schema.Field;
 import io.vertx.protobuf.schema.MessageType;
+import io.vertx.protobuf.well_known_types.FieldLiteral;
+import io.vertx.protobuf.well_known_types.MessageLiteral;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -23,7 +25,7 @@ public class ProtoReader implements RecordVisitor {
 
   @Override
   public void init(MessageType type) {
-    if (type.name().equals("Struct")) {
+    if (type == MessageLiteral.Struct) {
       stack.push(new JsonObject());
     } else {
       throw new UnsupportedOperationException();
@@ -73,21 +75,22 @@ public class ProtoReader implements RecordVisitor {
 
   @Override
   public void enter(Field field) {
-    MessageType mt = (MessageType) field.type();
-    switch (mt.name()) {
-      case "Struct":
+    FieldLiteral fl = (FieldLiteral) field;
+    switch (fl) {
+      case Value_struct_value:
         stack.push(new JsonObject());
         break;
-      case "ListValue":
+      case Value_list_value:
         stack.push(new JsonArray());
         break;
-      case "FieldsEntry":
+      case Struct_fields:
         stack.push(new Entry());
         break;
-      case "Value":
+      case FieldsEntry_value:
+      case ListValue_values:
         break;
       default:
-        throw new UnsupportedOperationException(mt.name());
+        throw new UnsupportedOperationException(fl.name());
     }
   }
 
@@ -104,22 +107,23 @@ public class ProtoReader implements RecordVisitor {
   @Override
   public void leave(Field field) {
     Entry entry;
-    MessageType mt = (MessageType) field.type();
-    switch (mt.name()) {
-      case "Struct":
+    FieldLiteral fl = (FieldLiteral) field;
+    switch (fl) {
+      case Value_struct_value:
         append(stack.pop());
         break;
-      case "ListValue":
+      case Value_list_value:
         append(stack.pop());
         break;
-      case "FieldsEntry":
+      case Struct_fields:
         entry = (Entry) stack.pop();
         ((JsonObject)stack.peek()).put(entry.key, entry.value);
         break;
-      case "Value":
+      case FieldsEntry_value:
+      case ListValue_values:
         break;
       default:
-        throw new UnsupportedOperationException(mt.name());
+        throw new UnsupportedOperationException(fl.name());
     }
   }
 

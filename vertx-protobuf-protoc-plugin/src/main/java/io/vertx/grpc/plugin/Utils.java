@@ -103,7 +103,7 @@ public class Utils {
 
   static String extractJavaPkgFqn(DescriptorProtos.FileDescriptorProto proto) {
     String googlePrefix = "com.google.protobuf";
-    if (proto.getOptions().getJavaPackage().startsWith(googlePrefix) && proto.getPackage().equals("google.protobuf")) {
+    if (proto.getOptions().getJavaPackage().startsWith(googlePrefix) && (proto.getPackage().equals("google.protobuf") || proto.getPackage().equals("pb"))) {
       return "io.vertx.protobuf.well_known_types" + proto.getOptions().getJavaPackage().substring(googlePrefix.length());
     }
     DescriptorProtos.FileOptions options = proto.getOptions();
@@ -112,6 +112,16 @@ public class Utils {
       return javaPackage;
     }
     return Strings.nullToEmpty(proto.getPackage());
+  }
+
+  static String nameOf(Descriptors.FieldDescriptor descriptor) {
+    String name = descriptor.getJsonName();
+    switch (name) {
+      case "package":
+        name = "package_";
+        break;
+    }
+    return name;
   }
 
   static String nameOf(Descriptors.OneofDescriptor descriptor) {

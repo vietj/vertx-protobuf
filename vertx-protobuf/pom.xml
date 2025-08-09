@@ -107,13 +107,35 @@
     </pluginManagement>
     <plugins>
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>unpack-proto</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>unpack</goal>
+            </goals>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>com.google.protobuf</groupId>
+                  <artifactId>protobuf-java</artifactId>
+                </artifactItem>
+              </artifactItems>
+              <includes>google/protobuf/*.proto</includes>
+              <outputDirectory>${project.build.directory}/proto</outputDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
         <groupId>io.github.ascopes</groupId>
         <artifactId>protobuf-maven-plugin</artifactId>
         <version>3.6.1</version>
 
         <configuration>
           <protocVersion>${protoc.version}</protocVersion>
-          <javaEnabled>true</javaEnabled>
 
           <!-- Vanilla protoc plugins - these are platform specific executables
                just like protoc is. -->
@@ -142,9 +164,23 @@
 
         <executions>
           <execution>
+            <id>generate-protobuf</id>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+            <configuration>
+              <sourceDirectories>${project.build.directory}/proto</sourceDirectories>
+              <javaEnabled>false</javaEnabled>
+            </configuration>
+          </execution>
+          <execution>
+            <id>generate-test-protobuf</id>
             <goals>
               <goal>generate-test</goal>
             </goals>
+            <configuration>
+              <javaEnabled>true</javaEnabled>
+            </configuration>
           </execution>
         </executions>
       </plugin>

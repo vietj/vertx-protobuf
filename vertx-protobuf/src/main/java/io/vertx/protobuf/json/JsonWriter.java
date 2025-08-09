@@ -9,6 +9,7 @@ import io.vertx.protobuf.RecordVisitor;
 import io.vertx.protobuf.schema.EnumType;
 import io.vertx.protobuf.schema.Field;
 import io.vertx.protobuf.schema.MessageType;
+import io.vertx.protobuf.well_known_types.MessageLiteral;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -276,12 +277,12 @@ public class JsonWriter implements RecordVisitor {
     try {
       MessageType type = (MessageType) field.type();
       if (structWriter != null) {
-        if (type.name().equals("Struct")) {
+        if (type == MessageLiteral.Struct) {
           structDepth++;
         }
         structWriter.enter(field);
       } else {
-        if (type.name().equals("Struct")) {
+        if (type == MessageLiteral.Struct) {
           ensureStructure(field);
           structWriter = new ProtoReader();
           structWriter.init(type);
@@ -299,7 +300,7 @@ public class JsonWriter implements RecordVisitor {
   @Override
   public void leave(Field field) {
     MessageType type = (MessageType) field.type();
-    if (type.name().equals("Struct")) {
+    if (type == MessageLiteral.Struct) {
       if (structDepth-- == 0) {
         structWriter.destroy();
         JsonObject o = (JsonObject) structWriter.stack.pop();
