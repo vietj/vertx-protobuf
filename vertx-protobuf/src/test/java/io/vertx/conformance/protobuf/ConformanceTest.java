@@ -10,6 +10,7 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.protobuf.ProtobufReader;
 import io.vertx.protobuf.ProtobufWriter;
 import io.vertx.protobuf.json.JsonReader;
+import io.vertx.protobuf.well_known_types.FieldLiteral;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -25,19 +26,7 @@ public class ConformanceTest {
   @Test
   public void testJsonInput() throws Exception {
 
-    String json = "{\n" +
-      "        \"optionalStruct\": {\n" +
-      "          \"nullValue\": null,\n" +
-      "          \"intValue\": 1234,\n" +
-      "          \"boolValue\": true,\n" +
-      "          \"doubleValue\": 1234.5678,\n" +
-      "          \"stringValue\": \"Hello world!\",\n" +
-      "          \"listValue\": [1234, \"5678\"],\n" +
-      "          \"objectValue\": {\n" +
-      "            \"value\": 0\n" +
-      "    }\n" +
-      "  }\n" +
-      "      }";
+    String json = "{\"mapBoolBool\": {\"true\": true, \"false\": false}}";
 
     TestMessagesProto3.TestAllTypesProto3.Builder builder = TestMessagesProto3.TestAllTypesProto3.newBuilder();
     JsonFormat.parser().merge(json, builder);
