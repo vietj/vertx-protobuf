@@ -157,9 +157,9 @@ public interface RecordVisitor {
 
   void visitBytes(Field field, byte[] bytes);
 
-  void enterRepetition(Field field);
+  void enterPacked(Field field);
 
-  void leaveRepetition(Field field);
+  void leavePacked(Field field);
 
 
 }

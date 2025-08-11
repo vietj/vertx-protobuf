@@ -497,12 +497,12 @@ class ProtoReaderGenerator {
       "  }");
 
     // **************
-    // LEAVE REPETITION
+    // ENTER PACKED
     // **************
 
     out.println(
       "",
-      "  public void enterRepetition(Field field) {",
+      "  public void enterPacked(Field field) {",
       "    if (field instanceof FieldLiteral) {",
       "      FieldLiteral literal = (FieldLiteral)field;",
       "      switch (literal) {");
@@ -520,7 +520,7 @@ class ProtoReaderGenerator {
     out.println("      }");
     out.println(
       "    } else if (next != null) {",
-      "      next.enterRepetition(field);",
+      "      next.enterPacked(field);",
       "    } else {",
       "      throw new UnsupportedOperationException();",
       "    }",
@@ -532,7 +532,7 @@ class ProtoReaderGenerator {
 
     out.println(
       "",
-      "  public void leaveRepetition(Field field) {",
+      "  public void leavePacked(Field field) {",
       "    if (field instanceof FieldLiteral) {",
       "      FieldLiteral literal = (FieldLiteral)field;",
       "      switch (literal) {");
@@ -549,7 +549,7 @@ class ProtoReaderGenerator {
       "          throw new UnsupportedOperationException();",
       "      }",
       "    } else if (next != null) {",
-      "      next.leaveRepetition(field);",
+      "      next.leavePacked(field);",
       "    } else {",
       "      throw new UnsupportedOperationException();",
       "    }",

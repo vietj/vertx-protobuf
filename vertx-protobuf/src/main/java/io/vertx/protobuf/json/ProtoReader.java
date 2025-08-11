@@ -70,7 +70,7 @@ public class ProtoReader implements RecordVisitor {
   }
 
   @Override
-  public void enterRepetition(Field field) {
+  public void enterPacked(Field field) {
   }
 
   @Override
@@ -100,7 +100,7 @@ public class ProtoReader implements RecordVisitor {
   }
 
   @Override
-  public void leaveRepetition(Field field) {
+  public void leavePacked(Field field) {
 
   }
 

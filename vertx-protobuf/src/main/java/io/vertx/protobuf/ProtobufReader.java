@@ -6,12 +6,8 @@ import io.vertx.protobuf.schema.EnumType;
 import io.vertx.protobuf.schema.Field;
 import io.vertx.protobuf.schema.MessageType;
 import io.vertx.protobuf.schema.ScalarType;
-import io.vertx.protobuf.schema.TypeID;
 import io.vertx.protobuf.schema.WireType;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Deque;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -112,45 +108,21 @@ public class ProtobufReader {
     Map<Integer, List<Region>> cumulations = new LinkedHashMap<>();
   }
 
-  private void checkCumulation(ParsingContext ctx, ProtobufDecoder decoder, MessageType type, RecordVisitor visitor) {
-    int from = decoder.index();
-    int to = decoder.len();
-    for (Map.Entry<Integer, List<Region>> cumulation : ctx.cumulations.entrySet()) {
-      Field f = type.field(cumulation.getKey());
-      visitor.enterRepetition(f);
-      for (Region l : cumulation.getValue()) {
-        decoder.index(l.from);
-        decoder.len(l.to);
-        foo(decoder, f.type().wireType(), f, visitor);
-      }
-      visitor.leaveRepetition(f);
-    }
-    decoder.index(from);
-    decoder.len(to);
-  }
-
   private void parseLen(ProtobufDecoder decoder, Field field, RecordVisitor visitor) {
     assertTrue(decoder.readVarInt32());
     int len = decoder.intValue();
     if (field.type() instanceof MessageType) {
       int to = decoder.len();
       decoder.len(decoder.index() + len);
-      depth++;
       visitor.enter(field);
       MessageType messageType = (MessageType) field.type();
       parse(decoder, messageType, visitor);
-      ParsingContext ctx = contexts[depth];
-      contexts[depth] = null;
-      depth--;
-      if (ctx != null) {
-        checkCumulation(ctx, decoder, messageType, visitor);
-      }
       decoder.len(to);
       visitor.leave(field);
     } else if (field.type() instanceof EnumType) {
-      visitor.enterRepetition(field);
+      visitor.enterPacked(field);
       parsePackedVarInt32(decoder, field, len, visitor);
-      visitor.leaveRepetition(field);
+      visitor.leavePacked(field);
     } else {
       ScalarType builtInType = (ScalarType) field.type();
       switch (builtInType.id()) {
@@ -168,7 +140,7 @@ public class ProtobufReader {
           break;
         default:
           // Packed
-          visitor.enterRepetition(field);
+          visitor.enterPacked(field);
           switch (builtInType.wireType()) {
             case VARINT:
               parsePackedVarInt32(decoder, field, len, visitor);
@@ -182,7 +154,7 @@ public class ProtobufReader {
             default:
               throw new UnsupportedOperationException("" + field.type());
           }
-          visitor.leaveRepetition(field);
+          visitor.leavePacked(field);
       }
     }
   }
@@ -217,11 +189,6 @@ public class ProtobufReader {
     ProtobufDecoder decoder = new ProtobufDecoder(buffer);
     visitor.init(rootType);
     reader.parse(decoder, rootType, visitor);
-    ParsingContext ctx = reader.contexts[0];
-    if (ctx != null) {
-      reader.contexts[0] = null;
-      reader.checkCumulation(ctx, decoder, rootType, visitor);
-    }
     visitor.destroy();
   }
 
@@ -256,49 +223,7 @@ public class ProtobufReader {
             throw new UnsupportedOperationException("Todo");
         }
       } else {
-        // Repeated unpacked
-        // we must check that wire type of type len matches the field declared wire type otherwise it is an unpacked field that is packed
-        if (field.isRepeated() && !field.isPacked() && (wireType != WireType.LEN || field.type().wireType() == WireType.LEN)) {
-          ParsingContext ctx = contexts[depth];
-          if (ctx == null) {
-            ctx = new ParsingContext();
-            contexts[depth] = ctx;
-          }
-          List<Region> cumulation = ctx.cumulations.get(field.number());
-          if (cumulation == null) {
-            cumulation = new ArrayList<>();
-            ctx.cumulations.put(field.number(), cumulation);
-          }
-          int from;
-          Region region;
-          switch (wireType) {
-            case VARINT:
-              from = decoder.index();
-              assertTrue(decoder.readVarInt64());
-              region = new Region(from, decoder.index());
-              break;
-            case I32:
-              region = new Region(decoder.index(), decoder.index() + 4);
-              decoder.skip(4);
-              break;
-            case I64:
-              region = new Region(decoder.index(), decoder.index() + 8);
-              decoder.skip(8);
-              break;
-            case LEN:
-              int a = decoder.index();
-              assertTrue(decoder.readVarInt32());
-              int len = decoder.intValue();
-              region = new Region(a, decoder.index() + len);
-              decoder.skip(len);
-              break;
-            default:
-              throw new UnsupportedOperationException();
-          }
-          cumulation.add(region);
-        } else {
-          foo(decoder, wireType, field, visitor);
-        }
+        foo(decoder, wireType, field, visitor);
       }
     }
   }
@@ -321,9 +246,6 @@ public class ProtobufReader {
         throw new UnsupportedOperationException("Implement me " + field.type().wireType());
     }
   }
-
-  private int depth = 0;
-  private ParsingContext[] contexts = new ParsingContext[10];
 
   private static void assertTrue(boolean cond) {
     if (!cond) {

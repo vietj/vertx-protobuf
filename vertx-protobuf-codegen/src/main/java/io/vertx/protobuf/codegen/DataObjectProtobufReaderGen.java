@@ -97,10 +97,10 @@ public class DataObjectProtobufReaderGen extends Generator<Model> {
     code.codeln("public void leave(Field field) {");
     code.codeln("}");
 
-    code.codeln("public void enterRepetition(Field field) {");
+    code.codeln("public void enterPacked(Field field) {");
     code.codeln("}");
 
-    code.codeln("public void leaveRepetition(Field field) {");
+    code.codeln("public void leavePacked;(Field field) {");
     code.codeln("}");
 
     code.codeln("public void destroy() {");

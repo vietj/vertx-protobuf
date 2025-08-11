@@ -24,10 +24,8 @@ public class RepetitionTest {
   public void testParseUnpackedInt32Repetition() {
     RecordingVisitor visitor = new RecordingVisitor();
     visitor.init(MessageLiteral.Repeated);
-    visitor.enterRepetition(FieldLiteral.Repeated_int32);
     visitor.visitInt32(FieldLiteral.Repeated_int32, 0);
     visitor.visitInt32(FieldLiteral.Repeated_int32, 1);
-    visitor.leaveRepetition(FieldLiteral.Repeated_int32);
     visitor.destroy();
     assertRepetition(RepetitionProto.Repeated.newBuilder().addInt32(0).addInt32(1).build(), visitor);
   }
@@ -36,10 +34,10 @@ public class RepetitionTest {
   public void testParsePackedInt32Repetition() {
     RecordingVisitor visitor = new RecordingVisitor();
     visitor.init(MessageLiteral.Packed);
-    visitor.enterRepetition(FieldLiteral.Packed_int32);
+    visitor.enterPacked(FieldLiteral.Packed_int32);
     visitor.visitInt32(FieldLiteral.Packed_int32, 0);
     visitor.visitInt32(FieldLiteral.Packed_int32, 1);
-    visitor.leaveRepetition(FieldLiteral.Packed_int32);
+    visitor.leavePacked(FieldLiteral.Packed_int32);
     visitor.destroy();
     assertRepetition(RepetitionProto.Packed.newBuilder().addInt32(0).addInt32(1).build(), visitor);
   }
@@ -48,10 +46,8 @@ public class RepetitionTest {
   public void testParseUnpackedStringRepetition() {
     RecordingVisitor visitor = new RecordingVisitor();
     visitor.init(MessageLiteral.Repeated);
-    visitor.enterRepetition(FieldLiteral.Repeated_string);
     visitor.visitString(FieldLiteral.Repeated_string, "s1");
     visitor.visitString(FieldLiteral.Repeated_string, "s2");
-    visitor.leaveRepetition(FieldLiteral.Repeated_string);
     visitor.destroy();
     assertRepetition(RepetitionProto.Repeated.newBuilder().addString("s1").addString("s2").build(), visitor);
   }
@@ -60,28 +56,24 @@ public class RepetitionTest {
   public void testParseUnpackedEmbeddedRepetition() {
     RecordingVisitor visitor = new RecordingVisitor();
     visitor.init(MessageLiteral.Repeated);
-    visitor.enterRepetition(FieldLiteral.Repeated_embedded);
     visitor.enter(FieldLiteral.Repeated_embedded);
     visitor.leave(FieldLiteral.Repeated_embedded);
     visitor.enter(FieldLiteral.Repeated_embedded);
     visitor.visitInt32(FieldLiteral.Embedded_value, 1);
-    visitor.enterRepetition(FieldLiteral.Embedded_repeated);
-    visitor.visitInt32(FieldLiteral.Embedded_repeated, 1);
-    visitor.visitInt32(FieldLiteral.Embedded_repeated, 2);
-    visitor.leaveRepetition(FieldLiteral.Embedded_repeated);
-    visitor.enterRepetition(FieldLiteral.Embedded_packed);
-    visitor.visitInt32(FieldLiteral.Embedded_packed, 3);
-    visitor.visitInt32(FieldLiteral.Embedded_packed, 4);
-    visitor.leaveRepetition(FieldLiteral.Embedded_packed);
+    visitor.enterPacked(FieldLiteral.Embedded_packed);
+    visitor.visitInt32(FieldLiteral.Embedded_packed, 1);
+    visitor.visitInt32(FieldLiteral.Embedded_packed, 2);
+    visitor.leavePacked(FieldLiteral.Embedded_packed);
+    visitor.visitInt32(FieldLiteral.Embedded_unpacked, 3);
+    visitor.visitInt32(FieldLiteral.Embedded_unpacked, 4);
     visitor.leave(FieldLiteral.Repeated_embedded);
     visitor.enter(FieldLiteral.Repeated_embedded);
     visitor.visitInt32(FieldLiteral.Embedded_value, 2);
     visitor.leave(FieldLiteral.Repeated_embedded);
-    visitor.leaveRepetition(FieldLiteral.Repeated_embedded);
     visitor.destroy();
     assertRepetition(RepetitionProto.Repeated.newBuilder()
       .addEmbedded(RepetitionProto.Embedded.newBuilder().setValue(0).build())
-      .addEmbedded(RepetitionProto.Embedded.newBuilder().setValue(1).addRepeated(1).addRepeated(2).addPacked(3).addPacked(4).build())
+      .addEmbedded(RepetitionProto.Embedded.newBuilder().setValue(1).addPacked(1).addPacked(2).addUnpacked(3).addUnpacked(4).build())
       .addEmbedded(RepetitionProto.Embedded.newBuilder().setValue(2).build())
       .build(), visitor);
   }

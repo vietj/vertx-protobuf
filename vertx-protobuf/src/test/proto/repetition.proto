@@ -49,6 +49,6 @@ enum Enum {
 
 message Embedded {
   int32 value = 1;
-  repeated int32 repeated = 2 [packed = true];
-  repeated int32 packed = 3 [packed = false];
+  repeated int32 packed = 2 [packed = true];
+  repeated int32 unpacked = 3 [packed = false];
 }

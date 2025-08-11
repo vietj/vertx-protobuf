@@ -116,7 +116,7 @@ public class ProtobufWriter {
     }
 
     @Override
-    public void enterRepetition(Field field) {
+    public void enterPacked(Field field) {
       if (field.isPacked()) {
         packed = true;
         enterLengthDelimited(field);
@@ -131,7 +131,7 @@ public class ProtobufWriter {
     }
 
     @Override
-    public void leaveRepetition(Field field) {
+    public void leavePacked(Field field) {
       if (field.isPacked()) {
         packed = false;
         leaveLengthDelimited(field);
@@ -222,7 +222,7 @@ public class ProtobufWriter {
     }
 
     @Override
-    public void enterRepetition(Field field) {
+    public void enterPacked(Field field) {
       if (field.isPacked()) {
         packed = true;
         enterLengthDelimited(field);
@@ -240,7 +240,7 @@ public class ProtobufWriter {
     }
 
     @Override
-    public void leaveRepetition(Field field) {
+    public void leavePacked(Field field) {
       if (field.isPacked()) {
         packed = false;
         leaveLengthDelimited(field);

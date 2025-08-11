@@ -244,9 +244,9 @@ public class JsonWriter implements RecordVisitor {
   }
 
   @Override
-  public void enterRepetition(Field field) {
+  public void enterPacked(Field field) {
     if (structWriter != null) {
-      structWriter.enterRepetition(field);
+      structWriter.enterPacked(field);
     } else {
       try {
         ensureStructure(field);
@@ -259,9 +259,9 @@ public class JsonWriter implements RecordVisitor {
   }
 
   @Override
-  public void leaveRepetition(Field field) {
+  public void leavePacked(Field field) {
     if (structWriter != null) {
-      structWriter.leaveRepetition(field);
+      structWriter.leavePacked(field);
     } else {
       try {
         stack.pop();

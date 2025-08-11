@@ -39,25 +39,25 @@ public class RecordingVisitor implements RecordVisitor {
     }
   }
 
-  private static class EnterRepetition extends Action {
+  private static class EnterPacked extends Action {
     private final Field field;
-    public EnterRepetition(Field field) {
+    public EnterPacked(Field field) {
       this.field = field;
     }
     @Override
     protected void apply(RecordVisitor visitor) {
-      visitor.enterRepetition(field);
+      visitor.enterPacked(field);
     }
   }
 
-  private static class LeaveRepetition extends Action {
+  private static class LeavePacked extends Action {
     private final Field field;
-    public LeaveRepetition(Field field) {
+    public LeavePacked(Field field) {
       this.field = field;
     }
     @Override
     protected void apply(RecordVisitor visitor) {
-      visitor.leaveRepetition(field);
+      visitor.leavePacked(field);
     }
   }
 
@@ -375,8 +375,8 @@ public class RecordingVisitor implements RecordVisitor {
   }
 
   @Override
-  public void enterRepetition(Field field) {
-    log.add(new EnterRepetition(field));
+  public void enterPacked(Field field) {
+    log.add(new EnterPacked(field));
   }
 
   @Override
@@ -385,8 +385,8 @@ public class RecordingVisitor implements RecordVisitor {
   }
 
   @Override
-  public void leaveRepetition(Field field) {
-    log.add(new LeaveRepetition(field));
+  public void leavePacked(Field field) {
+    log.add(new LeavePacked(field));
   }
 
   @Override
@@ -536,8 +536,8 @@ public class RecordingVisitor implements RecordVisitor {
     }
 
     @Override
-    public void enterRepetition(Field field) {
-      EnterRepetition enter = expecting(EnterRepetition.class);
+    public void enterPacked(Field field) {
+      EnterPacked enter = expecting(EnterPacked.class);
       assertEquals(enter.field, field);
     }
 
@@ -548,8 +548,8 @@ public class RecordingVisitor implements RecordVisitor {
     }
 
     @Override
-    public void leaveRepetition(Field field) {
-      LeaveRepetition leave = expecting(LeaveRepetition.class);
+    public void leavePacked(Field field) {
+      LeavePacked leave = expecting(LeavePacked.class);
       assertEquals(leave.field, field);
     }
 

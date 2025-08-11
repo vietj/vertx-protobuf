@@ -13,7 +13,7 @@ class StructParser {
 
   static void parseObject(JsonParser parser, RecordVisitor visitor) throws IOException {
     assert parser.hasToken(JsonToken.START_OBJECT);
-    visitor.enterRepetition(FieldLiteral.Struct_fields);
+    visitor.enterPacked(FieldLiteral.Struct_fields);
     while (parser.nextToken() == JsonToken.FIELD_NAME) {
       String key = parser.currentName();
       visitor.enter(FieldLiteral.Struct_fields);
@@ -24,7 +24,7 @@ class StructParser {
       visitor.leave(FieldLiteral.FieldsEntry_value);
       visitor.leave(FieldLiteral.Struct_fields);
     }
-    visitor.leaveRepetition(FieldLiteral.Struct_fields);
+    visitor.leavePacked(FieldLiteral.Struct_fields);
   }
 
   private static void parseAny(JsonParser parser, RecordVisitor visitor) throws IOException, DecodeException {
@@ -64,12 +64,12 @@ class StructParser {
 
   private static void parseArray(JsonParser parser, RecordVisitor visitor) throws IOException {
     assert parser.hasToken(JsonToken.START_ARRAY);
-    visitor.enterRepetition(FieldLiteral.ListValue_values);
+    visitor.enterPacked(FieldLiteral.ListValue_values);
     while (parser.nextToken() != JsonToken.END_ARRAY) {
       visitor.enter(FieldLiteral.ListValue_values);
       parseAny(parser, visitor);
       visitor.leave(FieldLiteral.ListValue_values);
     }
-    visitor.leaveRepetition(FieldLiteral.ListValue_values);
+    visitor.leavePacked(FieldLiteral.ListValue_values);
   }
 }

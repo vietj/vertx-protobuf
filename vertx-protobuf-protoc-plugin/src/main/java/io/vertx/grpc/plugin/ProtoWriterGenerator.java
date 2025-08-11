@@ -310,13 +310,11 @@ class ProtoWriterGenerator {
       } else {
         if (field.repeated) {
           content.println(
-            "      visitor.enterRepetition(FieldLiteral." + field.identifier + ");",
             "      for (" + field.javaTypeInternal + " c : v) {",
             "        visitor.enter(FieldLiteral." + field.identifier + ");",
             "        " + field.protoWriterFqn + ".visit(c, visitor);",
             "        visitor.leave(FieldLiteral." + field.identifier + ");",
-            "      }",
-            "      visitor.leaveRepetition(FieldLiteral." + field.identifier + ");");
+            "      }");
         } else {
           content.println(
             "      visitor.enter(FieldLiteral." + field.identifier + ");",
@@ -326,7 +324,9 @@ class ProtoWriterGenerator {
       }
     } else {
       if (field.repeated) {
-        content.println("visitor.enterRepetition(FieldLiteral." + field.identifier + ");");
+        if (field.packed) {
+          content.println("visitor.enterPacked(FieldLiteral." + field.identifier + ");");
+        }
         content.println("      for (" + field.javaTypeInternal + " c : v) {");
 //        if (field.typeTo.lengthDelimited) {
 //          content.println("        visitor.enter(FieldLiteral." + field.identifier + ");");
@@ -336,7 +336,9 @@ class ProtoWriterGenerator {
 //          content.println("        visitor.leave(FieldLiteral." + field.identifier + ");");
 //        }
         content.println("      }");
-        content.println("visitor.leaveRepetition(FieldLiteral." + field.identifier + ");");
+        if (field.packed) {
+          content.println("visitor.leavePacked(FieldLiteral." + field.identifier + ");");
+        }
       } else {
 //        if (field.typeTo.lengthDelimited) {
 //          content.println("      visitor.enter(FieldLiteral." + field.identifier + ");");
