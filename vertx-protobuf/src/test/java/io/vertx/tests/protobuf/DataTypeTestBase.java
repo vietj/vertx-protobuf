@@ -9,12 +9,8 @@ import io.vertx.protobuf.schema.Field;
 import io.vertx.protobuf.schema.MessageType;
 import io.vertx.protobuf.schema.ScalarType;
 import io.vertx.tests.protobuf.datatypes.DataTypesProto;
-import io.vertx.tests.protobuf.datatypes.Enum;
 import io.vertx.tests.protobuf.datatypes.ScalarTypes;
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 public abstract class DataTypeTestBase {
 
@@ -102,9 +98,8 @@ public abstract class DataTypeTestBase {
   @Test
   public void testUInt32() throws Exception {
     testUInt32(4);
-//    testUInt32(-4);
+    testUInt32(-1);
     testUInt32(Integer.MAX_VALUE);
-//    testUInt32(Integer.MIN_VALUE);
   }
 
   private void testUInt32(int value) throws Exception {
@@ -150,6 +145,7 @@ public abstract class DataTypeTestBase {
   @Test
   public void testUInt64() throws Exception {
     testUInt64(4);
+    testUInt64(-1); // MAX
     testUInt64(Long.MAX_VALUE);
   }
 

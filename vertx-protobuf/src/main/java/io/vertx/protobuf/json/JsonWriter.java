@@ -8,6 +8,7 @@ import io.vertx.protobuf.schema.Field;
 import io.vertx.protobuf.schema.MessageType;
 import io.vertx.protobuf.well_known_types.MessageLiteral;
 
+import java.math.BigInteger;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.function.Consumer;
@@ -90,7 +91,7 @@ public class JsonWriter implements RecordVisitor  {
   @Override
   public void visitUInt32(Field field, int v) {
     assert structWriter == null;
-    put(field, v);
+    put(field, writeUInt32(v));
   }
 
   @Override
@@ -108,7 +109,7 @@ public class JsonWriter implements RecordVisitor  {
   @Override
   public void visitUInt64(Field field, long v) {
     assert structWriter == null;
-    put(field, v);
+    put(field, writeUInt64(v));
   }
 
   @Override
@@ -195,5 +196,20 @@ public class JsonWriter implements RecordVisitor  {
 
   @Override
   public void leavePacked(Field field) {
+  }
+
+  private static String writeUInt32(final int value) {
+    if (value >= 0) {
+      return Integer.toString(value);
+    } else {
+      return Long.toString(value & 0xFFFFFFFFL);
+    }
+  }
+  private static String writeUInt64(long value) {
+    if (value >= 0) {
+      return Long.toString(value);
+    } else {
+      return BigInteger.valueOf(value & Long.MAX_VALUE).setBit(Long.SIZE - 1).toString();
+    }
   }
 }

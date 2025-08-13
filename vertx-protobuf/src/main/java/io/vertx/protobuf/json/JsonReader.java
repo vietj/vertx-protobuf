@@ -14,12 +14,16 @@ import io.vertx.protobuf.well_known_types.MessageLiteral;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Base64;
 import java.util.Objects;
 import java.util.OptionalInt;
 
 public class JsonReader {
+
+  private static final BigInteger MAX_UINT32 = new BigInteger("FFFFFFFF", 16);
+  private static final BigInteger MAX_UINT64 = new BigInteger("FFFFFFFFFFFFFFFF", 16);
 
   public static void parse(String json, MessageType messageType, RecordVisitor visitor) {
     JsonParser parser = JacksonCodec.createParser(json);
@@ -79,11 +83,32 @@ public class JsonReader {
           case BYTES:
             visitor.visitBytes(field, Base64.getDecoder().decode(text));
             break;
+          case FIXED32:
+            visitor.visitFixed32(field, Integer.parseInt(text));
+            break;
+          case SFIXED32:
+            visitor.visitSFixed32(field, Integer.parseInt(text));
+            break;
+          case FLOAT:
+            visitor.visitFloat(field, Float.parseFloat(text));
+            break;
           case FIXED64:
             visitor.visitFixed64(field, Long.parseLong(text));
             break;
           case SFIXED64:
             visitor.visitSFixed64(field, Long.parseLong(text));
+            break;
+          case DOUBLE:
+            visitor.visitDouble(field, Double.parseDouble(text));
+            break;
+          case INT32:
+            visitor.visitInt32(field, Integer.parseInt(text));
+            break;
+          case SINT32:
+            visitor.visitSInt32(field, Integer.parseInt(text));
+            break;
+          case UINT32:
+            visitor.visitUInt32(field, parseUInt32(text));
             break;
           case INT64:
             visitor.visitInt64(field, Long.parseLong(text));
@@ -92,7 +117,7 @@ public class JsonReader {
             visitor.visitSInt64(field, Long.parseLong(text));
             break;
           case UINT64:
-            visitor.visitUInt64(field, Long.parseLong(text));
+            visitor.visitUInt64(field, parseUInt64(text));
             break;
           case ENUM:
             OptionalInt index = ((EnumType) field.type()).numberOf(text);
@@ -194,7 +219,7 @@ public class JsonReader {
           visitor.visitUInt32(keyField, Integer.parseInt(key));
           break;
         case UINT64:
-          visitor.visitUInt64(keyField, Long.parseLong(key));
+          visitor.visitUInt64(keyField, parseUInt64(key));
           break;
         case SINT32:
           visitor.visitSInt32(keyField, Integer.parseInt(key));
@@ -257,5 +282,21 @@ public class JsonReader {
       parser.close();
     } catch (IOException ignore) {
     }
+  }
+
+  private static int parseUInt32(String value) {
+    BigInteger parsed = new BigDecimal(value).toBigIntegerExact();
+    if (parsed.compareTo(BigInteger.ZERO) < 0 || parsed.compareTo(MAX_UINT32) > 0) {
+      throw new DecodeException("Invalid uint64 value");
+    }
+    return parsed.intValue();
+  }
+
+  private static long parseUInt64(String value) {
+    BigInteger parsed = new BigDecimal(value).toBigIntegerExact();
+    if (parsed.compareTo(BigInteger.ZERO) < 0 || parsed.compareTo(MAX_UINT64) > 0) {
+      throw new DecodeException("Invalid uint64 value");
+    }
+    return parsed.longValue();
   }
 }

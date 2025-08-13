@@ -29,16 +29,22 @@ public class DataTypesTest extends DataTypeTestBase {
     // Try parsing string formatted numbers as real numbers, this must be parseable
     JsonObject jsonObject = new JsonObject(json);
     for (Map.Entry<String, Object> entry : jsonObject) {
-      if (entry.getValue() instanceof String) {
+      Object value = entry.getValue();
+      if (value instanceof String) {
         try {
-          entry.setValue(Long.parseLong((String)entry.getValue()));
-          json = jsonObject.encode();
-          checker = visitor.checker();
-          JsonReader.parse(json, messageType, checker);
-          assertTrue(checker.isEmpty());
+          entry.setValue(Long.parseLong((String) value));
         } catch (NumberFormatException ignore) {
+          continue;
         }
+      } else if (value instanceof Number) {
+        entry.setValue(value.toString());
+      } else {
+        continue;
       }
+      json = jsonObject.encode();
+      checker = visitor.checker();
+      JsonReader.parse(json, messageType, checker);
+      assertTrue(checker.isEmpty());
     }
 
     String encoded = JsonWriter.encode(visitor::apply).toString();

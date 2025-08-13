@@ -25,13 +25,13 @@ public class ConformanceTest {
   @Test
   public void testJsonInput() throws Exception {
 
-    String json = "{\"optionalInt32\":1,\"optionalInt64\":2}";
+    String json = "{\"optionalInt32\": \"2147483647\"}";
 
     TestMessagesProto3.TestAllTypesProto3.Builder builder = TestMessagesProto3.TestAllTypesProto3.newBuilder();
     JsonFormat.parser().merge(json, builder);
     TestMessagesProto3.TestAllTypesProto3 d = builder.build();
 
-    System.out.println(d.getOptionalStruct());
+    System.out.println(d.getOptionalUint64());
 
 //    System.out.println(d);
 
@@ -41,6 +41,7 @@ public class ConformanceTest {
     ProtoReader reader = new ProtoReader();
     JsonReader.parse(json, MessageLiteral.TestAllTypesProto3, reader);
     TestAllTypesProto3 testMessage = (TestAllTypesProto3) reader.stack.pop();
+    System.out.println(testMessage.getOptionalUint64());
 
   }
 
