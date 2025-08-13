@@ -128,11 +128,26 @@ public class JsonReader {
           case FLOAT:
             visitor.visitFloat(field, number.floatValue());
             break;
+          case INT64:
+            visitor.visitInt64(field, number.longValue());
+            break;
+          case SINT64:
+            visitor.visitSInt64(field, number.longValue());
+            break;
+          case UINT64:
+            visitor.visitUInt64(field, number.longValue());
+            break;
+          case FIXED64:
+            visitor.visitFixed64(field, number.longValue());
+            break;
+          case SFIXED64:
+            visitor.visitSFixed64(field, number.longValue());
+            break;
           case DOUBLE:
             visitor.visitDouble(field, number.doubleValue());
             break;
           default:
-            throw new UnsupportedOperationException();
+            throw new UnsupportedOperationException("Invalid type " + field.type().id());
         }
         break;
       case JsonTokenId.ID_TRUE:
