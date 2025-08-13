@@ -1,99 +1,120 @@
 package io.vertx.protobuf.json;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonGenerator;
-import io.vertx.core.json.EncodeException;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.json.jackson.JacksonCodec;
 import io.vertx.protobuf.RecordVisitor;
 import io.vertx.protobuf.schema.EnumType;
 import io.vertx.protobuf.schema.Field;
 import io.vertx.protobuf.schema.MessageType;
 import io.vertx.protobuf.well_known_types.MessageLiteral;
 
-import java.io.IOException;
-import java.io.StringWriter;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.function.Consumer;
 
-public class JsonWriter implements RecordVisitor {
+public class JsonWriter implements RecordVisitor  {
 
-  public static String encode(Consumer<RecordVisitor> consumer) {
-    StringWriter out = new StringWriter();
-    JsonGenerator generator;
-    try {
-      generator = JsonFactory.builder().build().createGenerator(out);
-    } catch (IOException e) {
-      throw new EncodeException(e.getMessage());
-    }
-    try {
-      JsonWriter writer = new JsonWriter(generator);
-      consumer.accept(writer);
-    } finally {
-      try {
-        generator.close();
-      } catch (IOException ignore) {
-      }
-      try {
-        out.close();
-      } catch (IOException ignore) {
-      }
-    }
-    return out.toString();
+  public static JsonObject encode(Consumer<RecordVisitor> consumer) {
+    JsonWriter writer = new JsonWriter();
+    consumer.accept(writer);
+    return writer.stack.pop();
   }
 
-  // true : json object / false : json array
-  private Deque<Boolean> stack = new ArrayDeque<>();
-  private final JsonGenerator generator;
+  private final Deque<JsonObject> stack = new ArrayDeque<>();
   private ProtoReader structWriter;
   private int structDepth;
 
-  public JsonWriter(JsonGenerator generator) {
-    this.generator = generator;
+  @Override
+  public void init(MessageType type) {
+    stack.add(new JsonObject());
   }
 
   @Override
-  public void init(MessageType type) {
-    try {
-      stack.push(true);
-      generator.writeStartObject();
-    } catch (IOException e) {
-      throw new EncodeException(e.getMessage());
+  public void destroy() {
+  }
+
+  @Override
+  public void enter(Field field) {
+    if (structWriter != null) {
+      if (field.type() == MessageLiteral.Struct) {
+        structDepth++;
+      }
+      structWriter.enter(field);
+    } else if (field.type() == MessageLiteral.Struct) {
+      structWriter = new ProtoReader();
+      structWriter.init(MessageLiteral.Struct);
+    } else {
+      stack.add(new JsonObject());
+    }
+  }
+
+  @Override
+  public void leave(Field field) {
+    if (field.type() == MessageLiteral.Struct) {
+      if (structDepth-- == 0) {
+        structWriter.destroy();
+        JsonObject o = (JsonObject) structWriter.stack.pop();
+        structWriter = null;
+        put(field, o);
+      } else {
+        structWriter.leave(field);
+      }
+    } else if (structWriter != null) {
+      structWriter.leave(field);
+    } else {
+      JsonObject obj = stack.pop();
+      put(field, obj);
+    }
+  }
+
+  private void put(Field field, Object value) {
+    JsonObject object = stack.peek();
+    if (field.isRepeated()) {
+      JsonArray array = object.getJsonArray(field.jsonName());
+      if (array == null) {
+        array = new JsonArray();
+        object.put(field.jsonName(), array);
+      }
+      array.add(value);
+    } else {
+      object.put(field.jsonName(), value);
     }
   }
 
   @Override
   public void visitInt32(Field field, int v) {
     assert structWriter == null;
-    try {
-      ensureStructure(field);
-      generator.writeNumber(v);
-    } catch (IOException e) {
-      throw new EncodeException(e.getMessage());
-    }
+    put(field, v);
   }
 
   @Override
   public void visitUInt32(Field field, int v) {
     assert structWriter == null;
-    try {
-      ensureStructure(field);
-      generator.writeNumber(v);
-    } catch (IOException e) {
-      throw new EncodeException(e.getMessage());
-    }
+    put(field, v);
   }
 
   @Override
   public void visitSInt32(Field field, int v) {
     assert structWriter == null;
-    try {
-      ensureStructure(field);
-      generator.writeNumber(v);
-    } catch (IOException e) {
-      throw new EncodeException(e.getMessage());
-    }
+    put(field, v);
+  }
+
+  @Override
+  public void visitInt64(Field field, long v) {
+    assert structWriter == null;
+    put(field, v);
+  }
+
+  @Override
+  public void visitUInt64(Field field, long v) {
+    assert structWriter == null;
+    put(field, v);
+  }
+
+  @Override
+  public void visitSInt64(Field field, long v) {
+    assert structWriter == null;
+    put(field, v);
   }
 
   @Override
@@ -101,46 +122,7 @@ public class JsonWriter implements RecordVisitor {
     if (structWriter != null) {
       structWriter.visitEnum(field, number);
     } else {
-      try {
-        ensureStructure(field);
-        EnumType type = (EnumType) field.type();
-        generator.writeString(type.nameOf(number));
-      } catch (IOException e) {
-        throw new EncodeException(e.getMessage());
-      }
-    }
-  }
-
-  @Override
-  public void visitInt64(Field field, long v) {
-    assert structWriter == null;
-    try {
-      ensureStructure(field);
-      generator.writeString("" + v);
-    } catch (IOException e) {
-      throw new EncodeException(e.getMessage());
-    }
-  }
-
-  @Override
-  public void visitUInt64(Field field, long v) {
-    assert structWriter == null;
-    try {
-      ensureStructure(field);
-      generator.writeString("" + v);
-    } catch (IOException e) {
-      throw new EncodeException(e.getMessage());
-    }
-  }
-
-  @Override
-  public void visitSInt64(Field field, long v) {
-    assert structWriter == null;
-    try {
-      ensureStructure(field);
-      generator.writeString("" + v);
-    } catch (IOException e) {
-      throw new EncodeException(e.getMessage());
+      put(field, ((EnumType)field.type()).nameOf(number));
     }
   }
 
@@ -149,13 +131,38 @@ public class JsonWriter implements RecordVisitor {
     if (structWriter != null) {
       structWriter.visitBool(field, v);
     } else {
-      try {
-        ensureStructure(field);
-        generator.writeBoolean(v);
-      } catch (IOException e) {
-        throw new EncodeException(e.getMessage());
-      }
+      put(field, v);
     }
+  }
+
+  @Override
+  public void visitFixed32(Field field, int v) {
+    assert structWriter == null;
+    put(field, v);
+  }
+
+  @Override
+  public void visitSFixed32(Field field, int v) {
+    assert structWriter == null;
+    put(field, v);
+  }
+
+  @Override
+  public void visitFloat(Field field, float f) {
+    assert structWriter == null;
+    put(field, f);
+  }
+
+  @Override
+  public void visitFixed64(Field field, long v) {
+    assert structWriter == null;
+    put(field, Long.toString(v));
+  }
+
+  @Override
+  public void visitSFixed64(Field field, long v) {
+    assert structWriter == null;
+    put(field, v);
   }
 
   @Override
@@ -163,161 +170,7 @@ public class JsonWriter implements RecordVisitor {
     if (structWriter != null) {
       structWriter.visitDouble(field, d);
     } else {
-      try {
-        ensureStructure(field);
-        generator.writeString("" + d);
-      } catch (IOException e) {
-        throw new EncodeException(e.getMessage());
-      }
-    }
-  }
-
-  @Override
-  public void visitFixed64(Field field, long v) {
-    assert structWriter == null;
-    try {
-      ensureStructure(field);
-      generator.writeString("" + v);
-    } catch (IOException e) {
-      throw new EncodeException(e.getMessage());
-    }
-  }
-
-  @Override
-  public void visitSFixed64(Field field, long v) {
-    assert structWriter == null;
-    try {
-      ensureStructure(field);
-      generator.writeString("" + v);
-    } catch (IOException e) {
-      throw new EncodeException(e.getMessage());
-    }
-  }
-
-  @Override
-  public void visitFloat(Field field, float f) {
-    assert structWriter == null;
-    try {
-      ensureStructure(field);
-      generator.writeNumber(f);
-    } catch (IOException e) {
-      throw new EncodeException(e.getMessage());
-    }
-  }
-
-  @Override
-  public void visitFixed32(Field field, int v) {
-    assert structWriter == null;
-    try {
-      ensureStructure(field);
-      generator.writeNumber(v);
-    } catch (IOException e) {
-      throw new EncodeException(e.getMessage());
-    }
-  }
-
-  @Override
-  public void visitSFixed32(Field field, int v) {
-    assert structWriter == null;
-    try {
-      ensureStructure(field);
-      generator.writeNumber(v);
-    } catch (IOException e) {
-      throw new EncodeException(e.getMessage());
-    }
-  }
-
-  @Override
-  public void destroy() {
-    try {
-      generator.writeEndObject();
-      stack.pop();
-    } catch (IOException e) {
-      throw new EncodeException(e.getMessage());
-    }
-  }
-
-  private void ensureStructure(Field field) throws IOException {
-    if (stack.peek()) {
-      generator.writeFieldName(field.jsonName());
-    }
-  }
-
-  @Override
-  public void enterPacked(Field field) {
-    if (structWriter != null) {
-      structWriter.enterPacked(field);
-    } else {
-      try {
-        ensureStructure(field);
-        stack.push(false);
-        generator.writeStartArray();
-      } catch (IOException e) {
-        throw new EncodeException(e.getMessage());
-      }
-    }
-  }
-
-  @Override
-  public void leavePacked(Field field) {
-    if (structWriter != null) {
-      structWriter.leavePacked(field);
-    } else {
-      try {
-        stack.pop();
-        generator.writeEndArray();
-      } catch (IOException e) {
-        throw new EncodeException(e.getMessage());
-      }
-    }
-  }
-
-  @Override
-  public void enter(Field field) {
-    try {
-      MessageType type = (MessageType) field.type();
-      if (structWriter != null) {
-        if (type == MessageLiteral.Struct) {
-          structDepth++;
-        }
-        structWriter.enter(field);
-      } else {
-        if (type == MessageLiteral.Struct) {
-          ensureStructure(field);
-          structWriter = new ProtoReader();
-          structWriter.init(type);
-        } else {
-          ensureStructure(field);
-          stack.add(true);
-          generator.writeStartObject();
-        }
-      }
-    } catch (IOException e) {
-      throw new EncodeException(e.getMessage());
-    }
-  }
-
-  @Override
-  public void leave(Field field) {
-    MessageType type = (MessageType) field.type();
-    if (type == MessageLiteral.Struct) {
-      if (structDepth-- == 0) {
-        structWriter.destroy();
-        JsonObject o = (JsonObject) structWriter.stack.pop();
-        structWriter = null;
-        JacksonCodec.encodeJson(o, generator);
-      } else {
-        structWriter.leave(field);
-      }
-    } else if (structWriter != null) {
-      structWriter.leave(field);
-    } else {
-      try {
-        stack.pop();
-        generator.writeEndObject();
-      } catch (IOException e) {
-        throw new EncodeException(e.getMessage());
-      }
+      put(field, d);
     }
   }
 
@@ -326,23 +179,21 @@ public class JsonWriter implements RecordVisitor {
     if (structWriter != null) {
       structWriter.visitString(field, s);
     } else {
-      try {
-        ensureStructure(field);
-        generator.writeString(s);
-      } catch (IOException e) {
-        throw new EncodeException(e.getMessage());
-      }
+      put(field, s);
     }
   }
 
   @Override
   public void visitBytes(Field field, byte[] bytes) {
     assert structWriter == null;
-    try {
-      ensureStructure(field);
-      generator.writeBinary(bytes);
-    } catch (IOException e) {
-      throw new EncodeException(e.getMessage());
-    }
+    put(field, bytes);
+  }
+
+  @Override
+  public void enterPacked(Field field) {
+  }
+
+  @Override
+  public void leavePacked(Field field) {
   }
 }

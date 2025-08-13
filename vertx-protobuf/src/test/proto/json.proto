@@ -17,3 +17,9 @@ message Container {
   google.protobuf.ListValue list_value = 3;
   google.protobuf.NullValue null_value = 4;
 }
+
+message Unpacked {
+  repeated fixed32 list_of_numbers = 1 [packed = false];
+  repeated string list_of_strings = 2 [packed = false];
+  repeated Unpacked list_of_embedded = 3 [packed = false];
+}

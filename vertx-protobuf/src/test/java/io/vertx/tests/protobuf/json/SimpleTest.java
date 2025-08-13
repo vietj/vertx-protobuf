@@ -1,7 +1,5 @@
 package io.vertx.tests.protobuf.json;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonGenerator;
 import com.google.protobuf.util.JsonFormat;
 import io.vertx.core.json.JsonObject;
 import io.vertx.protobuf.json.JsonReader;
@@ -13,7 +11,6 @@ import io.vertx.tests.protobuf.SimpleMessage;
 import io.vertx.tests.protobuf.TestProto;
 import org.junit.Test;
 
-import java.io.StringWriter;
 import java.util.Arrays;
 
 import static org.junit.Assert.assertEquals;
@@ -45,14 +42,8 @@ public class SimpleTest {
     assertEquals(4, (int)pop.getInt32Field());
     assertEquals(Arrays.asList("s1", "s2"), pop.getStringListField());
 
-    StringWriter out = new StringWriter();
-    JsonGenerator generator = JsonFactory.builder().build().createGenerator(out);
-    JsonWriter writer = new JsonWriter(generator);
-    ProtoWriter.emit(pop, writer);
+    JsonObject actual = JsonWriter.encode(v -> ProtoWriter.emit(pop, v));
 
-    generator.close();
-
-    JsonObject actual = new JsonObject(out.toString());
-    assertEquals(new JsonObject(json).put("stringListField", "s2") /* Limitation */ , actual);
+    assertEquals(new JsonObject(json), actual);
   }
 }

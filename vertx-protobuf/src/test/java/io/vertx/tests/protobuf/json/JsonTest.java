@@ -60,7 +60,7 @@ public class JsonTest {
     container.setStruct(json);
     String jsonString = JsonWriter.encode(visitor -> {
       ProtoWriter.emit(container, visitor);
-    });
+    }).toString();
     assertEquals(new JsonObject().put("struct", json), new JsonObject(jsonString));
   }
 }

@@ -21,7 +21,7 @@ public class DataTypesTest extends DataTypeTestBase {
     RecordingVisitor.Checker checker = visitor.checker();
     JsonReader.parse(json, messageType, checker);
     assertTrue(checker.isEmpty());
-    String encoded = JsonWriter.encode(visitor::apply);
+    String encoded = JsonWriter.encode(visitor::apply).toString();
     Message.Builder builder = ((Message) expected).newBuilderForType();
     JsonFormat.parser().merge(encoded, builder);
     assertEquals(expected, builder.build());
