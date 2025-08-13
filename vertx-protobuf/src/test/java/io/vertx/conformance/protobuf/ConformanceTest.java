@@ -22,7 +22,6 @@ import static org.junit.Assert.assertEquals;
 
 public class ConformanceTest {
 
-  @Ignore
   @Test
   public void testJsonInput() throws Exception {
 

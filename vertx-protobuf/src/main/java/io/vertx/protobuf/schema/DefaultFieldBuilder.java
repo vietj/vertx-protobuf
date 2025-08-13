@@ -7,6 +7,7 @@ public class DefaultFieldBuilder {
   Type type;
   Boolean packed;
   boolean repeated;
+  boolean map;
 
   public DefaultFieldBuilder number(int number) {
     this.number = number;
@@ -30,6 +31,11 @@ public class DefaultFieldBuilder {
 
   public DefaultFieldBuilder repeated(boolean repeated) {
     this.repeated = repeated;
+    return this;
+  }
+
+  public DefaultFieldBuilder map(boolean map) {
+    this.map = map;
     return this;
   }
 }

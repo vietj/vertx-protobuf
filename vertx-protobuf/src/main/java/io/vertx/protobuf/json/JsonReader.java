@@ -14,6 +14,7 @@ import io.vertx.protobuf.well_known_types.MessageLiteral;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.Base64;
 import java.util.Objects;
 import java.util.OptionalInt;
@@ -54,9 +55,13 @@ public class JsonReader {
   private static void parseAny(JsonParser parser, Field field, RecordVisitor visitor) throws IOException, DecodeException {
     switch (parser.currentTokenId()) {
       case JsonTokenId.ID_START_OBJECT:
-        visitor.enter(field);
-        parseObject(parser, (MessageType) field.type(), visitor);
-        visitor.leave(field);
+        if (field.isMap()) {
+          parseObjectAsMap(parser, field, visitor);
+        } else {
+          visitor.enter(field);
+          parseObject(parser, (MessageType) field.type(), visitor);
+          visitor.leave(field);
+        }
         break;
       case JsonTokenId.ID_START_ARRAY:
         if (field.isRepeated()) {
@@ -148,6 +153,60 @@ public class JsonReader {
         throw new UnsupportedOperationException();
       default:
         throw new DecodeException("Unexpected token"/*, parser.getCurrentLocation()*/);
+    }
+  }
+
+  private static void parseObjectAsMap(JsonParser parser, Field field, RecordVisitor visitor) throws IOException {
+    assert parser.hasToken(JsonToken.START_OBJECT);
+    MessageType mt = (MessageType) field.type();
+    Field keyField = mt.field(1);
+    Field valueField = mt.field(2);
+    while (parser.nextToken() == JsonToken.FIELD_NAME) {
+      String key = parser.currentName();
+      parser.nextToken();
+      visitor.enter(field);
+      switch (keyField.type().id()) {
+        case BOOL:
+          visitor.visitBool(keyField, Boolean.parseBoolean(key));
+          break;
+        case INT32:
+          visitor.visitInt32(keyField, Integer.parseInt(key));
+          break;
+        case INT64:
+          visitor.visitInt64(keyField, Long.parseLong(key));
+          break;
+        case UINT32:
+          visitor.visitUInt32(keyField, Integer.parseInt(key));
+          break;
+        case UINT64:
+          visitor.visitUInt64(keyField, Long.parseLong(key));
+          break;
+        case SINT32:
+          visitor.visitSInt32(keyField, Integer.parseInt(key));
+          break;
+        case SINT64:
+          visitor.visitSInt64(keyField, Long.parseLong(key));
+          break;
+        case STRING:
+          visitor.visitString(keyField, key);
+          break;
+        case FIXED64:
+          visitor.visitFixed64(keyField, Long.parseLong(key));
+          break;
+        case SFIXED64:
+          visitor.visitSFixed64(keyField, Long.parseLong(key));
+          break;
+        case FIXED32:
+          visitor.visitFixed32(keyField, Integer.parseInt(key));
+          break;
+        case SFIXED32:
+          visitor.visitSFixed32(keyField, Integer.parseInt(key));
+          break;
+        default:
+          throw new UnsupportedOperationException();
+      }
+      parseAny(parser, valueField, visitor);
+      visitor.leave(field);
     }
   }
 
