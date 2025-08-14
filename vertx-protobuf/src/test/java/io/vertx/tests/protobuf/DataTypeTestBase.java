@@ -49,6 +49,7 @@ public abstract class DataTypeTestBase {
 
   @Test
   public void testFloat() throws Exception {
+    testFloat(0);
     testFloat(4);
     testFloat(-4);
     testFloat(Float.MAX_VALUE);
@@ -58,13 +59,16 @@ public abstract class DataTypeTestBase {
   private void testFloat(float value) throws Exception {
     RecordingVisitor visitor = new RecordingVisitor();
     visitor.init(SCALAR_TYPES);
-    visitor.visitFloat(FLOAT, value);
+    if (value != 0) {
+      visitor.visitFloat(FLOAT, value);
+    }
     visitor.destroy();
     testDataType(visitor, DataTypesProto.ScalarTypes.newBuilder().setFloat(value).build());
   }
 
   @Test
   public void testDouble() throws Exception {
+    testDouble(0);
     testDouble(4);
     testDouble(-4);
     testDouble(Double.MAX_VALUE);
@@ -74,13 +78,16 @@ public abstract class DataTypeTestBase {
   private void testDouble(double value) throws Exception {
     RecordingVisitor visitor = new RecordingVisitor();
     visitor.init(SCALAR_TYPES);
-    visitor.visitDouble(DOUBLE, value);
+    if (value != 0) {
+      visitor.visitDouble(DOUBLE, value);
+    }
     visitor.destroy();
     testDataType(visitor, DataTypesProto.ScalarTypes.newBuilder().setDouble(value).build());
   }
 
   @Test
   public void testInt32() throws Exception {
+    testInt32(0);
     testInt32(4);
     testInt32(-4);
     testInt32(Integer.MAX_VALUE);
@@ -90,13 +97,16 @@ public abstract class DataTypeTestBase {
   private void testInt32(int value) throws Exception {
     RecordingVisitor visitor = new RecordingVisitor();
     visitor.init(SCALAR_TYPES);
-    visitor.visitInt32(INT32, value);
+    if (value != 0) {
+      visitor.visitInt32(INT32, value);
+    }
     visitor.destroy();
     testDataType(visitor, DataTypesProto.ScalarTypes.newBuilder().setInt32(value).build());
   }
 
   @Test
   public void testUInt32() throws Exception {
+    testUInt32(0);
     testUInt32(4);
     testUInt32(-1);
     testUInt32(Integer.MAX_VALUE);
@@ -105,13 +115,16 @@ public abstract class DataTypeTestBase {
   private void testUInt32(int value) throws Exception {
     RecordingVisitor visitor = new RecordingVisitor();
     visitor.init(SCALAR_TYPES);
-    visitor.visitUInt32(UINT32, value);
+    if (value != 0) {
+      visitor.visitUInt32(UINT32, value);
+    }
     visitor.destroy();
     testDataType(visitor, DataTypesProto.ScalarTypes.newBuilder().setUint32(value).build());
   }
 
   @Test
   public void testSInt32() throws Exception {
+    testSInt32(0);
     testSInt32(4);
     testSInt32(-4);
     testSInt32(Integer.MAX_VALUE);
@@ -121,13 +134,16 @@ public abstract class DataTypeTestBase {
   private void testSInt32(int value) throws Exception {
     RecordingVisitor visitor = new RecordingVisitor();
     visitor.init(SCALAR_TYPES);
-    visitor.visitSInt32(SINT32, value);
+    if (value != 0) {
+      visitor.visitSInt32(SINT32, value);
+    }
     visitor.destroy();
     testDataType(visitor, DataTypesProto.ScalarTypes.newBuilder().setSint32(value).build());
   }
 
   @Test
   public void testInt64() throws Exception {
+    testInt64(0);
     testInt64(4);
     testInt64(-4);
     testInt64(Long.MAX_VALUE);
@@ -137,13 +153,16 @@ public abstract class DataTypeTestBase {
   private void testInt64(long value) throws Exception {
     RecordingVisitor visitor = new RecordingVisitor();
     visitor.init(SCALAR_TYPES);
-    visitor.visitInt64(INT64, value);
+    if (value != 0) {
+      visitor.visitInt64(INT64, value);
+    }
     visitor.destroy();
     testDataType(visitor, DataTypesProto.ScalarTypes.newBuilder().setInt64(value).build());
   }
 
   @Test
   public void testUInt64() throws Exception {
+    testUInt64(0);
     testUInt64(4);
     testUInt64(-1); // MAX
     testUInt64(Long.MAX_VALUE);
@@ -152,13 +171,16 @@ public abstract class DataTypeTestBase {
   private void testUInt64(long value) throws Exception {
     RecordingVisitor visitor = new RecordingVisitor();
     visitor.init(SCALAR_TYPES);
-    visitor.visitUInt64(UINT64, value);
+    if (value != 0) {
+      visitor.visitUInt64(UINT64, value);
+    }
     visitor.destroy();
     testDataType(visitor, DataTypesProto.ScalarTypes.newBuilder().setUint64(value).build());
   }
 
   @Test
   public void testSInt64() throws Exception {
+    testSint64(0);
     testSint64(4);
     testSint64(-4);
     testSint64(Long.MAX_VALUE);
@@ -168,13 +190,16 @@ public abstract class DataTypeTestBase {
   private void testSint64(long value) throws Exception {
     RecordingVisitor visitor = new RecordingVisitor();
     visitor.init(SCALAR_TYPES);
-    visitor.visitSInt64(SINT64, value);
+    if (value != 0) {
+      visitor.visitSInt64(SINT64, value);
+    }
     visitor.destroy();
     testDataType(visitor, DataTypesProto.ScalarTypes.newBuilder().setSint64(value).build());
   }
 
   @Test
   public void testFixed32() throws Exception {
+    testFixed32(0);
     testFixed32(4);
     testFixed32(Integer.MAX_VALUE);
   }
@@ -182,13 +207,16 @@ public abstract class DataTypeTestBase {
   private void testFixed32(int value) throws Exception {
     RecordingVisitor visitor = new RecordingVisitor();
     visitor.init(SCALAR_TYPES);
-    visitor.visitFixed32(FIXED32, value);
+    if (value != 0) {
+      visitor.visitFixed32(FIXED32, value);
+    }
     visitor.destroy();
     testDataType(visitor, DataTypesProto.ScalarTypes.newBuilder().setFixed32(value).build());
   }
 
   @Test
   public void testFixed64() throws Exception {
+    testFixed64(0);
     testFixed64(4);
     testFixed64(Integer.MAX_VALUE);
   }
@@ -196,13 +224,16 @@ public abstract class DataTypeTestBase {
   private void testFixed64(long value) throws Exception {
     RecordingVisitor visitor = new RecordingVisitor();
     visitor.init(SCALAR_TYPES);
-    visitor.visitFixed64(FIXED64, value);
+    if (value != 0) {
+      visitor.visitFixed64(FIXED64, value);
+    }
     visitor.destroy();
     testDataType(visitor, DataTypesProto.ScalarTypes.newBuilder().setFixed64(value).build());
   }
 
   @Test
   public void testSFixed32() throws Exception {
+    testSFixed32(0);
     testSFixed32(4);
     testSFixed32(Integer.MAX_VALUE);
   }
@@ -210,13 +241,16 @@ public abstract class DataTypeTestBase {
   private void testSFixed32(int value) throws Exception {
     RecordingVisitor visitor = new RecordingVisitor();
     visitor.init(SCALAR_TYPES);
-    visitor.visitSFixed32(SFIXED32, value);
+    if (value != 0) {
+      visitor.visitSFixed32(SFIXED32, value);
+    }
     visitor.destroy();
     testDataType(visitor, DataTypesProto.ScalarTypes.newBuilder().setSfixed32(value).build());
   }
 
   @Test
   public void testSFixed64() throws Exception {
+    testSFixed64(0);
     testSFixed64(4);
     testSFixed64(Integer.MAX_VALUE);
   }
@@ -224,7 +258,9 @@ public abstract class DataTypeTestBase {
   private void testSFixed64(long value) throws Exception {
     RecordingVisitor visitor = new RecordingVisitor();
     visitor.init(SCALAR_TYPES);
-    visitor.visitSFixed64(SFIXED64, value);
+    if (value != 0) {
+      visitor.visitSFixed64(SFIXED64, value);
+    }
     visitor.destroy();
     testDataType(visitor, DataTypesProto.ScalarTypes.newBuilder().setSfixed64(value).build());
   }
@@ -233,9 +269,7 @@ public abstract class DataTypeTestBase {
   public void testStringRecord() throws Exception {
     RecordingVisitor visitor = new RecordingVisitor();
     visitor.init(SCALAR_TYPES);
-//    visitor.enter(STRING);
     visitor.visitString(STRING, "hello");
-//    visitor.leave(STRING);
     visitor.destroy();
     DataTypesProto.ScalarTypes dataTypes = DataTypesProto.ScalarTypes.newBuilder().setString("hello").build();
     ScalarTypes d = new ScalarTypes();
@@ -247,9 +281,7 @@ public abstract class DataTypeTestBase {
   public void testBytesRecord() throws Exception {
     RecordingVisitor visitor = new RecordingVisitor();
     visitor.init(SCALAR_TYPES);
-//    visitor.enter(BYTES);
     visitor.visitBytes(BYTES, "hello".getBytes());
-//    visitor.leave(BYTES);
     visitor.destroy();
     DataTypesProto.ScalarTypes dataTypes = DataTypesProto.ScalarTypes.newBuilder().setBytes(ByteString.copyFromUtf8("hello")).build();
     testDataType(visitor, dataTypes);

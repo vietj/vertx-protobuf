@@ -1,5 +1,7 @@
 package io.vertx.tests.protobuf.json;
 
+import com.google.protobuf.ByteString;
+import com.google.protobuf.MapEntry;
 import com.google.protobuf.Message;
 import com.google.protobuf.MessageLite;
 import com.google.protobuf.MessageOrBuilder;
@@ -10,6 +12,8 @@ import io.vertx.protobuf.json.JsonWriter;
 import io.vertx.protobuf.schema.MessageType;
 import io.vertx.tests.protobuf.DataTypeTestBase;
 import io.vertx.tests.protobuf.RecordingVisitor;
+import io.vertx.tests.protobuf.datatypes.DataTypesProto;
+import org.junit.Test;
 
 import java.util.Map;
 
@@ -51,5 +55,36 @@ public class DataTypesTest extends DataTypeTestBase {
     Message.Builder builder = ((Message) expected).newBuilderForType();
     JsonFormat.parser().merge(encoded, builder);
     assertEquals(expected, builder.build());
+  }
+
+  @Test
+  public void testNullValue() throws Exception {
+    RecordingVisitor visitor = new RecordingVisitor();
+    visitor.init(SCALAR_TYPES);
+    visitor.destroy();
+    DataTypesProto.ScalarTypes b = DataTypesProto.ScalarTypes.newBuilder()
+      .setInt32(1)
+      .setUint32(1)
+      .setSint32(1)
+      .setInt64(1)
+      .setUint64(1)
+      .setSint64(1)
+      .setBool(true)
+      .setFixed32(1)
+      .setSfixed32(1)
+      .setFloat(1)
+      .setFixed64(1)
+      .setSfixed64(1)
+      .setDouble(1)
+      .setString("s")
+      .setBytes(ByteString.copyFromUtf8("s"))
+      .build();
+    JsonObject json = new JsonObject(JsonFormat.printer().print(b));
+    for (Map.Entry<String, Object> entry : json) {
+      entry.setValue(null);
+    }
+    RecordingVisitor.Checker checker = visitor.checker();
+    JsonReader.parse(json.toString(), SCALAR_TYPES, checker);
+    assertTrue(checker.isEmpty());
   }
 }

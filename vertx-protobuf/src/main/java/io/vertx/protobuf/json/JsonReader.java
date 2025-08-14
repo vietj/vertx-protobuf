@@ -190,7 +190,7 @@ public class JsonReader {
         }
         break;
       case JsonTokenId.ID_NULL:
-        throw new UnsupportedOperationException();
+        break;
       default:
         throw new DecodeException("Unexpected token"/*, parser.getCurrentLocation()*/);
     }

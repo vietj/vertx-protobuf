@@ -1,1 +1,1 @@
-Required.Proto3.JsonInput.Int32FieldStringValue.ProtobufOutput # Failed to parse input or produce output.
+Required.Proto3.JsonInput.AllFieldAcceptNull.ProtobufOutput # Failed to parse input or produce output.
