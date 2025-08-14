@@ -9,6 +9,7 @@ import io.vertx.protobuf.schema.Field;
 import io.vertx.protobuf.schema.MessageType;
 import io.vertx.protobuf.well_known_types.MessageLiteral;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.Duration;
 import java.util.ArrayDeque;
@@ -57,25 +58,11 @@ public class JsonWriter implements RecordVisitor  {
     if (field.type() == MessageLiteral.Duration) {
       structWriter.destroy();
       Duration o = (Duration) structWriter.stack.pop();
-      StringBuilder sb = new StringBuilder();
-      String s;
       int nano = o.getNano();
-      if (nano > 0) {
-        for (int i = 0;i < 9;i++) {
-          int digit = nano % 10;
-          nano = (nano - digit) / 10;
-          if (digit > 0) {
-            sb.append(digit);
-          } else if (sb.length() > 0) {
-            sb.append('0');
-          }
-        }
-        sb.reverse();
-        s = o.getSeconds() + "." + sb + "s";
-      } else {
-        s = o.getSeconds() + "s";
-      }
-      put(field, s);
+      long seconds = o.getSeconds();
+      BigDecimal bd = new BigDecimal(seconds).add(BigDecimal.valueOf(nano, 9));
+      String t = bd.toPlainString() + "s";
+      put(field, t);
     } else if (field.type() == MessageLiteral.Struct) {
       if (structDepth-- == 0) {
         structWriter.destroy();

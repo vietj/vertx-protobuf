@@ -17,6 +17,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.Duration;
 import java.util.Base64;
 import java.util.Objects;
 import java.util.OptionalInt;
@@ -25,7 +26,30 @@ import java.util.regex.Pattern;
 
 public class JsonReader {
 
-  private static Pattern DURATION = Pattern.compile("([0-9]+)(?:\\.([0-9]+))?s");
+  public static io.vertx.protobuf.well_known_types.Duration parseDuration(String s) {
+    Matcher matcher = DURATION.matcher(s);
+    if (!matcher.matches()) {
+      return null;
+    }
+    boolean negative = matcher.group(1) != null;
+    long seconds = Long.parseLong(matcher.group(2));
+    int nano = 0;
+    String nanoText = matcher.group(3);
+    if (nanoText != null) {
+      // Optimize this later
+      nanoText = "0." + nanoText;
+      BigDecimal bd = new BigDecimal(nanoText);
+      BigInteger bi = bd.multiply(BigDecimal.valueOf(1000_000_000)).toBigInteger();
+      nano = bi.intValue();
+    }
+    if (negative)  {
+      seconds = -seconds;
+      nano = -nano;
+    }
+    return new io.vertx.protobuf.well_known_types.Duration().setSeconds(seconds).setNanos(nano);
+  }
+
+  private static final Pattern DURATION = Pattern.compile("(-)?([0-9]+)(?:\\.([0-9]+))?s");
 
   private static final BigInteger MAX_UINT32 = new BigInteger("FFFFFFFF", 16);
   private static final BigInteger MAX_UINT64 = new BigInteger("FFFFFFFFFFFFFFFF", 16);
@@ -137,21 +161,16 @@ public class JsonReader {
               MessageLiteral messageLiteral = (MessageLiteral) field.type();
               switch (messageLiteral) {
                 case Duration:
-                  Matcher matcher = DURATION.matcher(text);
-                  if (!matcher.matches()) {
+                  io.vertx.protobuf.well_known_types.Duration duration = parseDuration(text);
+                  if (duration == null) {
                     throw new DecodeException("Invalid duration " + text);
                   }
-                  long seconds = Long.parseLong(matcher.group(1));
-                  int nano = 0;
-                  if (matcher.group(2) != null) {
-                    nano = Integer.parseInt(matcher.group(2));
-                  }
                   visitor.enter(field);
-                  if (seconds != 0) {
-                    visitor.visitInt64(FieldLiteral.Duration_seconds, seconds);
+                  if (duration.getSeconds() != 0) {
+                    visitor.visitInt64(FieldLiteral.Duration_seconds, duration.getSeconds());
                   }
-                  if (nano != 0) {
-                    visitor.visitInt32(FieldLiteral.Duration_nanos, nano);
+                  if (duration.getNanos() != 0) {
+                    visitor.visitInt32(FieldLiteral.Duration_nanos, duration.getNanos());
                   }
                   visitor.leave(field);
                   break;

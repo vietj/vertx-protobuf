@@ -10,19 +10,12 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.protobuf.ProtobufReader;
 import io.vertx.protobuf.ProtobufWriter;
 import io.vertx.protobuf.json.JsonReader;
-import io.vertx.protobuf.well_known_types.FieldLiteral;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.List;
-import java.util.Map;
-
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
 
 public class ConformanceTest {
 
-  @Ignore
   @Test
   public void testJsonInput() throws Exception {
 
@@ -32,7 +25,8 @@ public class ConformanceTest {
     JsonFormat.parser().merge(json, builder);
     TestMessagesProto3.TestAllTypesProto3 d = builder.build();
 
-    System.out.println(d.getOptionalInt32());
+    System.out.println(d.getOptionalDuration().getSeconds());
+    System.out.println(d.getOptionalDuration().getNanos());
 
 //    System.out.println(d);
 
@@ -42,7 +36,10 @@ public class ConformanceTest {
     ProtoReader reader = new ProtoReader();
     JsonReader.parse(json, MessageLiteral.TestAllTypesProto3, reader);
     TestAllTypesProto3 testMessage = (TestAllTypesProto3) reader.stack.pop();
-    System.out.println(testMessage.getOptionalInt32());
+    System.out.println(testMessage.getOptionalDuration().getSeconds());
+    System.out.println(testMessage.getOptionalDuration().getNanos());
+
+
 
   }
 

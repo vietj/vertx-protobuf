@@ -18,6 +18,7 @@ import io.vertx.tests.interop.ProtoReader;
 import junit.framework.AssertionFailedError;
 import org.junit.Test;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.Duration;
 import java.util.function.Consumer;
