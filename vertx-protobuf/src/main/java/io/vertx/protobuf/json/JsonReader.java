@@ -10,6 +10,7 @@ import io.vertx.protobuf.schema.EnumType;
 import io.vertx.protobuf.schema.Field;
 import io.vertx.protobuf.schema.MessageType;
 import io.vertx.protobuf.schema.TypeID;
+import io.vertx.protobuf.well_known_types.FieldLiteral;
 import io.vertx.protobuf.well_known_types.MessageLiteral;
 
 import java.io.Closeable;
@@ -19,8 +20,12 @@ import java.math.BigInteger;
 import java.util.Base64;
 import java.util.Objects;
 import java.util.OptionalInt;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class JsonReader {
+
+  private static Pattern DURATION = Pattern.compile("([0-9]+)(?:\\.([0-9]+))?s");
 
   private static final BigInteger MAX_UINT32 = new BigInteger("FFFFFFFF", 16);
   private static final BigInteger MAX_UINT64 = new BigInteger("FFFFFFFFFFFFFFFF", 16);
@@ -132,7 +137,23 @@ public class JsonReader {
               MessageLiteral messageLiteral = (MessageLiteral) field.type();
               switch (messageLiteral) {
                 case Duration:
-
+                  Matcher matcher = DURATION.matcher(text);
+                  if (!matcher.matches()) {
+                    throw new DecodeException("Invalid duration " + text);
+                  }
+                  long seconds = Long.parseLong(matcher.group(1));
+                  int nano = 0;
+                  if (matcher.groupCount() > 1) {
+                    nano = Integer.parseInt(matcher.group(2));
+                  }
+                  visitor.enter(field);
+                  if (seconds != 0) {
+                    visitor.visitInt64(FieldLiteral.Duration_seconds, seconds);
+                  }
+                  if (nano != 0) {
+                    visitor.visitInt32(FieldLiteral.Duration_nanos, nano);
+                  }
+                  visitor.leave(field);
                   break;
                 default:
                   throw new UnsupportedOperationException();

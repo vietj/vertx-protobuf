@@ -10,7 +10,7 @@ option java_package = "io.vertx.tests.interop";
 option java_outer_classname = "InteropProto";
 
 option (io.vertx.protobuf.extension.vertx_json_object) = true;
-option (io.vertx.protobuf.extension.vertx_duration) = false;
+option (io.vertx.protobuf.extension.vertx_duration) = true;
 
 message Container {
   google.protobuf.Struct struct = 1;

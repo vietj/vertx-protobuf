@@ -6,9 +6,27 @@ import io.vertx.protobuf.RecordVisitor;
 import io.vertx.protobuf.well_known_types.FieldLiteral;
 import io.vertx.protobuf.well_known_types.MessageLiteral;
 
+import java.time.Duration;
 import java.util.Map;
 
 public class ProtoWriter {
+
+  public static void emit(Duration duration, RecordVisitor visitor) {
+    visitor.init(MessageLiteral.Duration);
+    visit(duration, visitor);
+    visitor.destroy();
+  }
+
+  public static void visit(Duration duration, RecordVisitor visitor) {
+    long seconds = duration.getSeconds();
+    if (seconds != 0L) {
+      visitor.visitInt64(FieldLiteral.Duration_seconds, seconds);
+    }
+    int nano = duration.getNano();
+    if (nano != 0) {
+      visitor.visitInt32(FieldLiteral.Duration_nanos, nano);
+    }
+  }
 
   public static void emit(JsonObject json, RecordVisitor visitor) {
     visitor.init(MessageLiteral.Struct);

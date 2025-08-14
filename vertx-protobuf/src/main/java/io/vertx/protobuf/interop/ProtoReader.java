@@ -8,13 +8,17 @@ import io.vertx.protobuf.schema.MessageType;
 import io.vertx.protobuf.well_known_types.FieldLiteral;
 import io.vertx.protobuf.well_known_types.MessageLiteral;
 
+import java.time.Duration;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
 public class ProtoReader implements RecordVisitor {
 
-  public final Deque<Object> stack ;
+  public final Deque<Object> stack;
   private MessageLiteral rootType;
+
+  private long durationSeconds;
+  private int durationNano;
 
   public ProtoReader() {
     this(new ArrayDeque<>());
@@ -31,6 +35,10 @@ public class ProtoReader implements RecordVisitor {
       switch (literal) {
         case Struct:
           stack.push(new JsonObject());
+          break;
+        case Duration:
+          durationSeconds = 0;
+          durationNano = 0;
           break;
         default:
           throw new UnsupportedOperationException();
@@ -57,6 +65,28 @@ public class ProtoReader implements RecordVisitor {
       ((Entry)container).value = value;
     } else {
       ((JsonArray)container).add(value);
+    }
+  }
+
+  @Override
+  public void visitInt64(Field field, long v) {
+    switch ((FieldLiteral)field) {
+      case Duration_seconds:
+        durationSeconds = v;
+        break;
+      default:
+        throw new UnsupportedOperationException();
+    }
+  }
+
+  @Override
+  public void visitInt32(Field field, int v) {
+    switch ((FieldLiteral)field) {
+      case Duration_nanos:
+        durationNano = v;
+        break;
+      default:
+        throw new UnsupportedOperationException();
     }
   }
 
@@ -138,6 +168,12 @@ public class ProtoReader implements RecordVisitor {
 
   @Override
   public void destroy() {
+    switch (rootType) {
+      case Duration:
+        stack.push(Duration.ofSeconds(durationSeconds, durationNano));
+        break;
+    }
+    rootType = null;
   }
 
   @Override

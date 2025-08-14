@@ -133,7 +133,8 @@ class ProtoWriterGenerator {
         field.packed = fd.isPacked();
 
         if (fd.getType() == Descriptors.FieldDescriptor.Type.MESSAGE) {
-          if (Utils.isStruct(fd.getMessageType()) && Utils.useJsonObject(fd.getFile())) {
+          if (Utils.isStruct(fd.getMessageType()) && Utils.useJsonObject(fd.getFile()) ||
+              Utils.isDuration(fd.getMessageType()) && Utils.useDuration(fd.getFile())) {
             field.protoWriterFqn = "io.vertx.protobuf.interop.ProtoWriter";
           } else {
             field.protoWriterFqn = Utils.extractJavaPkgFqn(fd.getMessageType().getFile()) + ".ProtoWriter";
