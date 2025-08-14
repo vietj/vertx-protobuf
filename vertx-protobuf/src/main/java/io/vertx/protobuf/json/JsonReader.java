@@ -143,7 +143,7 @@ public class JsonReader {
                   }
                   long seconds = Long.parseLong(matcher.group(1));
                   int nano = 0;
-                  if (matcher.groupCount() > 1) {
+                  if (matcher.group(2) != null) {
                     nano = Integer.parseInt(matcher.group(2));
                   }
                   visitor.enter(field);
