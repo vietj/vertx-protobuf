@@ -1,4 +1,4 @@
-package io.vertx.protobuf.json;
+package io.vertx.protobuf.interop;
 
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -13,7 +13,8 @@ import java.util.Deque;
 
 public class ProtoReader implements RecordVisitor {
 
-  final Deque<Object> stack ;
+  public final Deque<Object> stack ;
+  private MessageLiteral rootType;
 
   public ProtoReader() {
     this(new ArrayDeque<>());
@@ -25,8 +26,16 @@ public class ProtoReader implements RecordVisitor {
 
   @Override
   public void init(MessageType type) {
-    if (type == MessageLiteral.Struct) {
-      stack.push(new JsonObject());
+    if (type instanceof MessageLiteral) {
+      MessageLiteral literal = (MessageLiteral) type;
+      switch (literal) {
+        case Struct:
+          stack.push(new JsonObject());
+          break;
+        default:
+          throw new UnsupportedOperationException();
+      }
+      rootType = literal;
     } else {
       throw new UnsupportedOperationException();
     }

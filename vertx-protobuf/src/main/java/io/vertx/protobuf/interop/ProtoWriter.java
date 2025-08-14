@@ -1,4 +1,4 @@
-package io.vertx.protobuf.json;
+package io.vertx.protobuf.interop;
 
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;

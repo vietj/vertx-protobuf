@@ -134,7 +134,7 @@ class ProtoWriterGenerator {
 
         if (fd.getType() == Descriptors.FieldDescriptor.Type.MESSAGE) {
           if (Utils.isStruct(fd.getMessageType()) && Utils.useJsonObject(fd.getFile())) {
-            field.protoWriterFqn = "io.vertx.protobuf.json.ProtoWriter";
+            field.protoWriterFqn = "io.vertx.protobuf.interop.ProtoWriter";
           } else {
             field.protoWriterFqn = Utils.extractJavaPkgFqn(fd.getMessageType().getFile()) + ".ProtoWriter";
           }

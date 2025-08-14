@@ -3,6 +3,7 @@ package io.vertx.protobuf.json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.protobuf.RecordVisitor;
+import io.vertx.protobuf.interop.ProtoReader;
 import io.vertx.protobuf.schema.EnumType;
 import io.vertx.protobuf.schema.Field;
 import io.vertx.protobuf.schema.MessageType;

@@ -145,7 +145,7 @@ class ProtoReaderGenerator {
 
         if (fd.getType() == Descriptors.FieldDescriptor.Type.MESSAGE) {
           if (Utils.isStruct(fd.getMessageType()) && Utils.useJsonObject(fd.getFile())) {
-            descriptor.protoReaderJavaType = "io.vertx.protobuf.json.ProtoReader";
+            descriptor.protoReaderJavaType = "io.vertx.protobuf.interop.ProtoReader";
           } else {
             descriptor.protoReaderJavaType = Utils.extractJavaPkgFqn(fd.getMessageType().getFile()) + ".ProtoReader";
           }

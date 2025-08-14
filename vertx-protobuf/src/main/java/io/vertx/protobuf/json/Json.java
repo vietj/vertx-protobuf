@@ -5,6 +5,8 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.protobuf.ProtobufReader;
 import io.vertx.protobuf.ProtobufWriter;
 import io.vertx.protobuf.RecordVisitor;
+import io.vertx.protobuf.interop.ProtoReader;
+import io.vertx.protobuf.interop.ProtoWriter;
 import io.vertx.protobuf.well_known_types.MessageLiteral;
 
 import java.util.function.Consumer;

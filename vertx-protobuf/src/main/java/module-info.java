@@ -21,5 +21,6 @@ module io.vertx.protobuf {
   exports io.vertx.protobuf;
   exports io.vertx.protobuf.schema;
   exports io.vertx.protobuf.well_known_types;
+    exports io.vertx.protobuf.interop;
 
 }
