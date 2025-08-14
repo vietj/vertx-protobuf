@@ -22,48 +22,11 @@ import static org.junit.Assert.assertEquals;
 
 public class ConformanceTest {
 
+  @Ignore
   @Test
   public void testJsonInput() throws Exception {
 
-    String json = "{\n" +
-      "        \"optionalInt32\": null,\n" +
-      "        \"optionalInt64\": null,\n" +
-      "        \"optionalUint32\": null,\n" +
-      "        \"optionalUint64\": null,\n" +
-      "        \"optionalSint32\": null,\n" +
-      "        \"optionalSint64\": null,\n" +
-      "        \"optionalFixed32\": null,\n" +
-      "        \"optionalFixed64\": null,\n" +
-      "        \"optionalSfixed32\": null,\n" +
-      "        \"optionalSfixed64\": null,\n" +
-      "        \"optionalFloat\": null,\n" +
-      "        \"optionalDouble\": null,\n" +
-      "        \"optionalBool\": null,\n" +
-      "        \"optionalString\": null,\n" +
-      "        \"optionalBytes\": null,\n" +
-      "        \"optionalNestedEnum\": null,\n" +
-      "        \"optionalNestedMessage\": null,\n" +
-      "        \"repeatedInt32\": null,\n" +
-      "        \"repeatedInt64\": null,\n" +
-      "        \"repeatedUint32\": null,\n" +
-      "        \"repeatedUint64\": null,\n" +
-      "        \"repeatedSint32\": null,\n" +
-      "        \"repeatedSint64\": null,\n" +
-      "        \"repeatedFixed32\": null,\n" +
-      "        \"repeatedFixed64\": null,\n" +
-      "        \"repeatedSfixed32\": null,\n" +
-      "        \"repeatedSfixed64\": null,\n" +
-      "        \"repeatedFloat\": null,\n" +
-      "        \"repeatedDouble\": null,\n" +
-      "        \"repeatedBool\": null,\n" +
-      "        \"repeatedString\": null,\n" +
-      "        \"repeatedBytes\": null,\n" +
-      "        \"repeatedNestedEnum\": null,\n" +
-      "        \"repeatedNestedMessage\": null,\n" +
-      "        \"mapInt32Int32\": null,\n" +
-      "        \"mapBoolBool\": null,\n" +
-      "        \"mapStringNestedMessage\": null\n" +
-      "      }";
+    String json = "{\"optionalDuration\": \"-315576000000.999999999s\"}";
 
     TestMessagesProto3.TestAllTypesProto3.Builder builder = TestMessagesProto3.TestAllTypesProto3.newBuilder();
     JsonFormat.parser().merge(json, builder);

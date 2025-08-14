@@ -127,6 +127,20 @@ public class JsonReader {
               throw new UnsupportedOperationException();
             }
             break;
+          case MESSAGE:
+            if (field.type() instanceof MessageLiteral) {
+              MessageLiteral messageLiteral = (MessageLiteral) field.type();
+              switch (messageLiteral) {
+                case Duration:
+
+                  break;
+                default:
+                  throw new UnsupportedOperationException();
+              }
+            } else {
+              throw new UnsupportedOperationException();
+            }
+            break;
           default:
             throw new UnsupportedOperationException();
         }

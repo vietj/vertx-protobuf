@@ -6,6 +6,7 @@ import com.google.protobuf.Descriptors;
 import com.google.protobuf.compiler.PluginProtos;
 import io.vertx.protobuf.extension.VertxProto;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -33,8 +34,16 @@ public class Utils {
     return desc.getFullName().equals("google.protobuf.Struct");
   }
 
+  static boolean isDuration(Descriptors.Descriptor desc) {
+    return desc.getFullName().equals("google.protobuf.Duration");
+  }
+
   static boolean useJsonObject(Descriptors.FileDescriptor fd) {
     return fd.getOptions().getExtension(VertxProto.vertxJsonObject);
+  }
+
+  static boolean useDuration(Descriptors.FileDescriptor fd) {
+    return fd.getOptions().getExtension(VertxProto.vertxDuration);
   }
 
   static boolean isOptional(Descriptors.FieldDescriptor field) {
@@ -193,6 +202,8 @@ public class Utils {
         Descriptors.Descriptor messageType = field.getMessageType();
         if (isStruct(messageType) && useJsonObject(field.getFile())) {
           return "io.vertx.core.json.JsonObject";
+        } else if (isDuration(messageType) && useDuration(field.getFile())) {
+          return Duration.class.getName();
         }
         pkg = extractJavaPkgFqn(messageType.getFile());
         return pkg + "." + simpleNameOf(messageType);

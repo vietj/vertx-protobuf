@@ -20,7 +20,7 @@ public class VertxGrpcGenerator implements Callable<Integer> {
   @Override
   public Integer call() {
     VertxGrpcGeneratorImpl generator = new VertxGrpcGeneratorImpl();
-    ProtocPlugin.generate(List.of(generator), List.of(AnnotationsProto.http, VertxProto.vertxJsonObject));
+    ProtocPlugin.generate(List.of(generator), List.of(AnnotationsProto.http, VertxProto.vertxJsonObject, VertxProto.vertxDuration));
     return 0;
   }
 
