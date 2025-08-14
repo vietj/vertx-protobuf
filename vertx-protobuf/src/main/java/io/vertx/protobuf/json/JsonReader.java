@@ -262,7 +262,7 @@ public class JsonReader {
           field = type.fieldByName(key);
         }
         if (field == null) {
-          throw new UnsupportedOperationException("Unknown field " + key);
+          throw new DecodeException("Unknown field " + key);
         }
         parser.nextToken();
         parseAny(parser, field, visitor);
