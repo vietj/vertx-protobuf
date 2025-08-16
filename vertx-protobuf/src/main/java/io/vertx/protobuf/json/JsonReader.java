@@ -17,7 +17,6 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.time.Duration;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
@@ -95,7 +94,9 @@ public class JsonReader {
           parseObjectAsMap(parser, field, visitor);
         } else {
           if (field.type() == MessageLiteral.Value) {
-            throw new UnsupportedOperationException();
+            visitor.enter(field);
+            StructParser.parseValue(parser, visitor);
+            visitor.leave(field);
           } else {
             visitor.enter(field);
             parseObject(parser, (MessageType) field.type(), visitor);

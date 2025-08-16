@@ -81,7 +81,7 @@ public class JsonWriter implements RecordVisitor  {
       String t = o.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
       put(field, t);
     } else if (
-      (field.type() == MessageLiteral.Value && structWriter.rootType == MessageLiteral.Value) || // HACK !!! FIXME!!!!!!!
+      (field.type() == MessageLiteral.Value && structWriter.rootType == MessageLiteral.Value && structWriter.depth() == 1) || // HACK !!! FIXME!!!!!!!
       field.type() == MessageLiteral.DoubleValue ||
       field.type() == MessageLiteral.FloatValue ||
       field.type() == MessageLiteral.Int64Value ||

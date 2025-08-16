@@ -20,14 +20,14 @@ class StructParser {
       visitor.visitString(FieldLiteral.FieldsEntry_key, key);
       parser.nextToken();
       visitor.enter(FieldLiteral.FieldsEntry_value);
-      parseAny(parser, visitor);
+      parseValue(parser, visitor);
       visitor.leave(FieldLiteral.FieldsEntry_value);
       visitor.leave(FieldLiteral.Struct_fields);
     }
     visitor.leavePacked(FieldLiteral.Struct_fields);
   }
 
-  private static void parseAny(JsonParser parser, RecordVisitor visitor) throws IOException, DecodeException {
+  public static void parseValue(JsonParser parser, RecordVisitor visitor) throws IOException, DecodeException {
     switch (parser.currentTokenId()) {
       case JsonTokenId.ID_START_OBJECT:
         visitor.enter(FieldLiteral.Value_struct_value);
@@ -67,7 +67,7 @@ class StructParser {
     visitor.enterPacked(FieldLiteral.ListValue_values);
     while (parser.nextToken() != JsonToken.END_ARRAY) {
       visitor.enter(FieldLiteral.ListValue_values);
-      parseAny(parser, visitor);
+      parseValue(parser, visitor);
       visitor.leave(FieldLiteral.ListValue_values);
     }
     visitor.leavePacked(FieldLiteral.ListValue_values);
