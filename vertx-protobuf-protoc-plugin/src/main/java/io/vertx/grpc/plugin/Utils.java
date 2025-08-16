@@ -7,6 +7,7 @@ import com.google.protobuf.compiler.PluginProtos;
 import io.vertx.protobuf.extension.VertxProto;
 
 import java.time.Duration;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -38,12 +39,20 @@ public class Utils {
     return desc.getFullName().equals("google.protobuf.Duration");
   }
 
+  static boolean isTimestamp(Descriptors.Descriptor desc) {
+    return desc.getFullName().equals("google.protobuf.Timestamp");
+  }
+
   static boolean useJsonObject(Descriptors.FileDescriptor fd) {
     return fd.getOptions().getExtension(VertxProto.vertxJsonObject);
   }
 
   static boolean useDuration(Descriptors.FileDescriptor fd) {
     return fd.getOptions().getExtension(VertxProto.vertxDuration);
+  }
+
+  static boolean useTimestamp(Descriptors.FileDescriptor fd) {
+    return fd.getOptions().getExtension(VertxProto.vertxTimestamp);
   }
 
   static boolean isOptional(Descriptors.FieldDescriptor field) {
@@ -204,6 +213,8 @@ public class Utils {
           return "io.vertx.core.json.JsonObject";
         } else if (isDuration(messageType) && useDuration(field.getFile())) {
           return Duration.class.getName();
+        } else if (isTimestamp(messageType) && useTimestamp(field.getFile())) {
+          return OffsetDateTime.class.getName();
         }
         pkg = extractJavaPkgFqn(messageType.getFile());
         return pkg + "." + simpleNameOf(messageType);

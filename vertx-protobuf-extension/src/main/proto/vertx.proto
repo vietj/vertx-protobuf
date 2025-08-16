@@ -10,4 +10,5 @@ option java_outer_classname = "VertxProto";
 extend google.protobuf.FileOptions {
   optional bool vertx_json_object = 4500;
   optional bool vertx_duration = 4501;
+  optional bool vertx_timestamp = 4502;
 }

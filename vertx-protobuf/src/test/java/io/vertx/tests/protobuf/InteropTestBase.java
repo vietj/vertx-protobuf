@@ -4,10 +4,14 @@ import com.google.protobuf.Duration;
 import com.google.protobuf.ListValue;
 import com.google.protobuf.NullValue;
 import com.google.protobuf.Struct;
+import com.google.protobuf.Timestamp;
 import com.google.protobuf.Value;
 import io.vertx.tests.interop.InteropProto;
 import io.vertx.tests.interop.Container;
 import org.junit.Test;
+
+import java.time.Instant;
+import java.time.ZoneId;
 
 import static org.junit.Assert.assertEquals;
 
@@ -51,6 +55,29 @@ public abstract class InteropTestBase {
     InteropProto.Container actual = write(msg);
     assertEquals(java.time.Duration.ofSeconds(expected.getDuration().getSeconds(), expected.getDuration().getNanos()),
       java.time.Duration.ofSeconds(actual.getDuration().getSeconds(), actual.getDuration().getNanos()));
+  }
+
+  @Test
+  public void testTimestamp() {
+    testTimestamp(1, 1);
+    testTimestamp(0, 5);
+    testTimestamp(1, 0);
+    testTimestamp(1, 123456789);
+    testTimestamp(0, 500_000_000);
+  }
+
+  private void testTimestamp(long seconds, int nano) {
+    InteropProto.Container expected = InteropProto.Container.newBuilder()
+      .setTimestamp(Timestamp.newBuilder().setSeconds(seconds).setNanos(nano))
+      .build();
+    Container msg = read(expected);
+    java.time.OffsetDateTime duration = msg.getTimestamp();
+    assertEquals(java.time.OffsetDateTime.ofInstant(Instant.ofEpochSecond(seconds, nano), ZoneId.of("UTC")), duration);
+    InteropProto.Container actual = write(msg);
+    assertEquals(
+      java.time.OffsetDateTime.ofInstant(Instant.ofEpochSecond(expected.getDuration().getSeconds(), expected.getDuration().getNanos()), ZoneId.of("UTC")),
+      java.time.OffsetDateTime.ofInstant(Instant.ofEpochSecond(actual.getDuration().getSeconds(), actual.getDuration().getNanos()), ZoneId.of("UTC"))
+    );
   }
 
   protected abstract Container read(InteropProto.Container src);

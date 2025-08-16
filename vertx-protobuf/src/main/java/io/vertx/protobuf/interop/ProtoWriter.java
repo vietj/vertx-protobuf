@@ -7,6 +7,8 @@ import io.vertx.protobuf.well_known_types.FieldLiteral;
 import io.vertx.protobuf.well_known_types.MessageLiteral;
 
 import java.time.Duration;
+import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.util.Map;
 
 public class ProtoWriter {
@@ -25,6 +27,24 @@ public class ProtoWriter {
     int nano = duration.getNano();
     if (nano != 0) {
       visitor.visitInt32(FieldLiteral.Duration_nanos, nano);
+    }
+  }
+
+  public static void emit(OffsetDateTime timestamp, RecordVisitor visitor) {
+    visitor.init(MessageLiteral.Timestamp);
+    visit(timestamp, visitor);
+    visitor.destroy();
+  }
+
+  public static void visit(OffsetDateTime timestamp, RecordVisitor visitor) {
+    Instant instant = timestamp.toInstant();
+    long seconds = instant.getEpochSecond();
+    if (seconds != 0L) {
+      visitor.visitInt64(FieldLiteral.Timestamp_seconds, seconds);
+    }
+    int nano = timestamp.getNano();
+    if (nano != 0) {
+      visitor.visitInt32(FieldLiteral.Timestamp_nanos, nano);
     }
   }
 
