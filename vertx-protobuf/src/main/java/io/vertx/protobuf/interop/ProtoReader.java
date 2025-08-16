@@ -7,8 +7,12 @@ import io.vertx.protobuf.schema.Field;
 import io.vertx.protobuf.schema.MessageType;
 import io.vertx.protobuf.well_known_types.FieldLiteral;
 import io.vertx.protobuf.well_known_types.MessageLiteral;
+import io.vertx.protobuf.well_known_types.Timestamp;
 
 import java.time.Duration;
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
@@ -18,7 +22,9 @@ public class ProtoReader implements RecordVisitor {
   private MessageLiteral rootType;
 
   private long durationSeconds;
-  private int durationNano;
+  private int durationNanos;
+  private long timestampSeconds;
+  private int timestampNanos;
 
   public ProtoReader() {
     this(new ArrayDeque<>());
@@ -38,7 +44,11 @@ public class ProtoReader implements RecordVisitor {
           break;
         case Duration:
           durationSeconds = 0;
-          durationNano = 0;
+          durationNanos = 0;
+          break;
+        case Timestamp:
+          timestampSeconds = 0;
+          timestampNanos = 0;
           break;
         default:
           throw new UnsupportedOperationException();
@@ -74,6 +84,9 @@ public class ProtoReader implements RecordVisitor {
       case Duration_seconds:
         durationSeconds = v;
         break;
+      case Timestamp_seconds:
+        timestampSeconds = v;
+        break;
       default:
         throw new UnsupportedOperationException();
     }
@@ -83,7 +96,10 @@ public class ProtoReader implements RecordVisitor {
   public void visitInt32(Field field, int v) {
     switch ((FieldLiteral)field) {
       case Duration_nanos:
-        durationNano = v;
+        durationNanos = v;
+        break;
+      case Timestamp_nanos:
+        timestampNanos = v;
         break;
       default:
         throw new UnsupportedOperationException();
@@ -170,7 +186,10 @@ public class ProtoReader implements RecordVisitor {
   public void destroy() {
     switch (rootType) {
       case Duration:
-        stack.push(Duration.ofSeconds(durationSeconds, durationNano));
+        stack.push(Duration.ofSeconds(durationSeconds, durationNanos));
+        break;
+      case Timestamp:
+        stack.push(OffsetDateTime.ofInstant(Instant.ofEpochSecond(timestampSeconds, timestampNanos), ZoneId.of("UTC")));
         break;
     }
     rootType = null;

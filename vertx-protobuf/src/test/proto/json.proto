@@ -4,6 +4,7 @@ package io.vertx.tests.json;
 
 import "google/protobuf/struct.proto";
 import "google/protobuf/duration.proto";
+import "google/protobuf/timestamp.proto";
 import "google/protobuf/descriptor.proto";
 import "vertx.proto";
 
@@ -16,6 +17,7 @@ message Container {
   google.protobuf.ListValue list_value = 3;
   google.protobuf.NullValue null_value = 4;
   google.protobuf.Duration duration = 5;
+  google.protobuf.Timestamp timestamp = 6;
 }
 
 message Unpacked {

@@ -5,6 +5,7 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.ListValue;
 import com.google.protobuf.NullValue;
 import com.google.protobuf.Struct;
+import com.google.protobuf.Timestamp;
 import com.google.protobuf.Value;
 import com.google.protobuf.util.JsonFormat;
 import io.vertx.core.json.JsonArray;
@@ -59,6 +60,21 @@ public class JsonTest {
       Container container = read(expected);
       assertEquals(listOfSeconds[i], (long)container.getDuration().getSeconds());
       assertEquals(listOfNano[i], (int)container.getDuration().getNanos());
+      assertEquals(expected, write(container));
+    }
+  }
+
+  @Test
+  public void testTimestamp() {
+    long[] listOfSeconds = { 1, 0, 1, 1, 0 };
+    int[] listOfNano = { 1, 5, 0, 123456789, 500_000_000 };
+    for (int i = 0;i < listOfSeconds.length;i++) {
+      JsonProto.Container expected = JsonProto.Container.newBuilder()
+        .setTimestamp(Timestamp.newBuilder().setSeconds(listOfSeconds[i]).setNanos(listOfNano[i]).build())
+        .build();
+      Container container = read(expected);
+      assertEquals(listOfSeconds[i], (long)container.getTimestamp().getSeconds());
+      assertEquals(listOfNano[i], (int)container.getTimestamp().getNanos());
       assertEquals(expected, write(container));
     }
   }

@@ -12,6 +12,8 @@ import io.vertx.protobuf.well_known_types.MessageLiteral;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.Duration;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.concurrent.TimeUnit;
@@ -45,7 +47,7 @@ public class JsonWriter implements RecordVisitor  {
         structDepth++;
       }
       structWriter.enter(field);
-    } else if (field.type() == MessageLiteral.Struct || field.type() == MessageLiteral.Duration) {
+    } else if (field.type() == MessageLiteral.Struct || field.type() == MessageLiteral.Duration || field.type() == MessageLiteral.Timestamp) {
       structWriter = new ProtoReader();
       structWriter.init((MessageType) field.type());
     } else {
@@ -62,6 +64,11 @@ public class JsonWriter implements RecordVisitor  {
       long seconds = o.getSeconds();
       BigDecimal bd = new BigDecimal(seconds).add(BigDecimal.valueOf(nano, 9));
       String t = bd.toPlainString() + "s";
+      put(field, t);
+    } else if (field.type() == MessageLiteral.Timestamp) {
+      structWriter.destroy();
+      OffsetDateTime o = (OffsetDateTime) structWriter.stack.pop();
+      String t = o.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
       put(field, t);
     } else if (field.type() == MessageLiteral.Struct) {
       if (structDepth-- == 0) {

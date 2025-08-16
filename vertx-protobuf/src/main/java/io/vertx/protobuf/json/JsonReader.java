@@ -18,6 +18,9 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.Duration;
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 import java.util.Objects;
 import java.util.OptionalInt;
@@ -171,6 +174,18 @@ public class JsonReader {
                   }
                   if (duration.getNanos() != 0) {
                     visitor.visitInt32(FieldLiteral.Duration_nanos, duration.getNanos());
+                  }
+                  visitor.leave(field);
+                  break;
+                case Timestamp:
+                  OffsetDateTime odt = OffsetDateTime.parse(text, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+                  Instant i = odt.toInstant();
+                  visitor.enter(field);
+                  if (i.getEpochSecond() != 0) {
+                    visitor.visitInt64(FieldLiteral.Timestamp_seconds, i.getEpochSecond());
+                  }
+                  if (i.getNano() != 0) {
+                    visitor.visitInt32(FieldLiteral.Timestamp_nanos, i.getNano());
                   }
                   visitor.leave(field);
                   break;
