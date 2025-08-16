@@ -5,6 +5,7 @@ package io.vertx.tests.json;
 import "google/protobuf/struct.proto";
 import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
 import "google/protobuf/descriptor.proto";
 import "vertx.proto";
 
@@ -18,6 +19,15 @@ message Container {
   google.protobuf.NullValue null_value = 4;
   google.protobuf.Duration duration = 5;
   google.protobuf.Timestamp timestamp = 6;
+  google.protobuf.DoubleValue doubleValue = 7;
+  google.protobuf.FloatValue floatValue = 8;
+  google.protobuf.Int64Value int64Value = 9;
+  google.protobuf.UInt64Value uint64Value = 10;
+  google.protobuf.Int32Value int32Value = 11;
+  google.protobuf.UInt32Value uint32Value = 12;
+  google.protobuf.BoolValue boolValue = 13;
+  google.protobuf.StringValue stringValue = 14;
+  google.protobuf.BytesValue bytesValue = 15;
 }
 
 message Unpacked {

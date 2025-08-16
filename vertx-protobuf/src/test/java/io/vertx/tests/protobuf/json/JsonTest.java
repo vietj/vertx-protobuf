@@ -1,11 +1,21 @@
 package io.vertx.tests.protobuf.json;
 
+import com.google.protobuf.BoolValue;
+import com.google.protobuf.ByteString;
+import com.google.protobuf.BytesValue;
+import com.google.protobuf.DoubleValue;
 import com.google.protobuf.Duration;
+import com.google.protobuf.FloatValue;
+import com.google.protobuf.Int32Value;
+import com.google.protobuf.Int64Value;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.ListValue;
 import com.google.protobuf.NullValue;
+import com.google.protobuf.StringValue;
 import com.google.protobuf.Struct;
 import com.google.protobuf.Timestamp;
+import com.google.protobuf.UInt32Value;
+import com.google.protobuf.UInt64Value;
 import com.google.protobuf.Value;
 import com.google.protobuf.util.JsonFormat;
 import io.vertx.core.json.JsonArray;
@@ -77,6 +87,32 @@ public class JsonTest {
       assertEquals(listOfNano[i], (int)container.getTimestamp().getNanos());
       assertEquals(expected, write(container));
     }
+  }
+
+  @Test
+  public void testWrappers() {
+    JsonProto.Container expected = JsonProto.Container.newBuilder()
+      .setDoubleValue(DoubleValue.newBuilder().setValue(4.5D))
+      .setFloatValue(FloatValue.newBuilder().setValue(4.2f))
+      .setInt64Value(Int64Value.newBuilder().setValue(7L))
+      .setUint64Value(UInt64Value.newBuilder().setValue(8L))
+      .setInt32Value(Int32Value.newBuilder().setValue(3))
+      .setUint32Value(UInt32Value.newBuilder().setValue(4))
+      .setBoolValue(BoolValue.newBuilder().setValue(true))
+      .setStringValue(StringValue.newBuilder().setValue("the-string"))
+      .setBytesValue(BytesValue.newBuilder().setValue(ByteString.copyFromUtf8("the-bytes")))
+      .build();
+    Container container = read(expected);
+    assertEquals(4.5D, container.getDoubleValue().getValue(), 0.0001D);
+    assertEquals(4.2F, container.getFloatValue().getValue(), 0.0001D);
+    assertEquals(7L, (long)container.getInt64Value().getValue());
+    assertEquals(8L, (long)container.getUint64Value().getValue());
+    assertEquals(3, (int)container.getInt32Value().getValue());
+    assertEquals(4, (int)container.getUint32Value().getValue());
+    assertTrue(container.getBoolValue().getValue());
+    assertEquals("the-string", container.getStringValue().getValue());
+    assertEquals("the-bytes", container.getBytesValue().getValue().toString("UTF-8"));
+    assertEquals(expected, write(container));
   }
 
   private Container read(JsonProto.Container container) {

@@ -25,6 +25,13 @@ public class ProtoReader implements RecordVisitor {
   private int durationNanos;
   private long timestampSeconds;
   private int timestampNanos;
+  private double doubleValue;
+  private float floatValue;
+  private boolean booleanValue;
+  private long intValue;
+  private long longValue;
+  private String stringValue;
+  private byte[] bytesValue;
 
   public ProtoReader() {
     this(new ArrayDeque<>());
@@ -50,6 +57,29 @@ public class ProtoReader implements RecordVisitor {
           timestampSeconds = 0;
           timestampNanos = 0;
           break;
+        case DoubleValue:
+          doubleValue = 0D;
+          break;
+        case FloatValue:
+          floatValue = 0F;
+          break;
+        case Int64Value:
+        case UInt64Value:
+          longValue = 0L;
+          break;
+        case Int32Value:
+        case UInt32Value:
+          intValue = 0;
+          break;
+        case BoolValue:
+          booleanValue = false;
+          break;
+        case StringValue:
+          stringValue = "";
+          break;
+        case BytesValue:
+          bytesValue = new byte[0];
+          break;
         default:
           throw new UnsupportedOperationException();
       }
@@ -61,12 +91,35 @@ public class ProtoReader implements RecordVisitor {
 
   @Override
   public void visitBool(Field field, boolean v) {
-    append(v);
+    if (field instanceof FieldLiteral) {
+      switch ((FieldLiteral) field) {
+        case BoolValue_value:
+          booleanValue = v;
+          break;
+        case Value_bool_value:
+          append(v);
+          break;
+        default:
+          throw new UnsupportedOperationException();
+      }
+    } else {
+      throw new UnsupportedOperationException();
+    }
   }
 
   @Override
   public void visitEnum(Field field, int number) {
-    append(null);
+    if (field instanceof FieldLiteral) {
+      switch ((FieldLiteral) field) {
+        case Value_null_value:
+          append(null);
+          break;
+        default:
+          throw new UnsupportedOperationException();
+      }
+    } else {
+      throw new UnsupportedOperationException();
+    }
   }
 
   private void append(Object value) {
@@ -87,6 +140,20 @@ public class ProtoReader implements RecordVisitor {
       case Timestamp_seconds:
         timestampSeconds = v;
         break;
+      case Int64Value_value:
+        longValue = v;
+        break;
+      default:
+        throw new UnsupportedOperationException();
+    }
+  }
+
+  @Override
+  public void visitUInt64(Field field, long v) {
+    switch ((FieldLiteral)field) {
+      case UInt64Value_value:
+        longValue = v;
+        break;
       default:
         throw new UnsupportedOperationException();
     }
@@ -101,6 +168,20 @@ public class ProtoReader implements RecordVisitor {
       case Timestamp_nanos:
         timestampNanos = v;
         break;
+      case Int32Value_value:
+        intValue = v;
+        break;
+      default:
+        throw new UnsupportedOperationException();
+    }
+  }
+
+  @Override
+  public void visitUInt32(Field field, int v) {
+    switch ((FieldLiteral)field) {
+      case UInt32Value_value:
+        intValue = v;
+        break;
       default:
         throw new UnsupportedOperationException();
     }
@@ -108,20 +189,57 @@ public class ProtoReader implements RecordVisitor {
 
   @Override
   public void visitString(Field field, String s) {
-    switch (field.number()) {
-      case 1:
-        // FieldsEntry
-        ((Entry)stack.peek()).key = s;
-        break;
-      case 3:
-        append(s);
-      break;
+    if (field instanceof FieldLiteral) {
+      switch ((FieldLiteral)field) {
+        case FieldsEntry_key:
+          // FieldsEntry
+          ((Entry)stack.peek()).key = s;
+          break;
+        case Value_string_value:
+          append(s);
+          break;
+        case StringValue_value:
+          stringValue = s;
+          break;
+        default:
+          throw new UnsupportedOperationException();
+      }
+    } else {
+      throw new UnsupportedOperationException();
+    }
+  }
+
+  @Override
+  public void visitFloat(Field field, float f) {
+    if (field instanceof FieldLiteral) {
+      switch ((FieldLiteral)field) {
+        case FloatValue_value:
+          floatValue = f;
+          break;
+        default:
+          throw new UnsupportedOperationException();
+      }
+    } else {
+      throw new UnsupportedOperationException();
     }
   }
 
   @Override
   public void visitDouble(Field field, double d) {
-    append(d);
+    if (field instanceof FieldLiteral) {
+      switch ((FieldLiteral)field) {
+        case DoubleValue_value:
+          doubleValue = d;
+          break;
+        case Value_number_value:
+          append(d);
+          break;
+        default:
+          throw new UnsupportedOperationException();
+      }
+    } else {
+      throw new UnsupportedOperationException();
+    }
   }
 
   @Override
@@ -191,12 +309,47 @@ public class ProtoReader implements RecordVisitor {
       case Timestamp:
         stack.push(OffsetDateTime.ofInstant(Instant.ofEpochSecond(timestampSeconds, timestampNanos), ZoneId.of("UTC")));
         break;
+      case DoubleValue:
+        stack.push(doubleValue);
+        break;
+      case FloatValue:
+        stack.push(floatValue);
+        break;
+      case Int64Value:
+      case UInt64Value:
+        stack.push(longValue);
+        break;
+      case Int32Value:
+      case UInt32Value:
+        stack.push(intValue);
+        break;
+      case BoolValue:
+        stack.push(booleanValue);
+        break;
+      case StringValue:
+        stack.push(stringValue);
+        stringValue = null;
+        break;
+      case BytesValue:
+        stack.push(bytesValue);
+        bytesValue = null;
+        break;
     }
     rootType = null;
   }
 
   @Override
   public void visitBytes(Field field, byte[] bytes) {
-    throw new UnsupportedOperationException();
+    if (field instanceof FieldLiteral) {
+      switch ((FieldLiteral)field) {
+        case BytesValue_value:
+          bytesValue = bytes;
+          break;
+        default:
+          throw new UnsupportedOperationException();
+      }
+    } else {
+      throw new UnsupportedOperationException();
+    }
   }
 }

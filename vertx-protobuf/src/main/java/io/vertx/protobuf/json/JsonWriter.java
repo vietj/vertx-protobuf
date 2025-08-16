@@ -16,7 +16,6 @@ import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 public class JsonWriter implements RecordVisitor  {
@@ -47,7 +46,19 @@ public class JsonWriter implements RecordVisitor  {
         structDepth++;
       }
       structWriter.enter(field);
-    } else if (field.type() == MessageLiteral.Struct || field.type() == MessageLiteral.Duration || field.type() == MessageLiteral.Timestamp) {
+    } else if (field.type() == MessageLiteral.Struct ||
+               field.type() == MessageLiteral.Duration ||
+               field.type() == MessageLiteral.Timestamp ||
+               field.type() == MessageLiteral.DoubleValue ||
+               field.type() == MessageLiteral.FloatValue ||
+               field.type() == MessageLiteral.Int64Value ||
+               field.type() == MessageLiteral.UInt64Value ||
+               field.type() == MessageLiteral.Int32Value ||
+               field.type() == MessageLiteral.UInt32Value ||
+               field.type() == MessageLiteral.BoolValue ||
+               field.type() == MessageLiteral.StringValue ||
+               field.type() == MessageLiteral.BytesValue
+    ) {
       structWriter = new ProtoReader();
       structWriter.init((MessageType) field.type());
     } else {
@@ -60,6 +71,7 @@ public class JsonWriter implements RecordVisitor  {
     if (field.type() == MessageLiteral.Duration) {
       structWriter.destroy();
       Duration o = (Duration) structWriter.stack.pop();
+      structWriter = null;
       int nano = o.getNano();
       long seconds = o.getSeconds();
       BigDecimal bd = new BigDecimal(seconds).add(BigDecimal.valueOf(nano, 9));
@@ -68,8 +80,24 @@ public class JsonWriter implements RecordVisitor  {
     } else if (field.type() == MessageLiteral.Timestamp) {
       structWriter.destroy();
       OffsetDateTime o = (OffsetDateTime) structWriter.stack.pop();
+      structWriter = null;
       String t = o.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
       put(field, t);
+    } else if (
+      field.type() == MessageLiteral.DoubleValue ||
+      field.type() == MessageLiteral.FloatValue ||
+      field.type() == MessageLiteral.Int64Value ||
+      field.type() == MessageLiteral.UInt64Value ||
+      field.type() == MessageLiteral.Int32Value ||
+      field.type() == MessageLiteral.UInt32Value ||
+      field.type() == MessageLiteral.BoolValue ||
+      field.type() == MessageLiteral.StringValue ||
+      field.type() == MessageLiteral.BytesValue
+    ) {
+      structWriter.destroy();
+      Object value = structWriter.stack.pop();
+      structWriter = null;
+      put(field, value);
     } else if (field.type() == MessageLiteral.Struct) {
       if (structDepth-- == 0) {
         structWriter.destroy();
@@ -112,8 +140,11 @@ public class JsonWriter implements RecordVisitor  {
 
   @Override
   public void visitUInt32(Field field, int v) {
-    assert structWriter == null;
-    put(field, writeUInt32(v));
+    if (structWriter != null) {
+      structWriter.visitUInt32(field, v);
+    } else {
+      put(field, writeUInt32(v));
+    }
   }
 
   @Override
@@ -133,8 +164,11 @@ public class JsonWriter implements RecordVisitor  {
 
   @Override
   public void visitUInt64(Field field, long v) {
-    assert structWriter == null;
-    put(field, writeUInt64(v));
+    if (structWriter != null) {
+      structWriter.visitUInt64(field, v);
+    } else {
+      put(field, writeUInt64(v));
+    }
   }
 
   @Override
@@ -175,8 +209,11 @@ public class JsonWriter implements RecordVisitor  {
 
   @Override
   public void visitFloat(Field field, float f) {
-    assert structWriter == null;
-    put(field, f);
+    if (structWriter != null) {
+      structWriter.visitFloat(field, f);
+    } else {
+      put(field, f);
+    }
   }
 
   @Override
@@ -211,8 +248,11 @@ public class JsonWriter implements RecordVisitor  {
 
   @Override
   public void visitBytes(Field field, byte[] bytes) {
-    assert structWriter == null;
-    put(field, bytes);
+    if (structWriter != null) {
+      structWriter.visitBytes(field, bytes);
+    } else {
+      put(field, bytes);
+    }
   }
 
   @Override

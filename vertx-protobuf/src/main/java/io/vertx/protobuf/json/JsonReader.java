@@ -189,6 +189,26 @@ public class JsonReader {
                   }
                   visitor.leave(field);
                   break;
+                case Int64Value:
+                  visitor.enter(field);
+                  visitor.visitInt64(FieldLiteral.Int64Value_value, Long.parseLong(text));
+                  visitor.leave(field);
+                  break;
+                case UInt64Value:
+                  visitor.enter(field);
+                  visitor.visitUInt64(FieldLiteral.UInt64Value_value, Long.parseLong(text));
+                  visitor.leave(field);
+                  break;
+                case StringValue:
+                  visitor.enter(field);
+                  visitor.visitString(FieldLiteral.StringValue_value, text);
+                  visitor.leave(field);
+                  break;
+                case BytesValue:
+                  visitor.enter(field);
+                  visitor.visitBytes(FieldLiteral.BytesValue_value, Base64.getDecoder().decode(text));
+                  visitor.leave(field);
+                  break;
                 default:
                   throw new UnsupportedOperationException();
               }
@@ -240,28 +260,62 @@ public class JsonReader {
           case DOUBLE:
             visitor.visitDouble(field, number.doubleValue());
             break;
+          case MESSAGE:
+            if (field.type() instanceof MessageLiteral) {
+              switch ((MessageLiteral)field.type()) {
+                case DoubleValue:
+                  visitor.enter(field);
+                  visitor.visitDouble(FieldLiteral.DoubleValue_value, number.doubleValue());
+                  visitor.leave(field);
+                  break;
+                case FloatValue:
+                  visitor.enter(field);
+                  visitor.visitFloat(FieldLiteral.FloatValue_value, number.floatValue());
+                  visitor.leave(field);
+                  break;
+                case Int32Value:
+                  visitor.enter(field);
+                  visitor.visitInt32(FieldLiteral.Int32Value_value, number.intValue());
+                  visitor.leave(field);
+                  break;
+                case UInt32Value:
+                  visitor.enter(field);
+                  visitor.visitUInt32(FieldLiteral.UInt32Value_value, number.intValue());
+                  visitor.leave(field);
+                  break;
+                default:
+                  throw new DecodeException();
+              }
+              break;
+            } else {
+              throw new DecodeException();
+            }
           default:
             throw new UnsupportedOperationException("Invalid type " + field.type().id());
         }
         break;
       case JsonTokenId.ID_TRUE:
-        if (Objects.requireNonNull(field.type().id()) == TypeID.BOOL) {
-          visitor.visitBool(field, true);
-        } else {
-          throw new UnsupportedOperationException();
-        }
+        parseBoolean(field, true, visitor);
         break;
       case JsonTokenId.ID_FALSE:
-        if (Objects.requireNonNull(field.type().id()) == TypeID.BOOL) {
-          visitor.visitBool(field, false);
-        } else {
-          throw new UnsupportedOperationException();
-        }
+        parseBoolean(field, false, visitor);
         break;
       case JsonTokenId.ID_NULL:
         break;
       default:
         throw new DecodeException("Unexpected token"/*, parser.getCurrentLocation()*/);
+    }
+  }
+
+  private static void parseBoolean(Field field, boolean value, RecordVisitor visitor) {
+    if (field.type() == MessageLiteral.BoolValue) {
+      visitor.enter(field);
+      visitor.visitBool(FieldLiteral.BoolValue_value, value);
+      visitor.leave(field);
+    } else if (Objects.requireNonNull(field.type().id()) == TypeID.BOOL) {
+      visitor.visitBool(field, true);
+    } else {
+      throw new UnsupportedOperationException();
     }
   }
 
