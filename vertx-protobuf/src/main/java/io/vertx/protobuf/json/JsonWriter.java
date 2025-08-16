@@ -96,7 +96,8 @@ public class JsonWriter implements RecordVisitor  {
       Object value = structWriter.pop();
       structWriter = null;
       put(field, value);
-    } else if (field.type() == MessageLiteral.Struct && structWriter.depth() == 1) {
+    } else if (field.type() == MessageLiteral.Struct && structWriter.rootType == MessageLiteral.Struct && structWriter.depth() == 1) {
+      // CONVOLUTED
       structWriter.destroy();
       JsonObject o = (JsonObject) structWriter.pop();
       structWriter = null;

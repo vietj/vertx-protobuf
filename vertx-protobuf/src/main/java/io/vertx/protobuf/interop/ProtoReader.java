@@ -116,7 +116,8 @@ public class ProtoReader implements RecordVisitor {
               stack.push(v);
               break;
             case Struct:
-              append(v);
+              stack.push(v);
+//              append(v);
               break;
           }
           break;
@@ -137,7 +138,7 @@ public class ProtoReader implements RecordVisitor {
         case Value_null_value:
           switch (rootType) {
             case Struct:
-              append(null);
+              stack.push(NULL);
               break;
             case Value:
               stack.push(NULL);
@@ -154,6 +155,7 @@ public class ProtoReader implements RecordVisitor {
     }
   }
 
+/*
   private void append(Object value) {
     Object container = stack.peek();
     if (container instanceof Entry) {
@@ -162,6 +164,7 @@ public class ProtoReader implements RecordVisitor {
       ((JsonArray)container).add(value);
     }
   }
+*/
 
   @Override
   public void visitInt64(Field field, long v) {
@@ -230,7 +233,8 @@ public class ProtoReader implements RecordVisitor {
         case Value_string_value:
           switch (rootType) {
             case Struct:
-              append(s);
+//              append(s);
+              stack.push(s);
               break;
             case Value:
               stack.push(s);
@@ -275,7 +279,8 @@ public class ProtoReader implements RecordVisitor {
         case Value_number_value:
           switch (rootType) {
             case Struct:
-              append(d);
+//              append(d);
+              stack.push(d);
               break;
             case Value:
               stack.push(d);
@@ -329,21 +334,23 @@ public class ProtoReader implements RecordVisitor {
 
   @Override
   public void leave(Field field) {
-    Entry entry;
     FieldLiteral fl = (FieldLiteral) field;
     switch (fl) {
       case Value_struct_value:
-        append(stack.pop());
         break;
       case Value_list_value:
-        append(stack.pop());
         break;
       case Struct_fields:
-        entry = (Entry) stack.pop();
+        Entry entry = (Entry) stack.pop();
         ((JsonObject)stack.peek()).put(entry.key, entry.value);
         break;
       case FieldsEntry_value:
+        Object value = pop();
+        ((Entry)stack.peek()).value = value;
+        break;
       case ListValue_values:
+        value = pop();
+        ((JsonArray)stack.peek()).add(value);
         break;
       default:
         throw new UnsupportedOperationException(fl.name());
