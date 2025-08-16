@@ -107,6 +107,10 @@ public class JsonReader {
       case JsonTokenId.ID_START_ARRAY:
         if (field.isRepeated()) {
           parseArray(parser, field, visitor);
+        } else if (field.type() == MessageLiteral.Value) {
+          visitor.enter(field);
+          StructParser.parseValue(parser, visitor);
+          visitor.leave(field);
         } else {
           throw new UnsupportedOperationException();
         }
