@@ -18,8 +18,8 @@ import java.util.Deque;
 
 public class ProtoReader implements RecordVisitor {
 
-  public final Deque<Object> stack;
-  private MessageLiteral rootType;
+  private final Deque<Object> stack;
+  public MessageLiteral rootType;
 
   private long durationSeconds;
   private int durationNanos;
@@ -41,6 +41,14 @@ public class ProtoReader implements RecordVisitor {
     this.stack = stack;
   }
 
+  public Object pop() {
+    Object obj = stack.pop();
+    if (obj == NULL) {
+      obj = null;
+    }
+    return obj;
+  }
+
   @Override
   public void init(MessageType type) {
     if (type instanceof MessageLiteral) {
@@ -48,6 +56,8 @@ public class ProtoReader implements RecordVisitor {
       switch (literal) {
         case Struct:
           stack.push(new JsonObject());
+          break;
+        case Value:
           break;
         case Duration:
           durationSeconds = 0;
@@ -97,7 +107,14 @@ public class ProtoReader implements RecordVisitor {
           booleanValue = v;
           break;
         case Value_bool_value:
-          append(v);
+          switch (rootType) {
+            case Value:
+              stack.push(v);
+              break;
+            case Struct:
+              append(v);
+              break;
+          }
           break;
         default:
           throw new UnsupportedOperationException();
@@ -107,12 +124,23 @@ public class ProtoReader implements RecordVisitor {
     }
   }
 
+  private static final Object NULL = new Object();
+
   @Override
   public void visitEnum(Field field, int number) {
     if (field instanceof FieldLiteral) {
       switch ((FieldLiteral) field) {
         case Value_null_value:
-          append(null);
+          switch (rootType) {
+            case Struct:
+              append(null);
+              break;
+            case Value:
+              stack.push(NULL);
+              break;
+            default:
+              throw new UnsupportedOperationException();
+          }
           break;
         default:
           throw new UnsupportedOperationException();

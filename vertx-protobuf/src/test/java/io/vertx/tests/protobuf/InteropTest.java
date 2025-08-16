@@ -116,7 +116,7 @@ public class InteropTest extends InteropTestBase {
     Buffer buffer = Buffer.buffer(bytes);
     io.vertx.protobuf.interop.ProtoReader builder = new io.vertx.protobuf.interop.ProtoReader();
     ProtobufReader.parse(io.vertx.protobuf.well_known_types.MessageLiteral.Duration, builder, buffer);
-    Duration duration = (Duration) builder.stack.pop();
+    Duration duration = (Duration) builder.pop();
     assertEquals(seconds, duration.getSeconds());
     assertEquals(nano, duration.getNano());
   }

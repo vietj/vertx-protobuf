@@ -301,6 +301,13 @@ public class JsonReader {
         parseBoolean(field, false, visitor);
         break;
       case JsonTokenId.ID_NULL:
+        if (field.type() == MessageLiteral.Value) {
+          visitor.enter(field);
+          visitor.visitEnum(FieldLiteral.Value_null_value, 0);
+          visitor.leave(field);
+        } else {
+          // Use default value
+        }
         break;
       default:
         throw new DecodeException("Unexpected token"/*, parser.getCurrentLocation()*/);
@@ -311,6 +318,10 @@ public class JsonReader {
     if (field.type() == MessageLiteral.BoolValue) {
       visitor.enter(field);
       visitor.visitBool(FieldLiteral.BoolValue_value, value);
+      visitor.leave(field);
+    } else if (field.type() == MessageLiteral.Value) {
+      visitor.enter(field);
+      visitor.visitBool(FieldLiteral.Value_bool_value, value);
       visitor.leave(field);
     } else if (Objects.requireNonNull(field.type().id()) == TypeID.BOOL) {
       visitor.visitBool(field, true);

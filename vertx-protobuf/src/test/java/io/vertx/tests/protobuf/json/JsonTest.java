@@ -35,7 +35,7 @@ import static org.junit.Assert.*;
 public class JsonTest {
 
   @Test
-  public void testReadStruct() throws Exception {
+  public void testStruct() throws Exception {
     JsonProto.Container expected = JsonProto.Container.newBuilder()
       .setStruct(Struct.newBuilder()
         .putFields("string-key", Value.newBuilder().setStringValue("string-value").build())
@@ -57,6 +57,22 @@ public class JsonTest {
     assertEquals(1, read.getStruct().getFields().get("object-key").getKind().asStructValue().get().getFields().size());
     JsonProto.Container actual = write(read);
     assertEquals(actual, expected);
+  }
+
+  @Test
+  public void testValue() {
+    assertEquals(0, testValue(Value.newBuilder().setNullValue(NullValue.NULL_VALUE).build()).asNullValue().get().number());
+    assertTrue(testValue(Value.newBuilder().setBoolValue(true).build()).asBoolValue().get());
+  }
+
+  private io.vertx.protobuf.well_known_types.Value.Kind<?> testValue(Value value) {
+    JsonProto.Container expected = JsonProto.Container.newBuilder()
+      .setValue(value)
+      .build();
+    Container read = read(expected);
+    JsonProto.Container actual = write(read);
+    assertEquals(expected, actual);
+    return read.getValue().getKind();
   }
 
   @Test

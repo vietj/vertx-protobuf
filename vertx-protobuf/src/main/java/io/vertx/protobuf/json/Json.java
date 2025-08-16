@@ -30,6 +30,6 @@ public class Json {
   public static JsonObject parseStruct(Buffer buffer) {
     ProtoReader builder = new ProtoReader();
     ProtobufReader.parse(MessageLiteral.Struct, builder, buffer);
-    return (JsonObject) builder.stack.pop();
+    return (JsonObject) builder.pop();
   }
 }

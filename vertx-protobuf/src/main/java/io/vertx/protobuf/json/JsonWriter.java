@@ -47,6 +47,7 @@ public class JsonWriter implements RecordVisitor  {
       }
       structWriter.enter(field);
     } else if (field.type() == MessageLiteral.Struct ||
+               field.type() == MessageLiteral.Value ||
                field.type() == MessageLiteral.Duration ||
                field.type() == MessageLiteral.Timestamp ||
                field.type() == MessageLiteral.DoubleValue ||
@@ -70,7 +71,7 @@ public class JsonWriter implements RecordVisitor  {
   public void leave(Field field) {
     if (field.type() == MessageLiteral.Duration) {
       structWriter.destroy();
-      Duration o = (Duration) structWriter.stack.pop();
+      Duration o = (Duration) structWriter.pop();
       structWriter = null;
       int nano = o.getNano();
       long seconds = o.getSeconds();
@@ -79,11 +80,12 @@ public class JsonWriter implements RecordVisitor  {
       put(field, t);
     } else if (field.type() == MessageLiteral.Timestamp) {
       structWriter.destroy();
-      OffsetDateTime o = (OffsetDateTime) structWriter.stack.pop();
+      OffsetDateTime o = (OffsetDateTime) structWriter.pop();
       structWriter = null;
       String t = o.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
       put(field, t);
     } else if (
+      (field.type() == MessageLiteral.Value && structWriter.rootType == MessageLiteral.Value) || // HACK !!! FIXME!!!!!!!
       field.type() == MessageLiteral.DoubleValue ||
       field.type() == MessageLiteral.FloatValue ||
       field.type() == MessageLiteral.Int64Value ||
@@ -95,13 +97,13 @@ public class JsonWriter implements RecordVisitor  {
       field.type() == MessageLiteral.BytesValue
     ) {
       structWriter.destroy();
-      Object value = structWriter.stack.pop();
+      Object value = structWriter.pop();
       structWriter = null;
       put(field, value);
     } else if (field.type() == MessageLiteral.Struct) {
       if (structDepth-- == 0) {
         structWriter.destroy();
-        JsonObject o = (JsonObject) structWriter.stack.pop();
+        JsonObject o = (JsonObject) structWriter.pop();
         structWriter = null;
         put(field, o);
       } else {
