@@ -28,7 +28,6 @@ public class JsonWriter implements RecordVisitor  {
 
   private final Deque<JsonObject> stack = new ArrayDeque<>();
   private ProtoReader structWriter;
-  private int structDepth;
 
   @Override
   public void init(MessageType type) {
@@ -42,9 +41,6 @@ public class JsonWriter implements RecordVisitor  {
   @Override
   public void enter(Field field) {
     if (structWriter != null) {
-      if (field.type() == MessageLiteral.Struct) {
-        structDepth++;
-      }
       structWriter.enter(field);
     } else if (field.type() == MessageLiteral.Struct ||
                field.type() == MessageLiteral.Value ||
@@ -100,15 +96,11 @@ public class JsonWriter implements RecordVisitor  {
       Object value = structWriter.pop();
       structWriter = null;
       put(field, value);
-    } else if (field.type() == MessageLiteral.Struct) {
-      if (structDepth-- == 0) {
-        structWriter.destroy();
-        JsonObject o = (JsonObject) structWriter.pop();
-        structWriter = null;
-        put(field, o);
-      } else {
-        structWriter.leave(field);
-      }
+    } else if (field.type() == MessageLiteral.Struct && structWriter.depth() == 1) {
+      structWriter.destroy();
+      JsonObject o = (JsonObject) structWriter.pop();
+      structWriter = null;
+      put(field, o);
     } else if (structWriter != null) {
       structWriter.leave(field);
     } else {

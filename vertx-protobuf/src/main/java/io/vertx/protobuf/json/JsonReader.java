@@ -94,9 +94,13 @@ public class JsonReader {
         if (field.isMap()) {
           parseObjectAsMap(parser, field, visitor);
         } else {
-          visitor.enter(field);
-          parseObject(parser, (MessageType) field.type(), visitor);
-          visitor.leave(field);
+          if (field.type() == MessageLiteral.Value) {
+            throw new UnsupportedOperationException();
+          } else {
+            visitor.enter(field);
+            parseObject(parser, (MessageType) field.type(), visitor);
+            visitor.leave(field);
+          }
         }
         break;
       case JsonTokenId.ID_START_ARRAY:
@@ -209,6 +213,11 @@ public class JsonReader {
                   visitor.visitBytes(FieldLiteral.BytesValue_value, Base64.getDecoder().decode(text));
                   visitor.leave(field);
                   break;
+                case Value:
+                  visitor.enter(field);
+                  visitor.visitString(FieldLiteral.Value_string_value, text);
+                  visitor.leave(field);
+                  break;
                 default:
                   throw new UnsupportedOperationException();
               }
@@ -281,6 +290,11 @@ public class JsonReader {
                 case UInt32Value:
                   visitor.enter(field);
                   visitor.visitUInt32(FieldLiteral.UInt32Value_value, number.intValue());
+                  visitor.leave(field);
+                  break;
+                case Value:
+                  visitor.enter(field);
+                  visitor.visitDouble(FieldLiteral.Value_number_value, number.doubleValue());
                   visitor.leave(field);
                   break;
                 default:

@@ -41,6 +41,10 @@ public class ProtoReader implements RecordVisitor {
     this.stack = stack;
   }
 
+  public int depth() {
+    return stack.size();
+  }
+
   public Object pop() {
     Object obj = stack.pop();
     if (obj == NULL) {
@@ -224,7 +228,16 @@ public class ProtoReader implements RecordVisitor {
           ((Entry)stack.peek()).key = s;
           break;
         case Value_string_value:
-          append(s);
+          switch (rootType) {
+            case Struct:
+              append(s);
+              break;
+            case Value:
+              stack.push(s);
+              break;
+            default:
+              throw new UnsupportedOperationException();
+          }
           break;
         case StringValue_value:
           stringValue = s;
@@ -260,7 +273,16 @@ public class ProtoReader implements RecordVisitor {
           doubleValue = d;
           break;
         case Value_number_value:
-          append(d);
+          switch (rootType) {
+            case Struct:
+              append(d);
+              break;
+            case Value:
+              stack.push(d);
+              break;
+            default:
+              throw new UnsupportedOperationException();
+          }
           break;
         default:
           throw new UnsupportedOperationException();
