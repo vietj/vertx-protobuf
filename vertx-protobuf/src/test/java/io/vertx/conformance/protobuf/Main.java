@@ -72,7 +72,10 @@ public class Main {
             ProtobufReader.parse(MessageLiteral.TestAllTypesProto3, reader, buffer);
             break;
           case JSON_PAYLOAD:
-            JsonReader.parse(request.getJsonPayload(), MessageLiteral.TestAllTypesProto3, reader);
+            boolean ignoreUnknownJsonParsing = request.getTestCategory() == Conformance.TestCategory.JSON_IGNORE_UNKNOWN_PARSING_TEST;
+            JsonReader r = new JsonReader(request.getJsonPayload(), reader);
+            r.ignoreUnknownFields(ignoreUnknownJsonParsing);
+            r.read(MessageLiteral.TestAllTypesProto3);
             break;
         }
       } catch (DecodeException | IndexOutOfBoundsException e) {

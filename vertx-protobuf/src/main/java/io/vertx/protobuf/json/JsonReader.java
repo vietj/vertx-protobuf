@@ -69,29 +69,54 @@ public class JsonReader {
   }
 
   public static void parse(JsonParser parser, MessageType messageType, RecordVisitor visitor) throws DecodeException {
+    JsonReader reader = new JsonReader(parser, visitor);
+    try {
+      reader.read(messageType);
+    } finally {
+      close(parser);
+    }
+  }
+
+  private final JsonParser parser;
+  private final RecordVisitor visitor;
+  private boolean ignoreUnknownFields;
+
+  public JsonReader(String json, RecordVisitor visitor) {
+    this(JacksonCodec.createParser(json), visitor);
+  }
+
+  public JsonReader(JsonParser parser, RecordVisitor visitor) {
+    this.parser = parser;
+    this.visitor = visitor;
+    this.ignoreUnknownFields = false;
+  }
+
+  public JsonReader ignoreUnknownFields(boolean ignoreUnknownFields) {
+    this.ignoreUnknownFields = ignoreUnknownFields;
+    return this;
+  }
+
+  public void read(MessageType messageType) {
     visitor.init(messageType);
     JsonToken remaining;
     try {
       parser.nextToken();
-      parseObject(parser, messageType, visitor);
+      readObject(messageType);
       remaining = parser.nextToken();
     } catch (IOException e) {
       throw new DecodeException(e.getMessage(), e);
-    } finally {
-      close(parser);
     }
     if (remaining != null) {
       throw new DecodeException("Unexpected trailing token");
     }
-
     visitor.destroy();
   }
 
-  private static void parseAny(JsonParser parser, Field field, RecordVisitor visitor) throws IOException, DecodeException {
+  private void readAny(Field field) throws IOException, DecodeException {
     switch (parser.currentTokenId()) {
       case JsonTokenId.ID_START_OBJECT:
         if (field.isMap()) {
-          parseObjectAsMap(parser, field, visitor);
+          readObjectAsMap(field);
         } else {
           if (field.type() == MessageLiteral.Value) {
             visitor.enter(field);
@@ -99,14 +124,14 @@ public class JsonReader {
             visitor.leave(field);
           } else {
             visitor.enter(field);
-            parseObject(parser, (MessageType) field.type(), visitor);
+            readObject((MessageType) field.type());
             visitor.leave(field);
           }
         }
         break;
       case JsonTokenId.ID_START_ARRAY:
         if (field.isRepeated()) {
-          parseArray(parser, field, visitor);
+          readArray(field);
         } else if (field.type() == MessageLiteral.Value) {
           visitor.enter(field);
           StructParser.parseValue(parser, visitor);
@@ -149,7 +174,7 @@ public class JsonReader {
             visitor.visitSInt32(field, Integer.parseInt(text));
             break;
           case UINT32:
-            visitor.visitUInt32(field, parseUInt32(text));
+            visitor.visitUInt32(field, readUInt32(text));
             break;
           case INT64:
             visitor.visitInt64(field, Long.parseLong(text));
@@ -158,7 +183,7 @@ public class JsonReader {
             visitor.visitSInt64(field, Long.parseLong(text));
             break;
           case UINT64:
-            visitor.visitUInt64(field, parseUInt64(text));
+            visitor.visitUInt64(field, readUInt64(text));
             break;
           case ENUM:
             OptionalInt index = ((EnumType) field.type()).numberOf(text);
@@ -314,10 +339,10 @@ public class JsonReader {
         }
         break;
       case JsonTokenId.ID_TRUE:
-        parseBoolean(field, true, visitor);
+        readBoolean(field, true);
         break;
       case JsonTokenId.ID_FALSE:
-        parseBoolean(field, false, visitor);
+        readBoolean(field, false);
         break;
       case JsonTokenId.ID_NULL:
         if (field.type() == MessageLiteral.Value) {
@@ -333,7 +358,7 @@ public class JsonReader {
     }
   }
 
-  private static void parseBoolean(Field field, boolean value, RecordVisitor visitor) {
+  private void readBoolean(Field field, boolean value) {
     if (field.type() == MessageLiteral.BoolValue) {
       visitor.enter(field);
       visitor.visitBool(FieldLiteral.BoolValue_value, value);
@@ -349,7 +374,7 @@ public class JsonReader {
     }
   }
 
-  private static void parseObjectAsMap(JsonParser parser, Field field, RecordVisitor visitor) throws IOException {
+  private void readObjectAsMap(Field field) throws IOException {
     assert parser.hasToken(JsonToken.START_OBJECT);
     MessageType mt = (MessageType) field.type();
     Field keyField = mt.field(1);
@@ -372,7 +397,7 @@ public class JsonReader {
           visitor.visitUInt32(keyField, Integer.parseInt(key));
           break;
         case UINT64:
-          visitor.visitUInt64(keyField, parseUInt64(key));
+          visitor.visitUInt64(keyField, readUInt64(key));
           break;
         case SINT32:
           visitor.visitSInt32(keyField, Integer.parseInt(key));
@@ -398,12 +423,12 @@ public class JsonReader {
         default:
           throw new UnsupportedOperationException();
       }
-      parseAny(parser, valueField, visitor);
+      readAny(valueField);
       visitor.leave(field);
     }
   }
 
-  private static void parseObject(JsonParser parser, MessageType type, RecordVisitor visitor) throws IOException {
+  private void readObject(MessageType type) throws IOException {
     assert parser.hasToken(JsonToken.START_OBJECT);
     if (type == MessageLiteral.Struct) {
       StructParser.parseObject(parser, visitor);
@@ -415,18 +440,24 @@ public class JsonReader {
           field = type.fieldByName(key);
         }
         if (field == null) {
-          throw new DecodeException("Unknown field " + key);
+          if (ignoreUnknownFields) {
+            parser.nextToken();
+            exhaustAny();
+          } else {
+            throw new DecodeException("Unknown field " + key);
+          }
+        } else {
+          parser.nextToken();
+          readAny(field);
         }
-        parser.nextToken();
-        parseAny(parser, field, visitor);
       }
     }
   }
 
-  private static void parseArray(JsonParser parser, Field field, RecordVisitor visitor) throws IOException {
+  private void readArray(Field field) throws IOException {
     assert parser.hasToken(JsonToken.START_ARRAY);
     while (parser.nextToken() != JsonToken.END_ARRAY) {
-      parseAny(parser, field, visitor);
+      readAny(field);
     }
   }
 
@@ -437,7 +468,7 @@ public class JsonReader {
     }
   }
 
-  private static int parseUInt32(String value) {
+  private static int readUInt32(String value) {
     BigInteger parsed = new BigDecimal(value).toBigIntegerExact();
     if (parsed.compareTo(BigInteger.ZERO) < 0 || parsed.compareTo(MAX_UINT32) > 0) {
       throw new DecodeException("Invalid uint64 value");
@@ -445,11 +476,46 @@ public class JsonReader {
     return parsed.intValue();
   }
 
-  private static long parseUInt64(String value) {
+  private static long readUInt64(String value) {
     BigInteger parsed = new BigDecimal(value).toBigIntegerExact();
     if (parsed.compareTo(BigInteger.ZERO) < 0 || parsed.compareTo(MAX_UINT64) > 0) {
       throw new DecodeException("Invalid uint64 value");
     }
     return parsed.longValue();
+  }
+
+  private void exhaustAny() throws IOException, DecodeException {
+    switch (parser.currentTokenId()) {
+      case JsonTokenId.ID_START_OBJECT:
+        exhaustObject();
+        break;
+      case JsonTokenId.ID_START_ARRAY:
+        exhaustArray();
+        break;
+      case JsonTokenId.ID_STRING:
+      case JsonTokenId.ID_NUMBER_FLOAT:
+      case JsonTokenId.ID_NUMBER_INT:
+      case JsonTokenId.ID_TRUE:
+      case JsonTokenId.ID_FALSE:
+      case JsonTokenId.ID_NULL:
+        break;
+      default:
+        throw new DecodeException("Unexpected token");
+    }
+  }
+
+  private void exhaustObject() throws IOException {
+    assert parser.hasToken(JsonToken.START_OBJECT);
+    while (parser.nextToken() == JsonToken.FIELD_NAME) {
+      parser.nextToken();
+      exhaustAny();
+    }
+  }
+
+  private void exhaustArray() throws IOException {
+    assert parser.hasToken(JsonToken.START_ARRAY);
+    while (parser.nextToken() != JsonToken.END_ARRAY) {
+      exhaustAny();
+    }
   }
 }

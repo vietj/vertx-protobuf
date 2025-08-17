@@ -1,5 +1,6 @@
 package io.vertx.tests.protobuf.json;
 
+import com.fasterxml.jackson.core.JsonParser;
 import com.google.protobuf.BoolValue;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.BytesValue;
@@ -20,6 +21,7 @@ import com.google.protobuf.Value;
 import com.google.protobuf.util.JsonFormat;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.json.jackson.JacksonCodec;
 import io.vertx.protobuf.json.JsonReader;
 import io.vertx.protobuf.json.JsonWriter;
 import io.vertx.tests.json.Container;
@@ -133,6 +135,14 @@ public class JsonTest {
     assertEquals("the-string", container.getStringValue().getValue());
     assertEquals("the-bytes", container.getBytesValue().getValue().toString("UTF-8"));
     assertEquals(expected, write(container));
+  }
+
+  @Test
+  public void testIgnoreUnnkownFields() {
+    ProtoReader pr = new ProtoReader();
+    JsonReader reader = new JsonReader("{\"unknown\":{\"foo\":3}}", pr);
+    reader.ignoreUnknownFields(true);
+    reader.read(MessageLiteral.Container);
   }
 
   private Container read(JsonProto.Container container) {

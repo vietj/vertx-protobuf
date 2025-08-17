@@ -12,12 +12,6 @@ Required.Proto3.JsonInput.EmptyFieldMask.ProtobufOutput # Failed to parse input 
 Required.Proto3.JsonInput.EnumFieldNumericValueNonZero.ProtobufOutput # Failed to parse input or produce output.
 Required.Proto3.JsonInput.EnumFieldNumericValueZero.ProtobufOutput # Failed to parse input or produce output.
 Required.Proto3.JsonInput.FieldMask.ProtobufOutput # Failed to parse input or produce output.
-Required.Proto3.JsonInput.IgnoreUnknownJsonFalse.ProtobufOutput # Failed to parse input or produce output.
-Required.Proto3.JsonInput.IgnoreUnknownJsonNull.ProtobufOutput # Failed to parse input or produce output.
-Required.Proto3.JsonInput.IgnoreUnknownJsonNumber.ProtobufOutput # Failed to parse input or produce output.
-Required.Proto3.JsonInput.IgnoreUnknownJsonObject.ProtobufOutput # Failed to parse input or produce output.
-Required.Proto3.JsonInput.IgnoreUnknownJsonString.ProtobufOutput # Failed to parse input or produce output.
-Required.Proto3.JsonInput.IgnoreUnknownJsonTrue.ProtobufOutput # Failed to parse input or produce output.
 Required.Proto3.JsonInput.Int32FieldQuotedExponentialValue.ProtobufOutput # Failed to parse input or produce output.
 Required.Proto3.JsonInput.OptionalInt64Wrapper.ProtobufOutput # Failed to parse input or produce output.
 Required.Proto3.JsonInput.OptionalUint64Wrapper.ProtobufOutput # Failed to parse input or produce output.
