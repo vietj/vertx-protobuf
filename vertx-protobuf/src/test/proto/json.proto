@@ -30,6 +30,24 @@ message Container {
   google.protobuf.BytesValue bytesValue = 15;
 }
 
+message Repetition {
+  repeated google.protobuf.Struct struct = 1;
+  repeated google.protobuf.Value value = 2;
+  repeated google.protobuf.ListValue list_value = 3;
+  repeated google.protobuf.NullValue null_value = 4;
+  repeated google.protobuf.Duration duration = 5;
+  repeated google.protobuf.Timestamp timestamp = 6;
+  repeated google.protobuf.DoubleValue doubleValue = 7;
+  repeated google.protobuf.FloatValue floatValue = 8;
+  repeated google.protobuf.Int64Value int64Value = 9;
+  repeated google.protobuf.UInt64Value uint64Value = 10;
+  repeated google.protobuf.Int32Value int32Value = 11;
+  repeated google.protobuf.UInt32Value uint32Value = 12;
+  repeated google.protobuf.BoolValue boolValue = 13;
+  repeated google.protobuf.StringValue stringValue = 14;
+  repeated google.protobuf.BytesValue bytesValue = 15;
+}
+
 message Unpacked {
   repeated fixed32 list_of_numbers = 1 [packed = false];
   repeated string list_of_strings = 2 [packed = false];

@@ -11,6 +11,7 @@ import com.google.protobuf.Int32Value;
 import com.google.protobuf.Int64Value;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.ListValue;
+import com.google.protobuf.MessageOrBuilder;
 import com.google.protobuf.NullValue;
 import com.google.protobuf.StringValue;
 import com.google.protobuf.Struct;
@@ -24,13 +25,17 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.jackson.JacksonCodec;
 import io.vertx.protobuf.json.JsonReader;
 import io.vertx.protobuf.json.JsonWriter;
+import io.vertx.protobuf.schema.MessageType;
 import io.vertx.tests.json.Container;
 import io.vertx.tests.json.JsonProto;
 import io.vertx.tests.json.MessageLiteral;
 import io.vertx.tests.json.ProtoReader;
 import io.vertx.tests.json.ProtoWriter;
+import io.vertx.tests.json.Repetition;
 import junit.framework.AssertionFailedError;
 import org.junit.Test;
+
+import java.util.Map;
 
 import static org.junit.Assert.*;
 
@@ -49,7 +54,7 @@ public class JsonTest {
         .putFields("object-key", Value.newBuilder().setStructValue(Struct.newBuilder().putFields("the-key", Value.newBuilder().setStringValue("the-value").build()).build()).build())
         .build())
       .build();
-    Container read = read(expected);
+    Container read = read(expected, MessageLiteral.Container);
     assertEquals("string-value", read.getStruct().getFields().get("string-key").getKind().asStringValue().get());
     assertEquals(0, read.getStruct().getFields().get("null-key").getKind().asNullValue().get().number());
     assertEquals(3.14D, read.getStruct().getFields().get("number-key").getKind().asNumberValue().get(), 0.00001D);
@@ -75,7 +80,7 @@ public class JsonTest {
     JsonProto.Container expected = JsonProto.Container.newBuilder()
       .setValue(value)
       .build();
-    Container read = read(expected);
+    Container read = read(expected, MessageLiteral.Container);
     JsonProto.Container actual = write(read);
     assertEquals(expected, actual);
     return read.getValue().getKind();
@@ -89,7 +94,7 @@ public class JsonTest {
       JsonProto.Container expected = JsonProto.Container.newBuilder()
         .setDuration(Duration.newBuilder().setSeconds(listOfSeconds[i]).setNanos(listOfNano[i]).build())
         .build();
-      Container container = read(expected);
+      Container container = read(expected, MessageLiteral.Container);
       assertEquals(listOfSeconds[i], (long)container.getDuration().getSeconds());
       assertEquals(listOfNano[i], (int)container.getDuration().getNanos());
       assertEquals(expected, write(container));
@@ -104,7 +109,7 @@ public class JsonTest {
       JsonProto.Container expected = JsonProto.Container.newBuilder()
         .setTimestamp(Timestamp.newBuilder().setSeconds(listOfSeconds[i]).setNanos(listOfNano[i]).build())
         .build();
-      Container container = read(expected);
+      Container container = read(expected, MessageLiteral.Container);
       assertEquals(listOfSeconds[i], (long)container.getTimestamp().getSeconds());
       assertEquals(listOfNano[i], (int)container.getTimestamp().getNanos());
       assertEquals(expected, write(container));
@@ -124,17 +129,19 @@ public class JsonTest {
       .setStringValue(StringValue.newBuilder().setValue("the-string"))
       .setBytesValue(BytesValue.newBuilder().setValue(ByteString.copyFromUtf8("the-bytes")))
       .build();
-    Container container = read(expected);
-    assertEquals(4.5D, container.getDoubleValue().getValue(), 0.0001D);
-    assertEquals(4.2F, container.getFloatValue().getValue(), 0.0001D);
-    assertEquals(7L, (long)container.getInt64Value().getValue());
-    assertEquals(8L, (long)container.getUint64Value().getValue());
-    assertEquals(3, (int)container.getInt32Value().getValue());
-    assertEquals(4, (int)container.getUint32Value().getValue());
-    assertTrue(container.getBoolValue().getValue());
-    assertEquals("the-string", container.getStringValue().getValue());
-    assertEquals("the-bytes", container.getBytesValue().getValue().toString("UTF-8"));
-    assertEquals(expected, write(container));
+    for (boolean quoteNumbers : new boolean[]{true, false}) {
+      Container container = read(expected, MessageLiteral.Container, quoteNumbers);
+      assertEquals(4.5D, container.getDoubleValue().getValue(), 0.0001D);
+      assertEquals(4.2F, container.getFloatValue().getValue(), 0.0001D);
+      assertEquals(7L, (long)container.getInt64Value().getValue());
+      assertEquals(8L, (long)container.getUint64Value().getValue());
+      assertEquals(3, (int)container.getInt32Value().getValue());
+      assertEquals(4, (int)container.getUint32Value().getValue());
+      assertTrue(container.getBoolValue().getValue());
+      assertEquals("the-string", container.getStringValue().getValue());
+      assertEquals("the-bytes", container.getBytesValue().getValue().toString("UTF-8"));
+      assertEquals(expected, write(container));
+    }
   }
 
   @Test
@@ -145,12 +152,54 @@ public class JsonTest {
     reader.read(MessageLiteral.Container);
   }
 
-  private Container read(JsonProto.Container container) {
+  @Test
+  public void testRepetition() {
+    JsonProto.Repetition expected = JsonProto.Repetition.newBuilder()
+      .addInt32Value(Int32Value.newBuilder().setValue(1))
+      .addInt32Value(Int32Value.newBuilder().setValue(2))
+      .build();
+    Repetition repetition = read(expected, MessageLiteral.Repetition);
+    assertEquals(2, repetition.getInt32Value().size());
+    assertEquals(1, (int)repetition.getInt32Value().get(0).getValue());
+    assertEquals(2, (int)repetition.getInt32Value().get(1).getValue());
+  }
+
+  private <T> T read(MessageOrBuilder container, MessageType type) {
+    return read(container, type, false);
+  }
+
+  private static void quoteNumbers(Object o) {
+    if (o instanceof JsonObject) {
+      for (Map.Entry<String, Object> entry : (JsonObject)o) {
+        Object value = entry.getValue();
+        if (value instanceof Number) {
+          entry.setValue("" + value);
+        } else {
+          quoteNumbers(value);
+        }
+      }
+    } else if (o instanceof JsonArray) {
+      JsonArray array = (JsonArray) o;
+      for (int i = 0;i < array.size();i++) {
+        Object value = array.getValue(i);
+        if (value instanceof Number) {
+          array.set(i, "" + value);
+        } else {
+          quoteNumbers(value);
+        }
+      }
+    }
+  }
+
+  private <T> T read(MessageOrBuilder container, MessageType type, boolean quoteNumbers) {
     try {
-      String json = JsonFormat.printer().print(container);
+      JsonObject json = new JsonObject(JsonFormat.printer().print(container));
+      if (quoteNumbers) {
+        quoteNumbers(json);
+      }
       ProtoReader pr = new ProtoReader();
-      JsonReader.parse(json, MessageLiteral.Container, pr);
-      return (Container) pr.stack.pop();
+      JsonReader.parse(json.encode(), type, pr);
+      return (T)pr.stack.pop();
     } catch (InvalidProtocolBufferException e) {
       AssertionFailedError afe = new AssertionFailedError();
       afe.initCause(e);

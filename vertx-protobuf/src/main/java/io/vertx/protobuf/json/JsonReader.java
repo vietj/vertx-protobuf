@@ -223,14 +223,9 @@ public class JsonReader {
                   }
                   visitor.leave(field);
                   break;
-                case Int64Value:
+                case Value:
                   visitor.enter(field);
-                  visitor.visitInt64(FieldLiteral.Int64Value_value, Long.parseLong(text));
-                  visitor.leave(field);
-                  break;
-                case UInt64Value:
-                  visitor.enter(field);
-                  visitor.visitUInt64(FieldLiteral.UInt64Value_value, Long.parseLong(text));
+                  visitor.visitString(FieldLiteral.Value_string_value, text);
                   visitor.leave(field);
                   break;
                 case StringValue:
@@ -243,9 +238,34 @@ public class JsonReader {
                   visitor.visitBytes(FieldLiteral.BytesValue_value, Base64.getDecoder().decode(text));
                   visitor.leave(field);
                   break;
-                case Value:
+                case Int32Value:
                   visitor.enter(field);
-                  visitor.visitString(FieldLiteral.Value_string_value, text);
+                  visitor.visitInt32(FieldLiteral.Int32Value_value, parseInt(text));
+                  visitor.leave(field);
+                  break;
+                case UInt32Value:
+                  visitor.enter(field);
+                  visitor.visitUInt32(FieldLiteral.UInt32Value_value, parseInt(text));
+                  visitor.leave(field);
+                  break;
+                case Int64Value:
+                  visitor.enter(field);
+                  visitor.visitInt64(FieldLiteral.Int64Value_value, parseLong(text));
+                  visitor.leave(field);
+                  break;
+                case UInt64Value:
+                  visitor.enter(field);
+                  visitor.visitUInt64(FieldLiteral.UInt64Value_value, parseLong(text));
+                  visitor.leave(field);
+                  break;
+                case FloatValue:
+                  visitor.enter(field);
+                  visitor.visitFloat(FieldLiteral.FloatValue_value, Float.parseFloat(text));
+                  visitor.leave(field);
+                  break;
+                case DoubleValue:
+                  visitor.enter(field);
+                  visitor.visitDouble(FieldLiteral.DoubleValue_value, Double.parseDouble(text));
                   visitor.leave(field);
                   break;
                 default:
@@ -302,14 +322,9 @@ public class JsonReader {
           case MESSAGE:
             if (field.type() instanceof MessageLiteral) {
               switch ((MessageLiteral)field.type()) {
-                case DoubleValue:
+                case Value:
                   visitor.enter(field);
-                  visitor.visitDouble(FieldLiteral.DoubleValue_value, number.doubleValue());
-                  visitor.leave(field);
-                  break;
-                case FloatValue:
-                  visitor.enter(field);
-                  visitor.visitFloat(FieldLiteral.FloatValue_value, number.floatValue());
+                  visitor.visitDouble(FieldLiteral.Value_number_value, number.doubleValue());
                   visitor.leave(field);
                   break;
                 case Int32Value:
@@ -322,9 +337,24 @@ public class JsonReader {
                   visitor.visitUInt32(FieldLiteral.UInt32Value_value, number.intValue());
                   visitor.leave(field);
                   break;
-                case Value:
+                case Int64Value:
                   visitor.enter(field);
-                  visitor.visitDouble(FieldLiteral.Value_number_value, number.doubleValue());
+                  visitor.visitInt64(FieldLiteral.Int64Value_value, number.longValue());
+                  visitor.leave(field);
+                  break;
+                case UInt64Value:
+                  visitor.enter(field);
+                  visitor.visitUInt64(FieldLiteral.UInt64Value_value, number.longValue());
+                  visitor.leave(field);
+                  break;
+                case FloatValue:
+                  visitor.enter(field);
+                  visitor.visitFloat(FieldLiteral.FloatValue_value, number.floatValue());
+                  visitor.leave(field);
+                  break;
+                case DoubleValue:
+                  visitor.enter(field);
+                  visitor.visitDouble(FieldLiteral.DoubleValue_value, number.doubleValue());
                   visitor.leave(field);
                   break;
                 default:

@@ -19,7 +19,7 @@ public class ConformanceTest {
   @Test
   public void testJsonInput() throws Exception {
 
-    String json = "{\"optionalInt32\": \"1e5\"}";
+    String json = "{\"repeatedInt64Wrapper\": [0, 1]}";
 
     TestMessagesProto3.TestAllTypesProto3.Builder builder = TestMessagesProto3.TestAllTypesProto3.newBuilder();
     JsonFormat.parser().merge(json, builder);
