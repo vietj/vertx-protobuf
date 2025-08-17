@@ -19,21 +19,15 @@ public class ConformanceTest {
   @Test
   public void testJsonInput() throws Exception {
 
-    String json = "{\"optionalBool\":false}";
+    String json = "{\"optionalInt32\": \"1e5\"}";
 
     TestMessagesProto3.TestAllTypesProto3.Builder builder = TestMessagesProto3.TestAllTypesProto3.newBuilder();
     JsonFormat.parser().merge(json, builder);
     TestMessagesProto3.TestAllTypesProto3 d = builder.build();
 
-    System.out.println(d.getOptionalBool());
-
     ProtoReader reader = new ProtoReader();
     JsonReader.parse(json, MessageLiteral.TestAllTypesProto3, reader);
     TestAllTypesProto3 testMessage = (TestAllTypesProto3) reader.stack.pop();
-    System.out.println(testMessage.getOptionalBool());
-
-
-
   }
 
   @Test

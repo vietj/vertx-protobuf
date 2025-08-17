@@ -150,37 +150,37 @@ public class JsonReader {
             visitor.visitBytes(field, Base64.getDecoder().decode(text));
             break;
           case FIXED32:
-            visitor.visitFixed32(field, Integer.parseInt(text));
+            visitor.visitFixed32(field, parseInt(text));
             break;
           case SFIXED32:
-            visitor.visitSFixed32(field, Integer.parseInt(text));
+            visitor.visitSFixed32(field, parseInt(text));
             break;
           case FLOAT:
             visitor.visitFloat(field, Float.parseFloat(text));
             break;
           case FIXED64:
-            visitor.visitFixed64(field, Long.parseLong(text));
+            visitor.visitFixed64(field, parseLong(text));
             break;
           case SFIXED64:
-            visitor.visitSFixed64(field, Long.parseLong(text));
+            visitor.visitSFixed64(field, parseLong(text));
             break;
           case DOUBLE:
             visitor.visitDouble(field, Double.parseDouble(text));
             break;
           case INT32:
-            visitor.visitInt32(field, Integer.parseInt(text));
+            visitor.visitInt32(field, parseInt(text));
             break;
           case SINT32:
-            visitor.visitSInt32(field, Integer.parseInt(text));
+            visitor.visitSInt32(field, parseInt(text));
             break;
           case UINT32:
             visitor.visitUInt32(field, readUInt32(text));
             break;
           case INT64:
-            visitor.visitInt64(field, Long.parseLong(text));
+            visitor.visitInt64(field, parseLong(text));
             break;
           case SINT64:
-            visitor.visitSInt64(field, Long.parseLong(text));
+            visitor.visitSInt64(field, parseLong(text));
             break;
           case UINT64:
             visitor.visitUInt64(field, readUInt64(text));
@@ -355,6 +355,30 @@ public class JsonReader {
         break;
       default:
         throw new DecodeException("Unexpected token"/*, parser.getCurrentLocation()*/);
+    }
+  }
+
+  private int parseInt(String s) {
+    try {
+      return Integer.parseInt(s);
+    } catch (NumberFormatException e) {
+      try {
+        return new BigDecimal(s).toBigIntegerExact().intValueExact();
+      } catch (Exception ex) {
+        throw new DecodeException(e.getMessage());
+      }
+    }
+  }
+
+  private long parseLong(String s) {
+    try {
+      return Long.parseLong(s);
+    } catch (NumberFormatException e) {
+      try {
+        return new BigDecimal(s).toBigIntegerExact().longValueExact();
+      } catch (Exception ex) {
+        throw new DecodeException(e.getMessage());
+      }
     }
   }
 

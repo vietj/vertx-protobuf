@@ -138,7 +138,7 @@ public class JsonTest {
   }
 
   @Test
-  public void testIgnoreUnnkownFields() {
+  public void testIgnoreUnknownFields() {
     ProtoReader pr = new ProtoReader();
     JsonReader reader = new JsonReader("{\"unknown\":{\"foo\":3}}", pr);
     reader.ignoreUnknownFields(true);

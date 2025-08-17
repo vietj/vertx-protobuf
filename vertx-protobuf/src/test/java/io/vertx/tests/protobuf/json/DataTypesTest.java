@@ -98,4 +98,26 @@ public class DataTypesTest extends DataTypeTestBase {
     JsonReader.parse("{\"bool\":false}", SCALAR_TYPES, checker);
     assertTrue(checker.isEmpty());
   }
+
+  @Test
+  public void testInt32QuotedExponentNotation() {
+    RecordingVisitor visitor = new RecordingVisitor();
+    visitor.init(SCALAR_TYPES);
+    visitor.visitInt32(INT32, 500);
+    visitor.destroy();
+    RecordingVisitor.Checker checker = visitor.checker();
+    JsonReader.parse("{\"int32\":\"5e2\"}", SCALAR_TYPES, checker);
+    assertTrue(checker.isEmpty());
+  }
+
+  @Test
+  public void testUInt32QuotedExponentNotation() {
+    RecordingVisitor visitor = new RecordingVisitor();
+    visitor.init(SCALAR_TYPES);
+    visitor.visitUInt32(UINT32, 500);
+    visitor.destroy();
+    RecordingVisitor.Checker checker = visitor.checker();
+    JsonReader.parse("{\"uint32\":\"5e2\"}", SCALAR_TYPES, checker);
+    assertTrue(checker.isEmpty());
+  }
 }
