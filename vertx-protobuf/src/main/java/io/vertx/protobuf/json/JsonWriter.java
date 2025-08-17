@@ -44,6 +44,7 @@ public class JsonWriter implements RecordVisitor  {
       structWriter.enter(field);
     } else if (field.type() == MessageLiteral.Struct ||
                field.type() == MessageLiteral.Value ||
+               field.type() == MessageLiteral.ListValue ||
                field.type() == MessageLiteral.Duration ||
                field.type() == MessageLiteral.Timestamp ||
                field.type() == MessageLiteral.DoubleValue ||
@@ -100,6 +101,12 @@ public class JsonWriter implements RecordVisitor  {
       // CONVOLUTED
       structWriter.destroy();
       JsonObject o = (JsonObject) structWriter.pop();
+      structWriter = null;
+      put(field, o);
+    } else if (field.type() == MessageLiteral.ListValue && structWriter.rootType == MessageLiteral.ListValue && structWriter.depth() == 1) {
+      // CONVOLUTED
+      structWriter.destroy();
+      JsonArray o = (JsonArray) structWriter.pop();
       structWriter = null;
       put(field, o);
     } else if (structWriter != null) {

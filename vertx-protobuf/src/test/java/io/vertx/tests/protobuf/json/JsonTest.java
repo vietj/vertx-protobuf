@@ -33,6 +33,7 @@ import io.vertx.tests.json.ProtoReader;
 import io.vertx.tests.json.ProtoWriter;
 import io.vertx.tests.json.Repetition;
 import junit.framework.AssertionFailedError;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Map;
@@ -84,6 +85,31 @@ public class JsonTest {
     JsonProto.Container actual = write(read);
     assertEquals(expected, actual);
     return read.getValue().getKind();
+  }
+
+  @Test
+  public void testListValue() {
+    JsonProto.Container expected = JsonProto.Container.newBuilder()
+      .setListValue(ListValue.newBuilder()
+        .addValues(Value.newBuilder().setStringValue("string-value").build())
+        .addValues(Value.newBuilder().setNullValue(NullValue.NULL_VALUE).build())
+        .addValues(Value.newBuilder().setNumberValue(3.14).build())
+        .addValues(Value.newBuilder().setBoolValue(true).build())
+        .addValues(Value.newBuilder().setBoolValue(false).build())
+        .addValues(Value.newBuilder().setListValue(ListValue.newBuilder().addValues(Value.newBuilder().setStringValue("the-string").build()).build()).build())
+        .addValues(Value.newBuilder().setStructValue(Struct.newBuilder().putFields("the-key", Value.newBuilder().setStringValue("the-value").build()).build()).build())
+        .build())
+      .build();
+    Container read = read(expected, MessageLiteral.Container);
+    assertEquals("string-value", read.getListValue().getValues().get(0).getKind().asStringValue().get());
+    assertEquals(0, read.getListValue().getValues().get(1).getKind().asNullValue().get().number());
+    assertEquals(3.14D, read.getListValue().getValues().get(2).getKind().asNumberValue().get(), 0.00001D);
+    assertEquals(true, read.getListValue().getValues().get(3).getKind().asBoolValue().get());
+    assertEquals(false, read.getListValue().getValues().get(4).getKind().asBoolValue().get());
+    assertEquals(1, read.getListValue().getValues().get(5).getKind().asListValue().get().getValues().size());
+    assertEquals(1, read.getListValue().getValues().get(6).getKind().asStructValue().get().getFields().size());
+    JsonProto.Container actual = write(read);
+    assertEquals(actual, expected);
   }
 
   @Test

@@ -62,7 +62,7 @@ class StructParser {
     }
   }
 
-  private static void parseArray(JsonParser parser, RecordVisitor visitor) throws IOException {
+  public static void parseArray(JsonParser parser, RecordVisitor visitor) throws IOException {
     assert parser.hasToken(JsonToken.START_ARRAY);
     visitor.enterPacked(FieldLiteral.ListValue_values);
     while (parser.nextToken() != JsonToken.END_ARRAY) {

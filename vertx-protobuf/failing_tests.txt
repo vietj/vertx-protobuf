@@ -1,17 +1,1 @@
-Required.Proto3.JsonInput.Any.ProtobufOutput # Failed to parse input or produce output.
-Required.Proto3.JsonInput.AnyNested.ProtobufOutput # Failed to parse input or produce output.
-Required.Proto3.JsonInput.AnyUnorderedTypeTag.ProtobufOutput # Failed to parse input or produce output.
-Required.Proto3.JsonInput.AnyWithDuration.ProtobufOutput # Failed to parse input or produce output.
-Required.Proto3.JsonInput.AnyWithFieldMask.ProtobufOutput # Failed to parse input or produce output.
-Required.Proto3.JsonInput.AnyWithInt32ValueWrapper.ProtobufOutput # Failed to parse input or produce output.
-Required.Proto3.JsonInput.AnyWithStruct.ProtobufOutput # Failed to parse input or produce output.
-Required.Proto3.JsonInput.AnyWithTimestamp.ProtobufOutput # Failed to parse input or produce output.
-Required.Proto3.JsonInput.AnyWithValueForInteger.ProtobufOutput # Failed to parse input or produce output.
-Required.Proto3.JsonInput.AnyWithValueForJsonObject.ProtobufOutput # Failed to parse input or produce output.
-Required.Proto3.JsonInput.EmptyFieldMask.ProtobufOutput # Failed to parse input or produce output.
-Required.Proto3.JsonInput.EnumFieldNumericValueNonZero.ProtobufOutput # Failed to parse input or produce output.
-Required.Proto3.JsonInput.EnumFieldNumericValueZero.ProtobufOutput # Failed to parse input or produce output.
-Required.Proto3.JsonInput.FieldMask.ProtobufOutput # Failed to parse input or produce output.
 Required.Proto3.JsonInput.RepeatedListValue.ProtobufOutput # Failed to parse input or produce output.
-Required.Proto3.JsonInput.RepeatedValue.ProtobufOutput # Output was not equivalent to reference message: added: repeated_value[0].string_value: "a"deleted: repeated_value[0].list_value:
-Required.Proto3.JsonInput.Uint32FieldMaxFloatValue.ProtobufOutput # Output was not equivalent to reference message: modified: optional_uint32: 4294967295 -> 2147483647

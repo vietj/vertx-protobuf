@@ -61,6 +61,9 @@ public class ProtoReader implements RecordVisitor {
         case Struct:
           stack.push(new JsonObject());
           break;
+        case ListValue:
+          stack.push(new JsonArray());
+          break;
         case Value:
           break;
         case Duration:
@@ -113,11 +116,9 @@ public class ProtoReader implements RecordVisitor {
         case Value_bool_value:
           switch (rootType) {
             case Value:
-              stack.push(v);
-              break;
+            case ListValue:
             case Struct:
               stack.push(v);
-//              append(v);
               break;
           }
           break;
@@ -138,8 +139,7 @@ public class ProtoReader implements RecordVisitor {
         case Value_null_value:
           switch (rootType) {
             case Struct:
-              stack.push(NULL);
-              break;
+            case ListValue:
             case Value:
               stack.push(NULL);
               break;
@@ -233,9 +233,7 @@ public class ProtoReader implements RecordVisitor {
         case Value_string_value:
           switch (rootType) {
             case Struct:
-//              append(s);
-              stack.push(s);
-              break;
+            case ListValue:
             case Value:
               stack.push(s);
               break;
@@ -279,9 +277,7 @@ public class ProtoReader implements RecordVisitor {
         case Value_number_value:
           switch (rootType) {
             case Struct:
-//              append(d);
-              stack.push(d);
-              break;
+            case ListValue:
             case Value:
               stack.push(d);
               break;
