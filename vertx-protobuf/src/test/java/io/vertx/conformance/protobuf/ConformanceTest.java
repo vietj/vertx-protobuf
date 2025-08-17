@@ -19,25 +19,18 @@ public class ConformanceTest {
   @Test
   public void testJsonInput() throws Exception {
 
-    String json = "{\"optionalDuration\": \"-315576000000.999999999s\"}";
+    String json = "{\"optionalBool\":false}";
 
     TestMessagesProto3.TestAllTypesProto3.Builder builder = TestMessagesProto3.TestAllTypesProto3.newBuilder();
     JsonFormat.parser().merge(json, builder);
     TestMessagesProto3.TestAllTypesProto3 d = builder.build();
 
-    System.out.println(d.getOptionalDuration().getSeconds());
-    System.out.println(d.getOptionalDuration().getNanos());
+    System.out.println(d.getOptionalBool());
 
-//    System.out.println(d);
-
-    // repeatedUint64
-
-    //    System.out.println("d = " + d);
     ProtoReader reader = new ProtoReader();
     JsonReader.parse(json, MessageLiteral.TestAllTypesProto3, reader);
     TestAllTypesProto3 testMessage = (TestAllTypesProto3) reader.stack.pop();
-    System.out.println(testMessage.getOptionalDuration().getSeconds());
-    System.out.println(testMessage.getOptionalDuration().getNanos());
+    System.out.println(testMessage.getOptionalBool());
 
 
 

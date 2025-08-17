@@ -1,1 +1,28 @@
-Required.Proto3.JsonInput.ValueAcceptBool.ProtobufOutput # Failed to parse input or produce output.
+Required.Proto3.JsonInput.Any.ProtobufOutput # Failed to parse input or produce output.
+Required.Proto3.JsonInput.AnyNested.ProtobufOutput # Failed to parse input or produce output.
+Required.Proto3.JsonInput.AnyUnorderedTypeTag.ProtobufOutput # Failed to parse input or produce output.
+Required.Proto3.JsonInput.AnyWithDuration.ProtobufOutput # Failed to parse input or produce output.
+Required.Proto3.JsonInput.AnyWithFieldMask.ProtobufOutput # Failed to parse input or produce output.
+Required.Proto3.JsonInput.AnyWithInt32ValueWrapper.ProtobufOutput # Failed to parse input or produce output.
+Required.Proto3.JsonInput.AnyWithStruct.ProtobufOutput # Failed to parse input or produce output.
+Required.Proto3.JsonInput.AnyWithTimestamp.ProtobufOutput # Failed to parse input or produce output.
+Required.Proto3.JsonInput.AnyWithValueForInteger.ProtobufOutput # Failed to parse input or produce output.
+Required.Proto3.JsonInput.AnyWithValueForJsonObject.ProtobufOutput # Failed to parse input or produce output.
+Required.Proto3.JsonInput.EmptyFieldMask.ProtobufOutput # Failed to parse input or produce output.
+Required.Proto3.JsonInput.EnumFieldNumericValueNonZero.ProtobufOutput # Failed to parse input or produce output.
+Required.Proto3.JsonInput.EnumFieldNumericValueZero.ProtobufOutput # Failed to parse input or produce output.
+Required.Proto3.JsonInput.FieldMask.ProtobufOutput # Failed to parse input or produce output.
+Required.Proto3.JsonInput.IgnoreUnknownJsonFalse.ProtobufOutput # Failed to parse input or produce output.
+Required.Proto3.JsonInput.IgnoreUnknownJsonNull.ProtobufOutput # Failed to parse input or produce output.
+Required.Proto3.JsonInput.IgnoreUnknownJsonNumber.ProtobufOutput # Failed to parse input or produce output.
+Required.Proto3.JsonInput.IgnoreUnknownJsonObject.ProtobufOutput # Failed to parse input or produce output.
+Required.Proto3.JsonInput.IgnoreUnknownJsonString.ProtobufOutput # Failed to parse input or produce output.
+Required.Proto3.JsonInput.IgnoreUnknownJsonTrue.ProtobufOutput # Failed to parse input or produce output.
+Required.Proto3.JsonInput.Int32FieldQuotedExponentialValue.ProtobufOutput # Failed to parse input or produce output.
+Required.Proto3.JsonInput.OptionalInt64Wrapper.ProtobufOutput # Failed to parse input or produce output.
+Required.Proto3.JsonInput.OptionalUint64Wrapper.ProtobufOutput # Failed to parse input or produce output.
+Required.Proto3.JsonInput.RepeatedInt64Wrapper.ProtobufOutput # Failed to parse input or produce output.
+Required.Proto3.JsonInput.RepeatedListValue.ProtobufOutput # Failed to parse input or produce output.
+Required.Proto3.JsonInput.RepeatedUint64Wrapper.ProtobufOutput # Failed to parse input or produce output.
+Required.Proto3.JsonInput.RepeatedValue.ProtobufOutput # Output was not equivalent to reference message: added: repeated_value[0].string_value: "a"deleted: repeated_value[0].list_value:
+Required.Proto3.JsonInput.Uint32FieldMaxFloatValue.ProtobufOutput # Output was not equivalent to reference message: modified: optional_uint32: 4294967295 -> 2147483647

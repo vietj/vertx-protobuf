@@ -343,7 +343,7 @@ public class JsonReader {
       visitor.visitBool(FieldLiteral.Value_bool_value, value);
       visitor.leave(field);
     } else if (Objects.requireNonNull(field.type().id()) == TypeID.BOOL) {
-      visitor.visitBool(field, true);
+      visitor.visitBool(field, value);
     } else {
       throw new UnsupportedOperationException();
     }

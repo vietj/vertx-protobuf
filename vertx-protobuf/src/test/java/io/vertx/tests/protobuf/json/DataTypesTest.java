@@ -87,4 +87,15 @@ public class DataTypesTest extends DataTypeTestBase {
     JsonReader.parse(json.toString(), SCALAR_TYPES, checker);
     assertTrue(checker.isEmpty());
   }
+
+  @Test
+  public void testParseDefaultValue() {
+    RecordingVisitor visitor = new RecordingVisitor();
+    visitor.init(SCALAR_TYPES);
+    visitor.visitBool(BOOL, false);
+    visitor.destroy();
+    RecordingVisitor.Checker checker = visitor.checker();
+    JsonReader.parse("{\"bool\":false}", SCALAR_TYPES, checker);
+    assertTrue(checker.isEmpty());
+  }
 }
