@@ -10,6 +10,4 @@ Required.Proto3.JsonInput.AnyWithTimestamp.ProtobufOutput # Failed to parse inpu
 Required.Proto3.JsonInput.AnyWithValueForInteger.ProtobufOutput # Failed to parse input or produce output.
 Required.Proto3.JsonInput.AnyWithValueForJsonObject.ProtobufOutput # Failed to parse input or produce output.
 Required.Proto3.JsonInput.EmptyFieldMask.ProtobufOutput # Failed to parse input or produce output.
-Required.Proto3.JsonInput.EnumFieldNumericValueNonZero.ProtobufOutput # Failed to parse input or produce output.
-Required.Proto3.JsonInput.EnumFieldNumericValueZero.ProtobufOutput # Failed to parse input or produce output.
 Required.Proto3.JsonInput.FieldMask.ProtobufOutput # Failed to parse input or produce output.

@@ -166,15 +166,21 @@ public class JsonReader {
   }
 
   private void readEnum(Field field) throws IOException, DecodeException {
-    if (parser.currentTokenId() == JsonTokenId.ID_STRING) {
-      OptionalInt index = ((EnumType) field.type()).numberOf(parser.getText());
-      if (index.isPresent()) {
-        visitor.visitEnum(field, index.getAsInt());
-      } else {
-        throw new DecodeException("Missing enum " + parser.getText());
-      }
-    }   else {
-      throw new DecodeException("Unexpected token " + parser.currentTokenId());
+    EnumType enumType = (EnumType) field.type();
+    switch (parser.currentTokenId()) {
+      case JsonTokenId.ID_STRING:
+        OptionalInt index = enumType.numberOf(parser.getText());
+        if (index.isPresent()) {
+          visitor.visitEnum(field, index.getAsInt());
+        } else {
+          throw new DecodeException("Missing enum " + parser.getText());
+        }
+        break;
+      case JsonTokenId.ID_NUMBER_INT:
+        visitor.visitEnum(field, parser.getIntValue());
+        break;
+      default:
+        throw new DecodeException("Unexpected token " + parser.currentTokenId());
     }
   }
 

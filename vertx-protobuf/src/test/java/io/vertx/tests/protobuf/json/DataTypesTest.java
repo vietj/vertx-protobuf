@@ -131,4 +131,15 @@ public class DataTypesTest extends DataTypeTestBase {
     JsonReader.parse("{\"uint64\":\"18446744073709549568\"}", SCALAR_TYPES, checker);
     assertTrue(checker.isEmpty());
   }
+
+  @Test
+  public void testEnumNumber() {
+    RecordingVisitor visitor = new RecordingVisitor();
+    visitor.init(ENUM_TYPES);
+    visitor.visitEnum(ENUM, 1);
+    visitor.destroy();
+    RecordingVisitor.Checker checker = visitor.checker();
+    JsonReader.parse("{\"_enum\":1}", ENUM_TYPES, checker);
+    assertTrue(checker.isEmpty());
+  }
 }
