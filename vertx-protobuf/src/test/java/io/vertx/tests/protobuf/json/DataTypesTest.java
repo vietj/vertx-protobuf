@@ -120,4 +120,15 @@ public class DataTypesTest extends DataTypeTestBase {
     JsonReader.parse("{\"uint32\":\"5e2\"}", SCALAR_TYPES, checker);
     assertTrue(checker.isEmpty());
   }
+
+  @Test
+  public void testUInt64() {
+    RecordingVisitor visitor = new RecordingVisitor();
+    visitor.init(SCALAR_TYPES);
+    visitor.visitUInt64(UINT64, -2048);
+    visitor.destroy();
+    RecordingVisitor.Checker checker = visitor.checker();
+    JsonReader.parse("{\"uint64\":\"18446744073709549568\"}", SCALAR_TYPES, checker);
+    assertTrue(checker.isEmpty());
+  }
 }

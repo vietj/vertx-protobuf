@@ -3,6 +3,7 @@ package io.vertx.protobuf.json;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.core.JsonTokenId;
+import com.fasterxml.jackson.core.exc.InputCoercionException;
 import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.jackson.JacksonCodec;
 import io.vertx.protobuf.RecordVisitor;
@@ -217,7 +218,11 @@ public class JsonReader {
     switch (parser.currentTokenId()) {
       case JsonTokenId.ID_NUMBER_INT:
       case JsonTokenId.ID_NUMBER_FLOAT:
-        return parser.getLongValue();
+        try {
+          return parser.getLongValue();
+        } catch (InputCoercionException e) {
+          return parser.getBigIntegerValue().longValue();
+        }
       case JsonTokenId.ID_STRING:
         return parseUInt64(parser.getText());
       default:
