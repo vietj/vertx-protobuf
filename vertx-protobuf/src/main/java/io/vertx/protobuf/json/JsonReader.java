@@ -552,6 +552,10 @@ public class JsonReader {
         visitor.enter(field);
         StructParser.parseArray(parser, visitor);
         visitor.leave(field);
+      } else if (field.type() == MessageLiteral.Value) {
+        visitor.enter(field);
+        StructParser.parseValue(parser, visitor);
+        visitor.leave(field);
       } else {
         readAny(field);
       }
