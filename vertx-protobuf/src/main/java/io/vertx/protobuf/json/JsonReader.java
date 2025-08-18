@@ -123,17 +123,9 @@ public class JsonReader {
           if (field.isMap()) {
             readObjectAsMap(field);
           } else {
-            if (field.type() == MessageLiteral.ListValue) {
-              visitor.enter(field);
-              visitor.enter(FieldLiteral.ListValue_values);
-              StructParser.parseValue(parser, visitor);
-              visitor.leave(FieldLiteral.ListValue_values);
-              visitor.leave(field);
-            } else {
-              visitor.enter(field);
-              readObject((MessageType) field.type());
-              visitor.leave(field);
-            }
+            visitor.enter(field);
+            readObject((MessageType) field.type());
+            visitor.leave(field);
           }
           break;
         case JsonTokenId.ID_START_ARRAY:
