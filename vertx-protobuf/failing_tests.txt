@@ -1,1 +1,1 @@
-Required.Proto3.JsonInput.RepeatedListValue.ProtobufOutput # Failed to parse input or produce output.
+Required.Proto3.JsonInput.RepeatedValue.ProtobufOutput # Output was not equivalent to reference message: added: repeated_value[0].string_value: "a"deleted: repeated_value[0].list_value:

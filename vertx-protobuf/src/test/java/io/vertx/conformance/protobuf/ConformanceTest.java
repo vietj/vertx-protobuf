@@ -20,7 +20,7 @@ public class ConformanceTest {
   public void testJsonInput() throws Exception {
 
     String json = "{\n" +
-      "        \"repeatedListValue\": [[\"a\"]]\n" +
+      "        \"repeatedValue\": [[\"a\"]]\n" +
       "      }";
 
     TestMessagesProto3.TestAllTypesProto3.Builder builder = TestMessagesProto3.TestAllTypesProto3.newBuilder();

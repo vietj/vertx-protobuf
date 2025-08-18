@@ -189,6 +189,7 @@ public class JsonTest {
       .addListValue(ListValue.newBuilder().addValues(Value.newBuilder().setNullValue(NullValue.NULL_VALUE)))
       .addListValue(ListValue.newBuilder().addValues(Value.newBuilder().setListValue(ListValue.newBuilder().addValues(Value.newBuilder().setStringValue("1")))))
       .addListValue(ListValue.newBuilder().addValues(Value.newBuilder().setStructValue(Struct.newBuilder().putFields("the-key", Value.newBuilder().setStringValue("the-value").build()))))
+      .addValue(Value.newBuilder().setListValue(ListValue.newBuilder().addValues(Value.newBuilder().setStringValue("1"))))
       .build();
     Repetition repetition = read(expected, MessageLiteral.Repetition);
     assertEquals(2, repetition.getInt32Value().size());
@@ -204,6 +205,8 @@ public class JsonTest {
     assertEquals(0, repetition.getListValue().get(3).getValues().get(0).getKind().asNullValue().get().number());
     assertEquals(1, repetition.getListValue().get(4).getValues().get(0).getKind().asListValue().get().getValues().size());
     assertEquals(1, repetition.getListValue().get(5).getValues().get(0).getKind().asStructValue().get().getFields().size());
+    assertEquals(1, repetition.getValue().size());
+    assertEquals(1, repetition.getValue().get(0).getKind().asListValue().get().getValues().size());
   }
 
   private <T> T read(MessageOrBuilder container, MessageType type) {
