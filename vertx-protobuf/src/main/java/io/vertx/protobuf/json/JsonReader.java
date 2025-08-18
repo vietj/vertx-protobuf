@@ -139,9 +139,15 @@ public class JsonReader {
         if (field.isRepeated()) {
           readArray(field);
         } else if (field.type() == MessageLiteral.Value) {
-          visitor.enter(field);
-          StructParser.parseValue(parser, visitor);
-          visitor.leave(field);
+          if (parser.currentTokenId() == JsonTokenId.ID_START_ARRAY) {
+            visitor.enter(field);
+            visitor.enter(FieldLiteral.Value_list_value);
+            StructParser.parseArray(parser, visitor);
+            visitor.leave(FieldLiteral.Value_list_value);
+            visitor.leave(field);
+          } else {
+            throw new UnsupportedOperationException();
+          }
         } else if (field.type() == MessageLiteral.ListValue) {
           visitor.enter(field);
           StructParser.parseArray(parser, visitor);
@@ -548,13 +554,13 @@ public class JsonReader {
   private void readArray(Field field) throws IOException {
     assert parser.hasToken(JsonToken.START_ARRAY);
     while (parser.nextToken() != JsonToken.END_ARRAY) {
-      if (field.type() == MessageLiteral.ListValue) {
-        visitor.enter(field);
-        StructParser.parseArray(parser, visitor);
-        visitor.leave(field);
-      } else if (field.type() == MessageLiteral.Value) {
+      if (field.type() == MessageLiteral.Value) {
         visitor.enter(field);
         StructParser.parseValue(parser, visitor);
+        visitor.leave(field);
+      } else if (field.type() == MessageLiteral.ListValue) {
+        visitor.enter(field);
+        StructParser.parseArray(parser, visitor);
         visitor.leave(field);
       } else {
         readAny(field);
