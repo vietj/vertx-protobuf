@@ -183,11 +183,27 @@ public class JsonTest {
     JsonProto.Repetition expected = JsonProto.Repetition.newBuilder()
       .addInt32Value(Int32Value.newBuilder().setValue(1))
       .addInt32Value(Int32Value.newBuilder().setValue(2))
+      .addListValue(ListValue.newBuilder().addValues(Value.newBuilder().setStringValue("1")))
+      .addListValue(ListValue.newBuilder().addValues(Value.newBuilder().setNumberValue(2)))
+      .addListValue(ListValue.newBuilder().addValues(Value.newBuilder().setBoolValue(true)))
+      .addListValue(ListValue.newBuilder().addValues(Value.newBuilder().setNullValue(NullValue.NULL_VALUE)))
+      .addListValue(ListValue.newBuilder().addValues(Value.newBuilder().setListValue(ListValue.newBuilder().addValues(Value.newBuilder().setStringValue("1")))))
+      .addListValue(ListValue.newBuilder().addValues(Value.newBuilder().setStructValue(Struct.newBuilder().putFields("the-key", Value.newBuilder().setStringValue("the-value").build()))))
       .build();
     Repetition repetition = read(expected, MessageLiteral.Repetition);
     assertEquals(2, repetition.getInt32Value().size());
     assertEquals(1, (int)repetition.getInt32Value().get(0).getValue());
     assertEquals(2, (int)repetition.getInt32Value().get(1).getValue());
+    assertEquals(6, repetition.getListValue().size());
+    for (int i = 0;i < 6;i++) {
+      assertEquals(1, repetition.getListValue().get(i).getValues().size());
+    }
+    assertEquals("1", repetition.getListValue().get(0).getValues().get(0).getKind().asStringValue().get());
+    assertEquals(2, repetition.getListValue().get(1).getValues().get(0).getKind().asNumberValue().get(), 0.0001D);
+    assertEquals(true, repetition.getListValue().get(2).getValues().get(0).getKind().asBoolValue().get());
+    assertEquals(0, repetition.getListValue().get(3).getValues().get(0).getKind().asNullValue().get().number());
+    assertEquals(1, repetition.getListValue().get(4).getValues().get(0).getKind().asListValue().get().getValues().size());
+    assertEquals(1, repetition.getListValue().get(5).getValues().get(0).getKind().asStructValue().get().getFields().size());
   }
 
   private <T> T read(MessageOrBuilder container, MessageType type) {

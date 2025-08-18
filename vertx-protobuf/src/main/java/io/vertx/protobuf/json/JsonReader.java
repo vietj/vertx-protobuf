@@ -122,6 +122,12 @@ public class JsonReader {
             visitor.enter(field);
             StructParser.parseValue(parser, visitor);
             visitor.leave(field);
+          } else if (field.type() == MessageLiteral.ListValue) {
+            visitor.enter(field);
+            visitor.enter(FieldLiteral.ListValue_values);
+            StructParser.parseValue(parser, visitor);
+            visitor.leave(FieldLiteral.ListValue_values);
+            visitor.leave(field);
           } else {
             visitor.enter(field);
             readObject((MessageType) field.type());
@@ -227,6 +233,13 @@ public class JsonReader {
                   }
                   visitor.leave(field);
                   break;
+                case ListValue:
+                  visitor.enter(field);
+                  visitor.enter(FieldLiteral.ListValue_values);
+                  visitor.visitString(FieldLiteral.Value_string_value, text);
+                  visitor.leave(FieldLiteral.ListValue_values);
+                  visitor.leave(field);
+                  break;
                 case Value:
                   visitor.enter(field);
                   visitor.visitString(FieldLiteral.Value_string_value, text);
@@ -326,6 +339,13 @@ public class JsonReader {
           case MESSAGE:
             if (field.type() instanceof MessageLiteral) {
               switch ((MessageLiteral)field.type()) {
+                case ListValue:
+                  visitor.enter(field);
+                  visitor.enter(FieldLiteral.ListValue_values);
+                  visitor.visitDouble(FieldLiteral.Value_number_value, number.doubleValue());
+                  visitor.leave(FieldLiteral.ListValue_values);
+                  visitor.leave(field);
+                  break;
                 case Value:
                   visitor.enter(field);
                   visitor.visitDouble(FieldLiteral.Value_number_value, number.doubleValue());
@@ -383,6 +403,12 @@ public class JsonReader {
           visitor.enter(field);
           visitor.visitEnum(FieldLiteral.Value_null_value, 0);
           visitor.leave(field);
+        } else if (field.type() == MessageLiteral.ListValue) {
+          visitor.enter(field);
+          visitor.enter(FieldLiteral.ListValue_values);
+          visitor.visitEnum(FieldLiteral.Value_null_value, 0);
+          visitor.leave(FieldLiteral.ListValue_values);
+          visitor.leave(field);
         } else {
           // Use default value
         }
@@ -424,6 +450,12 @@ public class JsonReader {
     } else if (field.type() == MessageLiteral.Value) {
       visitor.enter(field);
       visitor.visitBool(FieldLiteral.Value_bool_value, value);
+      visitor.leave(field);
+    } else if (field.type() == MessageLiteral.ListValue) {
+      visitor.enter(field);
+      visitor.enter(FieldLiteral.ListValue_values);
+      visitor.visitBool(FieldLiteral.Value_bool_value, value);
+      visitor.leave(FieldLiteral.ListValue_values);
       visitor.leave(field);
     } else if (Objects.requireNonNull(field.type().id()) == TypeID.BOOL) {
       visitor.visitBool(field, value);
@@ -489,6 +521,7 @@ public class JsonReader {
   private void readObject(MessageType type) throws IOException {
     assert parser.hasToken(JsonToken.START_OBJECT);
     if (type == MessageLiteral.Struct) {
+      // SHOULD ENTER LEAVE FIELD !!!! ??? CATCH WITH FIELD MOST LIKELY
       StructParser.parseObject(parser, visitor);
     } else {
       while (parser.nextToken() == JsonToken.FIELD_NAME) {
@@ -515,7 +548,13 @@ public class JsonReader {
   private void readArray(Field field) throws IOException {
     assert parser.hasToken(JsonToken.START_ARRAY);
     while (parser.nextToken() != JsonToken.END_ARRAY) {
-      readAny(field);
+      if (field.type() == MessageLiteral.ListValue) {
+        visitor.enter(field);
+        StructParser.parseArray(parser, visitor);
+        visitor.leave(field);
+      } else {
+        readAny(field);
+      }
     }
   }
 
