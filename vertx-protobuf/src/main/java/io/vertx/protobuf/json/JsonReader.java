@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.core.JsonTokenId;
 import com.fasterxml.jackson.core.exc.InputCoercionException;
 import io.vertx.core.json.DecodeException;
+import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.jackson.JacksonCodec;
 import io.vertx.protobuf.RecordVisitor;
 import io.vertx.protobuf.schema.EnumType;
@@ -22,6 +23,7 @@ import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Base64;
+import java.util.Map;
 import java.util.OptionalInt;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -440,6 +442,14 @@ public class JsonReader {
           }
           visitor.leave(field);
           break;
+        case Any:
+//          JsonObject entries = new JsonObject(JacksonCodec.parseObject(parser));
+//          String type = entries.getString("@type");
+//          if ("type.googleapis.com/google.protobuf.Struct".equals(type)) {
+//            Object value = entries.getValue("value");
+//            StructParser.parseValue();
+//          }
+          throw new UnsupportedOperationException();
         default:
           throw new UnsupportedOperationException("Unsupported " + field.type());
       }

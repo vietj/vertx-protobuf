@@ -1,5 +1,8 @@
 package io.vertx.conformance.protobuf;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.Struct;
+import com.google.protobuf.TypeRegistry;
 import com.google.protobuf.util.JsonFormat;
 import com.google.protobuf_test_messages.proto3.MessageLiteral;
 import com.google.protobuf_test_messages.proto3.ProtoReader;
@@ -17,7 +20,16 @@ import java.util.List;
 
 public class ConformanceTest {
 
-  @Ignore
+  private TypeRegistry typeRegistry;
+
+  public ConformanceTest() {
+    typeRegistry =
+      TypeRegistry.newBuilder()
+        .add(TestMessagesProto3.TestAllTypesProto3.getDescriptor())
+        .add(com.google.protobuf_test_messages.proto3.TestMessagesProto3.TestAllTypesProto3.getDescriptor())
+        .build();
+  }
+
   @Test
   public void testJsonInput() throws Exception {
 
@@ -30,20 +42,30 @@ public class ConformanceTest {
       "  }\n" +
       "      }";
 
+/*
     json = "{\n" +
       "        \"optionalAny\": {\n" +
       "          \"@type\": \"type.googleapis.com/protobuf_test_messages.proto3.TestAllTypesProto3\",\n" +
       "          \"optionalInt32\": 12345\n" +
       "  }\n" +
       "      }";
+*/
 
     TestMessagesProto3.TestAllTypesProto3.Builder builder = TestMessagesProto3.TestAllTypesProto3.newBuilder();
-    JsonFormat.parser().merge(json, builder);
+    JsonFormat.parser().usingTypeRegistry(typeRegistry).merge(json, builder);
     TestMessagesProto3.TestAllTypesProto3 d = builder.build();
 
-    ProtoReader reader = new ProtoReader();
-    JsonReader.parse(json, MessageLiteral.TestAllTypesProto3, reader);
-    TestAllTypesProto3 testMessage = (TestAllTypesProto3) reader.stack.pop();
+    Any any = d.getOptionalAny();
+    System.out.println(any.getTypeUrl());
+    System.out.println(any.getValue());
+    Struct struct = any.unpack(Struct.class);
+//    TestMessagesProto3.TestAllTypesProto3 struct = any.unpack(TestMessagesProto3.TestAllTypesProto3.class);
+//    System.out.println("struct = " + struct);
+//    any.
+
+//    ProtoReader reader = new ProtoReader();
+//    JsonReader.parse(json, MessageLiteral.TestAllTypesProto3, reader);
+//    TestAllTypesProto3 testMessage = (TestAllTypesProto3) reader.stack.pop();
   }
 
   @Test

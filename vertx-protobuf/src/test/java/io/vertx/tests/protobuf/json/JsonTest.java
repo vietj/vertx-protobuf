@@ -1,6 +1,7 @@
 package io.vertx.tests.protobuf.json;
 
 import com.fasterxml.jackson.core.JsonParser;
+import com.google.protobuf.Any;
 import com.google.protobuf.BoolValue;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.BytesValue;
@@ -33,6 +34,7 @@ import io.vertx.tests.json.ProtoReader;
 import io.vertx.tests.json.ProtoWriter;
 import io.vertx.tests.json.Repetition;
 import junit.framework.AssertionFailedError;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Map;
@@ -213,6 +215,17 @@ public class JsonTest {
     assertEquals(1, repetition.getListValue().get(5).getValues().get(0).getKind().asStructValue().get().getFields().size());
     assertEquals(1, repetition.getValue().size());
     assertEquals(1, repetition.getValue().get(0).getKind().asListValue().get().getValues().size());
+  }
+
+  @Ignore
+  @Test
+  public void testAny() {
+    JsonObject json = new JsonObject().put("any",
+      new JsonObject()
+        .put("@type", "type.googleapis.com/google.protobuf.Struct")
+        .put("value", new JsonObject().put("foo", 1))
+    );
+    Container container = read(json, MessageLiteral.Container);
   }
 
   private <T> T read(MessageOrBuilder container, MessageType type) {
