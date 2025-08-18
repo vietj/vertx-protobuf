@@ -22,7 +22,7 @@ import com.google.protobuf.Value;
 import com.google.protobuf.util.JsonFormat;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.json.jackson.JacksonCodec;
+import io.vertx.protobuf.json.Json;
 import io.vertx.protobuf.json.JsonReader;
 import io.vertx.protobuf.json.JsonWriter;
 import io.vertx.protobuf.schema.MessageType;
@@ -33,7 +33,6 @@ import io.vertx.tests.json.ProtoReader;
 import io.vertx.tests.json.ProtoWriter;
 import io.vertx.tests.json.Repetition;
 import junit.framework.AssertionFailedError;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Map;
@@ -143,9 +142,6 @@ public class JsonTest {
 
   @Test
   public void testWrappers() {
-    JsonProto.Container expected = JsonProto.Container.newBuilder()
-      .setBytesValue(BytesValue.newBuilder().setValue(ByteString.copyFromUtf8("the-bytes")))
-      .build();
     testWrapper(JsonProto.Container.newBuilder().setDoubleValue(DoubleValue.newBuilder().setValue(4.5D)),
       container -> assertEquals(4.5D, container.getDoubleValue().getValue(), 0.0001D));
     testWrapper(JsonProto.Container.newBuilder().setFloatValue(FloatValue.newBuilder().setValue(4.2f)),
@@ -164,6 +160,12 @@ public class JsonTest {
       container -> assertEquals("the-string", container.getStringValue().getValue()));
     testWrapper(JsonProto.Container.newBuilder().setBytesValue(BytesValue.newBuilder().setValue(ByteString.copyFromUtf8("the-bytes"))),
       container -> assertEquals("the-bytes", container.getBytesValue().getValue().toString("UTF-8")));
+  }
+
+  @Test
+  public void testWrapperNullValue() {
+    Container container = read(new JsonObject().put("int64Value", null), MessageLiteral.Container);
+
   }
 
   private void testWrapper(JsonProto.Container.Builder expected, Consumer<Container> checker) {
@@ -246,14 +248,18 @@ public class JsonTest {
       if (quoteNumbers) {
         quoteNumbers(json);
       }
-      ProtoReader pr = new ProtoReader();
-      JsonReader.parse(json.encode(), type, pr);
-      return (T)pr.stack.pop();
+      return read(json, type);
     } catch (InvalidProtocolBufferException e) {
       AssertionFailedError afe = new AssertionFailedError();
       afe.initCause(e);
       throw afe;
     }
+  }
+
+  private <T> T read(JsonObject json, MessageType type) {
+    ProtoReader pr = new ProtoReader();
+    JsonReader.parse(json.encode(), type, pr);
+    return (T)pr.stack.pop();
   }
 
   private JsonProto.Container write(Container container) {

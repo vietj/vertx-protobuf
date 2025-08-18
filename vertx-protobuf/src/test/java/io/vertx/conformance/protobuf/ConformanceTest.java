@@ -20,7 +20,24 @@ public class ConformanceTest {
   public void testJsonInput() throws Exception {
 
     String json = "{\n" +
-      "        \"repeatedValue\": [[\"a\"]]\n" +
+      "        \"optionalBoolWrapper\": null,\n" +
+      "        \"optionalInt32Wrapper\": null,\n" +
+      "        \"optionalUint32Wrapper\": null,\n" +
+      "        \"optionalInt64Wrapper\": null,\n" +
+      "        \"optionalUint64Wrapper\": null,\n" +
+      "        \"optionalFloatWrapper\": null,\n" +
+      "        \"optionalDoubleWrapper\": null,\n" +
+      "        \"optionalStringWrapper\": null,\n" +
+      "        \"optionalBytesWrapper\": null,\n" +
+      "        \"repeatedBoolWrapper\": null,\n" +
+      "        \"repeatedInt32Wrapper\": null,\n" +
+      "        \"repeatedUint32Wrapper\": null,\n" +
+      "        \"repeatedInt64Wrapper\": null,\n" +
+      "        \"repeatedUint64Wrapper\": null,\n" +
+      "        \"repeatedFloatWrapper\": null,\n" +
+      "        \"repeatedDoubleWrapper\": null,\n" +
+      "        \"repeatedStringWrapper\": null,\n" +
+      "        \"repeatedBytesWrapper\": null\n" +
       "      }";
 
     TestMessagesProto3.TestAllTypesProto3.Builder builder = TestMessagesProto3.TestAllTypesProto3.newBuilder();
