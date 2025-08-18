@@ -37,6 +37,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Map;
+import java.util.function.Consumer;
 
 import static org.junit.Assert.*;
 
@@ -143,28 +144,33 @@ public class JsonTest {
   @Test
   public void testWrappers() {
     JsonProto.Container expected = JsonProto.Container.newBuilder()
-      .setDoubleValue(DoubleValue.newBuilder().setValue(4.5D))
-      .setFloatValue(FloatValue.newBuilder().setValue(4.2f))
-      .setInt64Value(Int64Value.newBuilder().setValue(7L))
-      .setUint64Value(UInt64Value.newBuilder().setValue(8L))
-      .setInt32Value(Int32Value.newBuilder().setValue(3))
-      .setUint32Value(UInt32Value.newBuilder().setValue(4))
-      .setBoolValue(BoolValue.newBuilder().setValue(true))
-      .setStringValue(StringValue.newBuilder().setValue("the-string"))
       .setBytesValue(BytesValue.newBuilder().setValue(ByteString.copyFromUtf8("the-bytes")))
       .build();
+    testWrapper(JsonProto.Container.newBuilder().setDoubleValue(DoubleValue.newBuilder().setValue(4.5D)),
+      container -> assertEquals(4.5D, container.getDoubleValue().getValue(), 0.0001D));
+    testWrapper(JsonProto.Container.newBuilder().setFloatValue(FloatValue.newBuilder().setValue(4.2f)),
+      container -> assertEquals(4.2F, container.getFloatValue().getValue(), 0.0001D));
+    testWrapper(JsonProto.Container.newBuilder().setInt64Value(Int64Value.newBuilder().setValue(7L)),
+      container -> assertEquals(7L, (long)container.getInt64Value().getValue()));
+    testWrapper(JsonProto.Container.newBuilder().setUint64Value(UInt64Value.newBuilder().setValue(8L)),
+      container -> assertEquals(8L, (long)container.getUint64Value().getValue()));
+    testWrapper(JsonProto.Container.newBuilder().setInt32Value(Int32Value.newBuilder().setValue(3)),
+      container -> assertEquals(3, (int)container.getInt32Value().getValue()));
+    testWrapper(JsonProto.Container.newBuilder().setUint32Value(UInt32Value.newBuilder().setValue(4)),
+      container -> assertEquals(4, (int)container.getUint32Value().getValue()));
+    testWrapper(JsonProto.Container.newBuilder().setBoolValue(BoolValue.newBuilder().setValue(true)),
+      container -> assertTrue(container.getBoolValue().getValue()));
+    testWrapper(JsonProto.Container.newBuilder().setStringValue(StringValue.newBuilder().setValue("the-string")),
+      container -> assertEquals("the-string", container.getStringValue().getValue()));
+    testWrapper(JsonProto.Container.newBuilder().setBytesValue(BytesValue.newBuilder().setValue(ByteString.copyFromUtf8("the-bytes"))),
+      container -> assertEquals("the-bytes", container.getBytesValue().getValue().toString("UTF-8")));
+  }
+
+  private void testWrapper(JsonProto.Container.Builder expected, Consumer<Container> checker) {
     for (boolean quoteNumbers : new boolean[]{true, false}) {
       Container container = read(expected, MessageLiteral.Container, quoteNumbers);
-      assertEquals(4.5D, container.getDoubleValue().getValue(), 0.0001D);
-      assertEquals(4.2F, container.getFloatValue().getValue(), 0.0001D);
-      assertEquals(7L, (long)container.getInt64Value().getValue());
-      assertEquals(8L, (long)container.getUint64Value().getValue());
-      assertEquals(3, (int)container.getInt32Value().getValue());
-      assertEquals(4, (int)container.getUint32Value().getValue());
-      assertTrue(container.getBoolValue().getValue());
-      assertEquals("the-string", container.getStringValue().getValue());
-      assertEquals("the-bytes", container.getBytesValue().getValue().toString("UTF-8"));
-      assertEquals(expected, write(container));
+      checker.accept(container);
+      assertEquals(expected.build(), write(container));
     }
   }
 
