@@ -113,314 +113,312 @@ public class JsonReader {
   }
 
   private void readAny(Field field) throws IOException, DecodeException {
-    switch (parser.currentTokenId()) {
-      case JsonTokenId.ID_START_OBJECT:
-        if (field.isMap()) {
-          readObjectAsMap(field);
-        } else {
-          if (field.type() == MessageLiteral.Value) {
-            visitor.enter(field);
-            StructParser.parseValue(parser, visitor);
-            visitor.leave(field);
+    if (field.type() == MessageLiteral.Value) {
+      visitor.enter(field);
+      StructParser.parseValue(parser, visitor);
+      visitor.leave(field);
+    } else {
+      switch (parser.currentTokenId()) {
+        case JsonTokenId.ID_START_OBJECT:
+          if (field.isMap()) {
+            readObjectAsMap(field);
+          } else {
+            if (field.type() == MessageLiteral.ListValue) {
+              visitor.enter(field);
+              visitor.enter(FieldLiteral.ListValue_values);
+              StructParser.parseValue(parser, visitor);
+              visitor.leave(FieldLiteral.ListValue_values);
+              visitor.leave(field);
+            } else {
+              visitor.enter(field);
+              readObject((MessageType) field.type());
+              visitor.leave(field);
+            }
+          }
+          break;
+        case JsonTokenId.ID_START_ARRAY:
+          if (field.isRepeated()) {
+            readArray(field);
+          } else if (field.type() == MessageLiteral.Value) {
+            if (parser.currentTokenId() == JsonTokenId.ID_START_ARRAY) {
+              visitor.enter(field);
+              visitor.enter(FieldLiteral.Value_list_value);
+              StructParser.parseArray(parser, visitor);
+              visitor.leave(FieldLiteral.Value_list_value);
+              visitor.leave(field);
+            } else {
+              throw new UnsupportedOperationException();
+            }
           } else if (field.type() == MessageLiteral.ListValue) {
             visitor.enter(field);
+            StructParser.parseArray(parser, visitor);
+            visitor.leave(field);
+          } else {
+            throw new UnsupportedOperationException();
+          }
+          break;
+        case JsonTokenId.ID_STRING:
+          String text = parser.getText();
+          switch (field.type().id()) {
+            case STRING:
+              visitor.visitString(field, text);
+              break;
+            case BYTES:
+              visitor.visitBytes(field, Base64.getDecoder().decode(text));
+              break;
+            case FIXED32:
+              visitor.visitFixed32(field, parseInt(text));
+              break;
+            case SFIXED32:
+              visitor.visitSFixed32(field, parseInt(text));
+              break;
+            case FLOAT:
+              visitor.visitFloat(field, Float.parseFloat(text));
+              break;
+            case FIXED64:
+              visitor.visitFixed64(field, parseLong(text));
+              break;
+            case SFIXED64:
+              visitor.visitSFixed64(field, parseLong(text));
+              break;
+            case DOUBLE:
+              visitor.visitDouble(field, Double.parseDouble(text));
+              break;
+            case INT32:
+              visitor.visitInt32(field, parseInt(text));
+              break;
+            case SINT32:
+              visitor.visitSInt32(field, parseInt(text));
+              break;
+            case UINT32:
+              visitor.visitUInt32(field, readUInt32(text));
+              break;
+            case INT64:
+              visitor.visitInt64(field, parseLong(text));
+              break;
+            case SINT64:
+              visitor.visitSInt64(field, parseLong(text));
+              break;
+            case UINT64:
+              visitor.visitUInt64(field, readUInt64(text));
+              break;
+            case ENUM:
+              OptionalInt index = ((EnumType) field.type()).numberOf(text);
+              if (index.isPresent()) {
+                visitor.visitEnum(field, index.getAsInt());
+              } else {
+                throw new UnsupportedOperationException();
+              }
+              break;
+            case MESSAGE:
+              if (field.type() instanceof MessageLiteral) {
+                MessageLiteral messageLiteral = (MessageLiteral) field.type();
+                switch (messageLiteral) {
+                  case Duration:
+                    io.vertx.protobuf.well_known_types.Duration duration = parseDuration(text);
+                    if (duration == null) {
+                      throw new DecodeException("Invalid duration " + text);
+                    }
+                    visitor.enter(field);
+                    if (duration.getSeconds() != 0) {
+                      visitor.visitInt64(FieldLiteral.Duration_seconds, duration.getSeconds());
+                    }
+                    if (duration.getNanos() != 0) {
+                      visitor.visitInt32(FieldLiteral.Duration_nanos, duration.getNanos());
+                    }
+                    visitor.leave(field);
+                    break;
+                  case Timestamp:
+                    OffsetDateTime odt = OffsetDateTime.parse(text, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+                    Instant i = odt.toInstant();
+                    visitor.enter(field);
+                    if (i.getEpochSecond() != 0) {
+                      visitor.visitInt64(FieldLiteral.Timestamp_seconds, i.getEpochSecond());
+                    }
+                    if (i.getNano() != 0) {
+                      visitor.visitInt32(FieldLiteral.Timestamp_nanos, i.getNano());
+                    }
+                    visitor.leave(field);
+                    break;
+                  case ListValue:
+                    visitor.enter(field);
+                    visitor.enter(FieldLiteral.ListValue_values);
+                    visitor.visitString(FieldLiteral.Value_string_value, text);
+                    visitor.leave(FieldLiteral.ListValue_values);
+                    visitor.leave(field);
+                    break;
+                  case Value:
+                    visitor.enter(field);
+                    visitor.visitString(FieldLiteral.Value_string_value, text);
+                    visitor.leave(field);
+                    break;
+                  case StringValue:
+                    visitor.enter(field);
+                    visitor.visitString(FieldLiteral.StringValue_value, text);
+                    visitor.leave(field);
+                    break;
+                  case BytesValue:
+                    visitor.enter(field);
+                    visitor.visitBytes(FieldLiteral.BytesValue_value, Base64.getDecoder().decode(text));
+                    visitor.leave(field);
+                    break;
+                  case Int32Value:
+                    visitor.enter(field);
+                    visitor.visitInt32(FieldLiteral.Int32Value_value, parseInt(text));
+                    visitor.leave(field);
+                    break;
+                  case UInt32Value:
+                    visitor.enter(field);
+                    visitor.visitUInt32(FieldLiteral.UInt32Value_value, parseInt(text));
+                    visitor.leave(field);
+                    break;
+                  case Int64Value:
+                    visitor.enter(field);
+                    visitor.visitInt64(FieldLiteral.Int64Value_value, parseLong(text));
+                    visitor.leave(field);
+                    break;
+                  case UInt64Value:
+                    visitor.enter(field);
+                    visitor.visitUInt64(FieldLiteral.UInt64Value_value, parseLong(text));
+                    visitor.leave(field);
+                    break;
+                  case FloatValue:
+                    visitor.enter(field);
+                    visitor.visitFloat(FieldLiteral.FloatValue_value, Float.parseFloat(text));
+                    visitor.leave(field);
+                    break;
+                  case DoubleValue:
+                    visitor.enter(field);
+                    visitor.visitDouble(FieldLiteral.DoubleValue_value, Double.parseDouble(text));
+                    visitor.leave(field);
+                    break;
+                  default:
+                    throw new UnsupportedOperationException();
+                }
+              } else {
+                throw new UnsupportedOperationException();
+              }
+              break;
+            default:
+              throw new UnsupportedOperationException();
+          }
+          break;
+        case JsonTokenId.ID_NUMBER_FLOAT:
+        case JsonTokenId.ID_NUMBER_INT:
+          Number number = parser.getNumberValue();
+          switch (field.type().id()) {
+            case INT32:
+              visitor.visitInt32(field, number.intValue());
+              break;
+            case SINT32:
+              visitor.visitSInt32(field, number.intValue());
+              break;
+            case UINT32:
+              visitor.visitUInt32(field, number.intValue());
+              break;
+            case FIXED32:
+              visitor.visitFixed32(field, number.intValue());
+              break;
+            case SFIXED32:
+              visitor.visitSFixed32(field, number.intValue());
+              break;
+            case FLOAT:
+              visitor.visitFloat(field, number.floatValue());
+              break;
+            case INT64:
+              visitor.visitInt64(field, number.longValue());
+              break;
+            case SINT64:
+              visitor.visitSInt64(field, number.longValue());
+              break;
+            case UINT64:
+              visitor.visitUInt64(field, number.longValue());
+              break;
+            case FIXED64:
+              visitor.visitFixed64(field, number.longValue());
+              break;
+            case SFIXED64:
+              visitor.visitSFixed64(field, number.longValue());
+              break;
+            case DOUBLE:
+              visitor.visitDouble(field, number.doubleValue());
+              break;
+            case MESSAGE:
+              if (field.type() instanceof MessageLiteral) {
+                switch ((MessageLiteral)field.type()) {
+                  case ListValue:
+                    visitor.enter(field);
+                    visitor.enter(FieldLiteral.ListValue_values);
+                    visitor.visitDouble(FieldLiteral.Value_number_value, number.doubleValue());
+                    visitor.leave(FieldLiteral.ListValue_values);
+                    visitor.leave(field);
+                    break;
+                  case Value:
+                    visitor.enter(field);
+                    visitor.visitDouble(FieldLiteral.Value_number_value, number.doubleValue());
+                    visitor.leave(field);
+                    break;
+                  case Int32Value:
+                    visitor.enter(field);
+                    visitor.visitInt32(FieldLiteral.Int32Value_value, number.intValue());
+                    visitor.leave(field);
+                    break;
+                  case UInt32Value:
+                    visitor.enter(field);
+                    visitor.visitUInt32(FieldLiteral.UInt32Value_value, number.intValue());
+                    visitor.leave(field);
+                    break;
+                  case Int64Value:
+                    visitor.enter(field);
+                    visitor.visitInt64(FieldLiteral.Int64Value_value, number.longValue());
+                    visitor.leave(field);
+                    break;
+                  case UInt64Value:
+                    visitor.enter(field);
+                    visitor.visitUInt64(FieldLiteral.UInt64Value_value, number.longValue());
+                    visitor.leave(field);
+                    break;
+                  case FloatValue:
+                    visitor.enter(field);
+                    visitor.visitFloat(FieldLiteral.FloatValue_value, number.floatValue());
+                    visitor.leave(field);
+                    break;
+                  case DoubleValue:
+                    visitor.enter(field);
+                    visitor.visitDouble(FieldLiteral.DoubleValue_value, number.doubleValue());
+                    visitor.leave(field);
+                    break;
+                  default:
+                    throw new DecodeException();
+                }
+                break;
+              } else {
+                throw new DecodeException();
+              }
+            default:
+              throw new UnsupportedOperationException("Invalid type " + field.type().id());
+          }
+          break;
+        case JsonTokenId.ID_TRUE:
+          readBoolean(field, true);
+          break;
+        case JsonTokenId.ID_FALSE:
+          readBoolean(field, false);
+          break;
+        case JsonTokenId.ID_NULL:
+          if (field.type() == MessageLiteral.ListValue) {
+            visitor.enter(field);
             visitor.enter(FieldLiteral.ListValue_values);
-            StructParser.parseValue(parser, visitor);
+            visitor.visitEnum(FieldLiteral.Value_null_value, 0);
             visitor.leave(FieldLiteral.ListValue_values);
             visitor.leave(field);
           } else {
-            visitor.enter(field);
-            readObject((MessageType) field.type());
-            visitor.leave(field);
+            // Use default value
           }
-        }
-        break;
-      case JsonTokenId.ID_START_ARRAY:
-        if (field.isRepeated()) {
-          readArray(field);
-        } else if (field.type() == MessageLiteral.Value) {
-          if (parser.currentTokenId() == JsonTokenId.ID_START_ARRAY) {
-            visitor.enter(field);
-            visitor.enter(FieldLiteral.Value_list_value);
-            StructParser.parseArray(parser, visitor);
-            visitor.leave(FieldLiteral.Value_list_value);
-            visitor.leave(field);
-          } else {
-            throw new UnsupportedOperationException();
-          }
-        } else if (field.type() == MessageLiteral.ListValue) {
-          visitor.enter(field);
-          StructParser.parseArray(parser, visitor);
-          visitor.leave(field);
-        } else {
-          throw new UnsupportedOperationException();
-        }
-        break;
-      case JsonTokenId.ID_STRING:
-        String text = parser.getText();
-        switch (field.type().id()) {
-          case STRING:
-            visitor.visitString(field, text);
-            break;
-          case BYTES:
-            visitor.visitBytes(field, Base64.getDecoder().decode(text));
-            break;
-          case FIXED32:
-            visitor.visitFixed32(field, parseInt(text));
-            break;
-          case SFIXED32:
-            visitor.visitSFixed32(field, parseInt(text));
-            break;
-          case FLOAT:
-            visitor.visitFloat(field, Float.parseFloat(text));
-            break;
-          case FIXED64:
-            visitor.visitFixed64(field, parseLong(text));
-            break;
-          case SFIXED64:
-            visitor.visitSFixed64(field, parseLong(text));
-            break;
-          case DOUBLE:
-            visitor.visitDouble(field, Double.parseDouble(text));
-            break;
-          case INT32:
-            visitor.visitInt32(field, parseInt(text));
-            break;
-          case SINT32:
-            visitor.visitSInt32(field, parseInt(text));
-            break;
-          case UINT32:
-            visitor.visitUInt32(field, readUInt32(text));
-            break;
-          case INT64:
-            visitor.visitInt64(field, parseLong(text));
-            break;
-          case SINT64:
-            visitor.visitSInt64(field, parseLong(text));
-            break;
-          case UINT64:
-            visitor.visitUInt64(field, readUInt64(text));
-            break;
-          case ENUM:
-            OptionalInt index = ((EnumType) field.type()).numberOf(text);
-            if (index.isPresent()) {
-              visitor.visitEnum(field, index.getAsInt());
-            } else {
-              throw new UnsupportedOperationException();
-            }
-            break;
-          case MESSAGE:
-            if (field.type() instanceof MessageLiteral) {
-              MessageLiteral messageLiteral = (MessageLiteral) field.type();
-              switch (messageLiteral) {
-                case Duration:
-                  io.vertx.protobuf.well_known_types.Duration duration = parseDuration(text);
-                  if (duration == null) {
-                    throw new DecodeException("Invalid duration " + text);
-                  }
-                  visitor.enter(field);
-                  if (duration.getSeconds() != 0) {
-                    visitor.visitInt64(FieldLiteral.Duration_seconds, duration.getSeconds());
-                  }
-                  if (duration.getNanos() != 0) {
-                    visitor.visitInt32(FieldLiteral.Duration_nanos, duration.getNanos());
-                  }
-                  visitor.leave(field);
-                  break;
-                case Timestamp:
-                  OffsetDateTime odt = OffsetDateTime.parse(text, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
-                  Instant i = odt.toInstant();
-                  visitor.enter(field);
-                  if (i.getEpochSecond() != 0) {
-                    visitor.visitInt64(FieldLiteral.Timestamp_seconds, i.getEpochSecond());
-                  }
-                  if (i.getNano() != 0) {
-                    visitor.visitInt32(FieldLiteral.Timestamp_nanos, i.getNano());
-                  }
-                  visitor.leave(field);
-                  break;
-                case ListValue:
-                  visitor.enter(field);
-                  visitor.enter(FieldLiteral.ListValue_values);
-                  visitor.visitString(FieldLiteral.Value_string_value, text);
-                  visitor.leave(FieldLiteral.ListValue_values);
-                  visitor.leave(field);
-                  break;
-                case Value:
-                  visitor.enter(field);
-                  visitor.visitString(FieldLiteral.Value_string_value, text);
-                  visitor.leave(field);
-                  break;
-                case StringValue:
-                  visitor.enter(field);
-                  visitor.visitString(FieldLiteral.StringValue_value, text);
-                  visitor.leave(field);
-                  break;
-                case BytesValue:
-                  visitor.enter(field);
-                  visitor.visitBytes(FieldLiteral.BytesValue_value, Base64.getDecoder().decode(text));
-                  visitor.leave(field);
-                  break;
-                case Int32Value:
-                  visitor.enter(field);
-                  visitor.visitInt32(FieldLiteral.Int32Value_value, parseInt(text));
-                  visitor.leave(field);
-                  break;
-                case UInt32Value:
-                  visitor.enter(field);
-                  visitor.visitUInt32(FieldLiteral.UInt32Value_value, parseInt(text));
-                  visitor.leave(field);
-                  break;
-                case Int64Value:
-                  visitor.enter(field);
-                  visitor.visitInt64(FieldLiteral.Int64Value_value, parseLong(text));
-                  visitor.leave(field);
-                  break;
-                case UInt64Value:
-                  visitor.enter(field);
-                  visitor.visitUInt64(FieldLiteral.UInt64Value_value, parseLong(text));
-                  visitor.leave(field);
-                  break;
-                case FloatValue:
-                  visitor.enter(field);
-                  visitor.visitFloat(FieldLiteral.FloatValue_value, Float.parseFloat(text));
-                  visitor.leave(field);
-                  break;
-                case DoubleValue:
-                  visitor.enter(field);
-                  visitor.visitDouble(FieldLiteral.DoubleValue_value, Double.parseDouble(text));
-                  visitor.leave(field);
-                  break;
-                default:
-                  throw new UnsupportedOperationException();
-              }
-            } else {
-              throw new UnsupportedOperationException();
-            }
-            break;
-          default:
-            throw new UnsupportedOperationException();
-        }
-        break;
-      case JsonTokenId.ID_NUMBER_FLOAT:
-      case JsonTokenId.ID_NUMBER_INT:
-        Number number = parser.getNumberValue();
-        switch (field.type().id()) {
-          case INT32:
-            visitor.visitInt32(field, number.intValue());
-            break;
-          case SINT32:
-            visitor.visitSInt32(field, number.intValue());
-            break;
-          case UINT32:
-            visitor.visitUInt32(field, number.intValue());
-            break;
-          case FIXED32:
-            visitor.visitFixed32(field, number.intValue());
-            break;
-          case SFIXED32:
-            visitor.visitSFixed32(field, number.intValue());
-            break;
-          case FLOAT:
-            visitor.visitFloat(field, number.floatValue());
-            break;
-          case INT64:
-            visitor.visitInt64(field, number.longValue());
-            break;
-          case SINT64:
-            visitor.visitSInt64(field, number.longValue());
-            break;
-          case UINT64:
-            visitor.visitUInt64(field, number.longValue());
-            break;
-          case FIXED64:
-            visitor.visitFixed64(field, number.longValue());
-            break;
-          case SFIXED64:
-            visitor.visitSFixed64(field, number.longValue());
-            break;
-          case DOUBLE:
-            visitor.visitDouble(field, number.doubleValue());
-            break;
-          case MESSAGE:
-            if (field.type() instanceof MessageLiteral) {
-              switch ((MessageLiteral)field.type()) {
-                case ListValue:
-                  visitor.enter(field);
-                  visitor.enter(FieldLiteral.ListValue_values);
-                  visitor.visitDouble(FieldLiteral.Value_number_value, number.doubleValue());
-                  visitor.leave(FieldLiteral.ListValue_values);
-                  visitor.leave(field);
-                  break;
-                case Value:
-                  visitor.enter(field);
-                  visitor.visitDouble(FieldLiteral.Value_number_value, number.doubleValue());
-                  visitor.leave(field);
-                  break;
-                case Int32Value:
-                  visitor.enter(field);
-                  visitor.visitInt32(FieldLiteral.Int32Value_value, number.intValue());
-                  visitor.leave(field);
-                  break;
-                case UInt32Value:
-                  visitor.enter(field);
-                  visitor.visitUInt32(FieldLiteral.UInt32Value_value, number.intValue());
-                  visitor.leave(field);
-                  break;
-                case Int64Value:
-                  visitor.enter(field);
-                  visitor.visitInt64(FieldLiteral.Int64Value_value, number.longValue());
-                  visitor.leave(field);
-                  break;
-                case UInt64Value:
-                  visitor.enter(field);
-                  visitor.visitUInt64(FieldLiteral.UInt64Value_value, number.longValue());
-                  visitor.leave(field);
-                  break;
-                case FloatValue:
-                  visitor.enter(field);
-                  visitor.visitFloat(FieldLiteral.FloatValue_value, number.floatValue());
-                  visitor.leave(field);
-                  break;
-                case DoubleValue:
-                  visitor.enter(field);
-                  visitor.visitDouble(FieldLiteral.DoubleValue_value, number.doubleValue());
-                  visitor.leave(field);
-                  break;
-                default:
-                  throw new DecodeException();
-              }
-              break;
-            } else {
-              throw new DecodeException();
-            }
-          default:
-            throw new UnsupportedOperationException("Invalid type " + field.type().id());
-        }
-        break;
-      case JsonTokenId.ID_TRUE:
-        readBoolean(field, true);
-        break;
-      case JsonTokenId.ID_FALSE:
-        readBoolean(field, false);
-        break;
-      case JsonTokenId.ID_NULL:
-        if (field.type() == MessageLiteral.Value) {
-          visitor.enter(field);
-          visitor.visitEnum(FieldLiteral.Value_null_value, 0);
-          visitor.leave(field);
-        } else if (field.type() == MessageLiteral.ListValue) {
-          visitor.enter(field);
-          visitor.enter(FieldLiteral.ListValue_values);
-          visitor.visitEnum(FieldLiteral.Value_null_value, 0);
-          visitor.leave(FieldLiteral.ListValue_values);
-          visitor.leave(field);
-        } else {
-          // Use default value
-        }
-        break;
-      default:
-        throw new DecodeException("Unexpected token"/*, parser.getCurrentLocation()*/);
+          break;
+        default:
+          throw new DecodeException("Unexpected token"/*, parser.getCurrentLocation()*/);
+      }
     }
   }
 
@@ -452,10 +450,6 @@ public class JsonReader {
     if (field.type() == MessageLiteral.BoolValue) {
       visitor.enter(field);
       visitor.visitBool(FieldLiteral.BoolValue_value, value);
-      visitor.leave(field);
-    } else if (field.type() == MessageLiteral.Value) {
-      visitor.enter(field);
-      visitor.visitBool(FieldLiteral.Value_bool_value, value);
       visitor.leave(field);
     } else if (field.type() == MessageLiteral.ListValue) {
       visitor.enter(field);
@@ -554,11 +548,7 @@ public class JsonReader {
   private void readArray(Field field) throws IOException {
     assert parser.hasToken(JsonToken.START_ARRAY);
     while (parser.nextToken() != JsonToken.END_ARRAY) {
-      if (field.type() == MessageLiteral.Value) {
-        visitor.enter(field);
-        StructParser.parseValue(parser, visitor);
-        visitor.leave(field);
-      } else if (field.type() == MessageLiteral.ListValue) {
+      if (field.type() == MessageLiteral.ListValue) {
         visitor.enter(field);
         StructParser.parseArray(parser, visitor);
         visitor.leave(field);
