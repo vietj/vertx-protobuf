@@ -43,28 +43,26 @@ import static org.junit.Assert.*;
 public class JsonTest {
 
   @Test
-  public void testStruct() throws Exception {
+  public void testStruct() {
+    assertEquals("string-value", testStruct(Value.newBuilder().setStringValue("string-value").build()).getKind().asStringValue().get());
+    assertEquals(0, testStruct(Value.newBuilder().setNullValue(NullValue.NULL_VALUE).build()).getKind().asNullValue().get().number());
+    assertEquals(3.14D, testStruct(Value.newBuilder().setNumberValue(3.14).build()).getKind().asNumberValue().get(), 0.00001D);
+    assertEquals(true, testStruct(Value.newBuilder().setBoolValue(true).build()).getKind().asBoolValue().get());
+    assertEquals(false, testStruct(Value.newBuilder().setBoolValue(false).build()).getKind().asBoolValue().get());
+    assertEquals(1, testStruct(Value.newBuilder().setListValue(ListValue.newBuilder().addValues(Value.newBuilder().setStringValue("the-string").build()).build()).build()).getKind().asListValue().get().getValues().size());
+    assertEquals(1, testStruct(Value.newBuilder().setStructValue(Struct.newBuilder().putFields("the-key", Value.newBuilder().setStringValue("the-value").build()).build()).build()).getKind().asStructValue().get().getFields().size());
+  }
+
+  private io.vertx.protobuf.well_known_types.Value testStruct(Value value) {
     JsonProto.Container expected = JsonProto.Container.newBuilder()
       .setStruct(Struct.newBuilder()
-        .putFields("string-key", Value.newBuilder().setStringValue("string-value").build())
-        .putFields("null-key", Value.newBuilder().setNullValue(NullValue.NULL_VALUE).build())
-        .putFields("number-key", Value.newBuilder().setNumberValue(3.14).build())
-        .putFields("true-key", Value.newBuilder().setBoolValue(true).build())
-        .putFields("false-key", Value.newBuilder().setBoolValue(false).build())
-        .putFields("array-key", Value.newBuilder().setListValue(ListValue.newBuilder().addValues(Value.newBuilder().setStringValue("the-string").build()).build()).build())
-        .putFields("object-key", Value.newBuilder().setStructValue(Struct.newBuilder().putFields("the-key", Value.newBuilder().setStringValue("the-value").build()).build()).build())
+        .putFields("key", value)
         .build())
       .build();
     Container read = read(expected, MessageLiteral.Container);
-    assertEquals("string-value", read.getStruct().getFields().get("string-key").getKind().asStringValue().get());
-    assertEquals(0, read.getStruct().getFields().get("null-key").getKind().asNullValue().get().number());
-    assertEquals(3.14D, read.getStruct().getFields().get("number-key").getKind().asNumberValue().get(), 0.00001D);
-    assertEquals(true, read.getStruct().getFields().get("true-key").getKind().asBoolValue().get());
-    assertEquals(false, read.getStruct().getFields().get("false-key").getKind().asBoolValue().get());
-    assertEquals(1, read.getStruct().getFields().get("array-key").getKind().asListValue().get().getValues().size());
-    assertEquals(1, read.getStruct().getFields().get("object-key").getKind().asStructValue().get().getFields().size());
     JsonProto.Container actual = write(read);
     assertEquals(actual, expected);
+    return read.getStruct().getFields().get("key");
   }
 
   @Test
