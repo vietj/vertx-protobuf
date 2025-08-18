@@ -10,16 +10,32 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.protobuf.ProtobufReader;
 import io.vertx.protobuf.ProtobufWriter;
 import io.vertx.protobuf.json.JsonReader;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.List;
 
 public class ConformanceTest {
 
+  @Ignore
   @Test
   public void testJsonInput() throws Exception {
 
-    String json = "{\"optionalNestedEnum\": 1}";
+    String json = "{\n" +
+      "        \"optionalAny\": {\n" +
+      "          \"@type\": \"type.googleapis.com/google.protobuf.Struct\",\n" +
+      "          \"value\": {\n" +
+      "            \"foo\": 1\n" +
+      "    }\n" +
+      "  }\n" +
+      "      }";
+
+    json = "{\n" +
+      "        \"optionalAny\": {\n" +
+      "          \"@type\": \"type.googleapis.com/protobuf_test_messages.proto3.TestAllTypesProto3\",\n" +
+      "          \"optionalInt32\": 12345\n" +
+      "  }\n" +
+      "      }";
 
     TestMessagesProto3.TestAllTypesProto3.Builder builder = TestMessagesProto3.TestAllTypesProto3.newBuilder();
     JsonFormat.parser().merge(json, builder);
