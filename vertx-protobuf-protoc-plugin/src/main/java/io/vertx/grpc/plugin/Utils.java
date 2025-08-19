@@ -94,12 +94,20 @@ public class Utils {
     return literalIdentifier(field.getContainingType()) + "_" + field.getName();
   }
 
-  static String schemaIdentifier(Descriptors.Descriptor field) {
-    return field.getName().toUpperCase();
+  static String schemaIdentifier(Descriptors.Descriptor type) {
+    return type.getName().toUpperCase();
   }
 
-  static String literalIdentifier(Descriptors.Descriptor field) {
-    return field.getName();
+  static String literalIdentifier(Descriptors.Descriptor type) {
+    return type.getName();
+  }
+
+  static boolean isMapKey(Descriptors.FieldDescriptor field) {
+    return field.getContainingType().toProto().getOptions().getMapEntry() && field.getContainingType().getFields().get(0) == field;
+  }
+
+  static boolean isMapValue(Descriptors.FieldDescriptor field) {
+    return field.getContainingType().toProto().getOptions().getMapEntry() && field.getContainingType().getFields().get(1) == field;
   }
 
   static Map<String, Descriptors.Descriptor> transitiveClosure(List<Descriptors.Descriptor> descriptors) {

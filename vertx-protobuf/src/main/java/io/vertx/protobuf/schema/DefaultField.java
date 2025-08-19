@@ -7,17 +7,21 @@ public class DefaultField implements Field {
   private final String name;
   private final String jsonName;
   private final boolean map;
+  private final boolean mapKey;
+  private final boolean mapValue;
   private final boolean repeated;
   private final boolean packed;
   private final Type type;
 
-  DefaultField(DefaultMessageType owner, int number, String name, String jsonName, boolean map, boolean repeated, boolean packed, Type type) {
+  DefaultField(DefaultMessageType owner, int number, String name, String jsonName, boolean map, boolean mapKey, boolean mapValue, boolean repeated, boolean packed, Type type) {
     this.owner = owner;
     this.number = number;
     this.jsonName = jsonName;
     this.name = name;
     this.repeated = repeated;
     this.map = map;
+    this.mapKey = mapKey;
+    this.mapValue = mapValue;
     this.packed = packed;
     this.type = type;
   }
@@ -39,6 +43,16 @@ public class DefaultField implements Field {
   @Override
   public boolean isMap() {
     return map;
+  }
+
+  @Override
+  public boolean isMapKey() {
+    return mapKey;
+  }
+
+  @Override
+  public boolean isMapValue() {
+    return mapValue;
   }
 
   @Override

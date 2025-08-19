@@ -90,7 +90,7 @@ class SchemaGenerator {
           default:
             return;
         }
-        list2.add(new FieldDeclaration(identifier, field.getName(), field.isMapField(), field.isRepeated(), field.isPacked(), field.getJsonName(), messageTypeRef, number, field.getContainingType().getName(), typeExpr));
+        list2.add(new FieldDeclaration(identifier, field.getName(), field.isMapField(), Utils.isMapKey(field), Utils.isMapValue(field), field.isRepeated(), field.isPacked(), field.getJsonName(), messageTypeRef, number, field.getContainingType().getName(), typeExpr));
         if (field.getType() == Descriptors.FieldDescriptor.Type.ENUM) {
           Descriptors.EnumDescriptor enumType = field.getEnumType();
           if (!list3.containsKey(enumType)) {
@@ -133,6 +133,8 @@ class SchemaGenerator {
     public final String name;
     public final String jsonName;
     public final boolean map;
+    public final boolean mapKey;
+    public final boolean mapValue;
     public final boolean repeated;
     public final boolean packed;
     public final String messageTypeIdentifier;
@@ -140,13 +142,15 @@ class SchemaGenerator {
     public final int number;
     public final String typeExpr;
 
-    public FieldDeclaration(String identifier, String name, boolean map, boolean repeated, boolean packed, String jsonName, String messageTypeIdentifier, int number, String messageName, String typeExpr) {
+    public FieldDeclaration(String identifier, String name, boolean map, boolean mapKey, boolean mapValue, boolean repeated, boolean packed, String jsonName, String messageTypeIdentifier, int number, String messageName, String typeExpr) {
       this.identifier = identifier;
       this.name = name;
       this.jsonName = jsonName;
       this.messageTypeIdentifier = messageTypeIdentifier;
       this.messageName = messageName;
       this.map = map;
+      this.mapKey = mapKey;
+      this.mapValue = mapValue;
       this.repeated = repeated;
       this.packed = packed;
       this.number = number;
@@ -180,7 +184,8 @@ class SchemaGenerator {
     for (Iterator<FieldDeclaration> it  = list2.iterator();it.hasNext();) {
       FieldDeclaration decl = it.next();
       writer.print("  " + decl.messageName + "_" + decl.name + "(MessageLiteral." + decl.messageName + ", "
-              + decl.number + ", " + decl.typeExpr + ", " + decl.map + ", " + decl.repeated + ", " +decl.packed + ", \"" + decl.name + "\", \"" + decl.jsonName + "\")");
+              + decl.number + ", " + decl.typeExpr + ", " + decl.map + ", " + decl.mapKey + ", " + decl.mapValue
+        + ", " +decl.repeated + ", " +decl.packed + ", \"" + decl.name + "\", \"" + decl.jsonName + "\")");
       if (it.hasNext()) {
         writer.println(",");
       } else {
@@ -192,15 +197,19 @@ class SchemaGenerator {
     writer.println("  private final int number;");
     writer.println("  private final io.vertx.protobuf.schema.Type type;");
     writer.println("  private final boolean map;");
+    writer.println("  private final boolean mapKey;");
+    writer.println("  private final boolean mapValue;");
     writer.println("  private final boolean repeated;");
     writer.println("  private final boolean packed;");
     writer.println("  private final String name;");
     writer.println("  private final String jsonName;");
-    writer.println("  FieldLiteral(MessageLiteral owner, int number, io.vertx.protobuf.schema.Type type, boolean map, boolean repeated, boolean packed, String name, String jsonName) {");
+    writer.println("  FieldLiteral(MessageLiteral owner, int number, io.vertx.protobuf.schema.Type type, boolean map, boolean mapKey, boolean mapValue, boolean repeated, boolean packed, String name, String jsonName) {");
     writer.println("    this.owner = owner;");
     writer.println("    this.number = number;");
     writer.println("    this.type = type;");
     writer.println("    this.map = map;");
+    writer.println("    this.mapKey = mapKey;");
+    writer.println("    this.mapValue = mapValue;");
     writer.println("    this.repeated = repeated;");
     writer.println("    this.packed = packed;");
     writer.println("    this.name = name;");
@@ -217,6 +226,12 @@ class SchemaGenerator {
     writer.println("  }");
     writer.println("  public boolean isMap() {");
     writer.println("    return map;");
+    writer.println("  }");
+    writer.println("  public boolean isMapKey() {");
+    writer.println("    return mapKey;");
+    writer.println("  }");
+    writer.println("  public boolean isMapValue() {");
+    writer.println("    return mapValue;");
     writer.println("  }");
     writer.println("  public boolean isRepeated() {");
     writer.println("    return repeated;");

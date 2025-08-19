@@ -68,6 +68,16 @@ class UnknownField implements Field, Type {
   }
 
   @Override
+  public boolean isMapKey() {
+    return false;
+  }
+
+  @Override
+  public boolean isMapValue() {
+    return false;
+  }
+
+  @Override
   public boolean isRepeated() {
     return false;
   }

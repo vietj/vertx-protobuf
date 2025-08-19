@@ -8,6 +8,8 @@ public class DefaultFieldBuilder {
   Boolean packed;
   boolean repeated;
   boolean map;
+  boolean mapKey;
+  boolean mapValue;
 
   public DefaultFieldBuilder number(int number) {
     this.number = number;
@@ -36,6 +38,16 @@ public class DefaultFieldBuilder {
 
   public DefaultFieldBuilder map(boolean map) {
     this.map = map;
+    return this;
+  }
+
+  public DefaultFieldBuilder mapKey(boolean mapKey) {
+    this.mapKey = mapKey;
+    return this;
+  }
+
+  public DefaultFieldBuilder mapValue(boolean mapValue) {
+    this.mapValue = mapValue;
     return this;
   }
 }

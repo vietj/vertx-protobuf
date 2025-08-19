@@ -22,6 +22,8 @@ public interface Field {
   Type type();
   boolean isRepeated();
   boolean isMap();
+  boolean isMapKey();
+  boolean isMapValue();
   boolean isPacked();
   String jsonName();
   default boolean isUnknown() {
