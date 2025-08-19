@@ -1,10 +1,13 @@
 package io.vertx.tests.protobuf.json;
 
+import io.vertx.core.json.JsonObject;
 import io.vertx.protobuf.json.JsonReader;
+import io.vertx.protobuf.json.JsonWriter;
 import io.vertx.tests.map.MapValueVariant;
 import io.vertx.tests.map.ProtoReader;
 import io.vertx.tests.map.MessageLiteral;
 import io.vertx.tests.map.MapKeyVariant;
+import io.vertx.tests.map.ProtoWriter;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -84,9 +87,18 @@ public class MapTest {
   }
 
   private MapKeyVariant parseMap(String json) {
+
+    JsonObject src = new JsonObject(json);
+
     ProtoReader pr = new ProtoReader();
     JsonReader.parse(json, MessageLiteral.MapKeyVariant, pr);
-    return (MapKeyVariant) pr.stack.pop();
+
+    MapKeyVariant res = (MapKeyVariant) pr.stack.pop();
+    JsonObject encoded = JsonWriter.encode(v -> ProtoWriter.emit(res, v));
+
+//    assertEquals(src, encoded);
+
+    return res;
   }
 
   @Test

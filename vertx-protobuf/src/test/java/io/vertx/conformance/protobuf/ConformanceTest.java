@@ -10,9 +10,11 @@ import com.google.protobuf_test_messages.proto3.ProtoWriter;
 import com.google.protobuf_test_messages.proto3.TestAllTypesProto3;
 import com.google.protobuf_test_messages.proto3.TestMessagesProto3;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.json.JsonObject;
 import io.vertx.protobuf.ProtobufReader;
 import io.vertx.protobuf.ProtobufWriter;
 import io.vertx.protobuf.json.JsonReader;
+import io.vertx.protobuf.json.JsonWriter;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -28,6 +30,27 @@ public class ConformanceTest {
         .add(TestMessagesProto3.TestAllTypesProto3.getDescriptor())
         .add(com.google.protobuf_test_messages.proto3.TestMessagesProto3.TestAllTypesProto3.getDescriptor())
         .build();
+  }
+
+  @Test
+  public void testJsonOutput() throws Exception {
+//    byte[] bytes = { 61, 0, 0, 0, 0, 61, 57, 48, 0, 0, 61, -1, -1, -1, -1 };
+    byte[] bytes = { -46, 3, 4, 8, 1, 16, 0, -46, 3, 4, 8, 1, 16, 1 };
+    ProtoReader reader = new ProtoReader();
+    Buffer buffer = Buffer.buffer(bytes);
+    TestMessagesProto3.TestAllTypesProto3 d = TestMessagesProto3.TestAllTypesProto3.parseFrom(bytes);
+
+    String expected = JsonFormat.printer().print(d);
+
+    System.out.println(expected);
+
+    ProtobufReader.parse(MessageLiteral.TestAllTypesProto3, reader, buffer);
+    TestAllTypesProto3 testMessage = (TestAllTypesProto3) reader.stack.pop();
+
+    String output = JsonWriter.encode(v -> ProtoWriter.emit(testMessage, v)).encode();
+
+    System.out.println(output);
+
   }
 
   @Test
