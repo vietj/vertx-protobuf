@@ -18,10 +18,10 @@ public class FilterTests {
       if (line == null) {
         break;
       }
-      if (line.contains("ProtobufInput") || line.contains("JsonOutput") || line.contains("Proto2")) {
+      if (line.contains("ProtobufOutput") || line.contains("JsonInput") || line.contains("Proto2")) {
         continue;
       }
-      if (!line.contains("ProtobufOutput")) {
+      if (!line.contains("JsonOutput") || !line.contains("ProtobufInput")) {
         continue;
       }
       line = line.replace("[", "\\[");

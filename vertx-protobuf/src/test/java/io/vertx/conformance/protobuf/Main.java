@@ -4,6 +4,7 @@ import com.google.protobuf.ByteString;
 import com.google.protobuf.conformance.Conformance;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.DecodeException;
+import io.vertx.core.json.JsonObject;
 import io.vertx.protobuf.ProtobufReader;
 import io.vertx.protobuf.ProtobufWriter;
 import com.google.protobuf_test_messages.proto3.ProtoWriter;
@@ -11,6 +12,7 @@ import com.google.protobuf_test_messages.proto3.TestAllTypesProto3;
 import com.google.protobuf_test_messages.proto3.ProtoReader;
 import com.google.protobuf_test_messages.proto3.MessageLiteral;
 import io.vertx.protobuf.json.JsonReader;
+import io.vertx.protobuf.json.JsonWriter;
 
 public class Main {
 
@@ -101,6 +103,13 @@ public class Main {
       }
 
       case JSON:
+        JsonObject result = JsonWriter.encode(visitor -> {
+          ProtoWriter.emit(testMessage, visitor);
+        });
+        return Conformance.ConformanceResponse.newBuilder()
+          .setJsonPayload(result.encode())
+          .build();
+
 //        try {
 //          return Conformance.ConformanceResponse.newBuilder()
 //            .setJsonPayload(
