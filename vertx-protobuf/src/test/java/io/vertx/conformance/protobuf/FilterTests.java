@@ -18,12 +18,12 @@ public class FilterTests {
       if (line == null) {
         break;
       }
-      if (line.contains("ProtobufOutput") || line.contains("ProtobufInput") || line.contains("Proto2")) {
+      if (line.contains("Proto2")) {
         continue;
       }
-      if (!line.contains("JsonOutput") || !line.contains("JsonInput")) {
-        continue;
-      }
+//      if (!line.contains("JsonOutput") || !line.contains("JsonInput")) {
+//        continue;
+//      }
       line = line.replace("[", "\\[");
       line = line.replace("]", "\\]");
       System.out.println("--test " + line + " \\");

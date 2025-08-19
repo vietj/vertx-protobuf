@@ -1,1 +1,25 @@
 Required.Proto3.ProtobufInput.UnknownOrdering.ProtobufOutput # Unknown field mismatch
+Required.Proto3.JsonInput.Any.JsonOutput # Failed to parse input or produce output.
+Required.Proto3.JsonInput.Any.ProtobufOutput # Failed to parse input or produce output.
+Required.Proto3.JsonInput.AnyNested.JsonOutput # Failed to parse input or produce output.
+Required.Proto3.JsonInput.AnyNested.ProtobufOutput # Failed to parse input or produce output.
+Required.Proto3.JsonInput.AnyUnorderedTypeTag.JsonOutput # Failed to parse input or produce output.
+Required.Proto3.JsonInput.AnyUnorderedTypeTag.ProtobufOutput # Failed to parse input or produce output.
+Required.Proto3.JsonInput.AnyWithDuration.JsonOutput # Failed to parse input or produce output.
+Required.Proto3.JsonInput.AnyWithDuration.ProtobufOutput # Failed to parse input or produce output.
+Required.Proto3.JsonInput.AnyWithFieldMask.JsonOutput # Failed to parse input or produce output.
+Required.Proto3.JsonInput.AnyWithFieldMask.ProtobufOutput # Failed to parse input or produce output.
+Required.Proto3.JsonInput.AnyWithInt32ValueWrapper.JsonOutput # Failed to parse input or produce output.
+Required.Proto3.JsonInput.AnyWithInt32ValueWrapper.ProtobufOutput # Failed to parse input or produce output.
+Required.Proto3.JsonInput.AnyWithNoType.JsonOutput # Failed to parse input or produce output.
+Required.Proto3.JsonInput.AnyWithNoType.ProtobufOutput # Failed to parse input or produce output.
+Required.Proto3.JsonInput.AnyWithStruct.JsonOutput # Failed to parse input or produce output.
+Required.Proto3.JsonInput.AnyWithStruct.ProtobufOutput # Failed to parse input or produce output.
+Required.Proto3.JsonInput.AnyWithTimestamp.JsonOutput # Failed to parse input or produce output.
+Required.Proto3.JsonInput.AnyWithTimestamp.ProtobufOutput # Failed to parse input or produce output.
+Required.Proto3.JsonInput.AnyWithValueForInteger.JsonOutput # Failed to parse input or produce output.
+Required.Proto3.JsonInput.AnyWithValueForInteger.ProtobufOutput # Failed to parse input or produce output.
+Required.Proto3.JsonInput.AnyWithValueForJsonObject.JsonOutput # Failed to parse input or produce output.
+Required.Proto3.JsonInput.AnyWithValueForJsonObject.ProtobufOutput # Failed to parse input or produce output.
+Required.Proto3.JsonInput.AnyWktRepresentationWithBadType # Should have failed to parse, but didn't.
+Required.Proto3.JsonInput.AnyWktRepresentationWithEmptyTypeAndValue # Should have failed to parse, but didn't.
