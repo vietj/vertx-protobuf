@@ -293,7 +293,7 @@ public class JsonReader {
         visitor.visitSInt64(field, readLong());
         break;
       case FIXED32:
-        visitor.visitFixed32(field, readInt());
+        visitor.visitFixed32(field, readUInt32());
         break;
       case SFIXED32:
         visitor.visitSFixed32(field, readInt());
@@ -302,7 +302,7 @@ public class JsonReader {
         visitor.visitFloat(field, readFloat());
         break;
       case FIXED64:
-        visitor.visitFixed64(field, readLong());
+        visitor.visitFixed64(field, readUInt64());
         break;
       case SFIXED64:
         visitor.visitSFixed64(field, readLong());

@@ -23,15 +23,15 @@ public class JsonWriter implements RecordVisitor  {
   public static JsonObject encode(Consumer<RecordVisitor> consumer) {
     JsonWriter writer = new JsonWriter();
     consumer.accept(writer);
-    return writer.stack.pop();
+    return (JsonObject) writer.stack.pop();
   }
 
-  private final Deque<JsonObject> stack = new ArrayDeque<>();
+  private final Deque<Object> stack = new ArrayDeque<>();
   private ProtoReader structWriter;
 
   @Override
   public void init(MessageType type) {
-    stack.add(new JsonObject());
+    stack.push(new JsonObject());
   }
 
   @Override
@@ -59,9 +59,16 @@ public class JsonWriter implements RecordVisitor  {
     ) {
       structWriter = new ProtoReader();
       structWriter.init((MessageType) field.type());
+    } else if (field.isMap()) {
+      stack.push(new Entry());
     } else {
-      stack.add(new JsonObject());
+      stack.push(new JsonObject());
     }
+  }
+
+  private static class Entry {
+    Object key;
+    Object value;
   }
 
   @Override
@@ -111,23 +118,40 @@ public class JsonWriter implements RecordVisitor  {
       put(field, o);
     } else if (structWriter != null) {
       structWriter.leave(field);
+    } else if (field.isMap()) {
+      Entry entry = (Entry) stack.pop();
+      JsonObject obj = (JsonObject) stack.peek();
+      JsonObject blah = obj.getJsonObject(field.jsonName());
+      if (blah == null) {
+        blah = new JsonObject();
+        obj.put(field.jsonName(), blah);
+      }
+      blah.put("" + entry.key, entry.value);
     } else {
-      JsonObject obj = stack.pop();
+      JsonObject obj = (JsonObject) stack.pop();
       put(field, obj);
     }
   }
 
   private void put(Field field, Object value) {
-    JsonObject object = stack.peek();
-    if (field.isRepeated()) {
-      JsonArray array = object.getJsonArray(field.jsonName());
-      if (array == null) {
-        array = new JsonArray();
-        object.put(field.jsonName(), array);
-      }
-      array.add(value);
+    if (field.isMapKey()) {
+      Entry entry = (Entry) stack.peek();
+      entry.key = value;
+    } else if (field.isMapValue()) {
+      Entry entry = (Entry) stack.peek();
+      entry.value = value;
     } else {
-      object.put(field.jsonName(), value);
+      JsonObject object = (JsonObject) stack.peek();
+      if (field.isRepeated()) {
+        JsonArray array = object.getJsonArray(field.jsonName());
+        if (array == null) {
+          array = new JsonArray();
+          object.put(field.jsonName(), array);
+        }
+        array.add(value);
+      } else {
+        object.put(field.jsonName(), value);
+      }
     }
   }
 
@@ -221,7 +245,7 @@ public class JsonWriter implements RecordVisitor  {
   @Override
   public void visitFixed64(Field field, long v) {
     assert structWriter == null;
-    put(field, Long.toString(v));
+    put(field, writeUInt64(v));
   }
 
   @Override

@@ -82,7 +82,7 @@ public class MapTest {
 
   @Test
   public void testParseSFixed32Key() {
-    MapKeyVariant map = parseMap("{\"sfixed32\":{\"4\":50}}");
+    MapKeyVariant map = parseMap("{\"sfixed32\":{\"4\":50,\"5\":10}}");
     assertEquals(50, (int)map.getSfixed32().get(4));
   }
 
@@ -96,7 +96,7 @@ public class MapTest {
     MapKeyVariant res = (MapKeyVariant) pr.stack.pop();
     JsonObject encoded = JsonWriter.encode(v -> ProtoWriter.emit(res, v));
 
-//    assertEquals(src, encoded);
+    assertEquals(src, encoded);
 
     return res;
   }

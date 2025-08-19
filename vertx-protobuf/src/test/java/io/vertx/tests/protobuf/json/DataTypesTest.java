@@ -15,6 +15,7 @@ import io.vertx.tests.protobuf.RecordingVisitor;
 import io.vertx.tests.protobuf.datatypes.DataTypesProto;
 import org.junit.Test;
 
+import java.math.BigInteger;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
@@ -122,6 +123,30 @@ public class DataTypesTest extends DataTypeTestBase {
   }
 
   @Test
+  public void testUInt32() {
+    RecordingVisitor visitor = new RecordingVisitor();
+    visitor.init(SCALAR_TYPES);
+    visitor.visitUInt32(UINT32, -1);
+    visitor.destroy();
+    RecordingVisitor.Checker checker = visitor.checker();
+    JsonReader.parse("{\"uint32\":\"" + BigInteger.valueOf(0xFFFFFFFFL) + "\"}", SCALAR_TYPES, checker);
+    assertTrue(checker.isEmpty());
+    assertEquals(BigInteger.valueOf(0xFFFFFFFFL).toString(), JsonWriter.encode(visitor::apply).getValue("uint32"));
+  }
+
+  @Test
+  public void testFixed32() {
+    RecordingVisitor visitor = new RecordingVisitor();
+    visitor.init(SCALAR_TYPES);
+    visitor.visitFixed32(FIXED32, -1);
+    visitor.destroy();
+    RecordingVisitor.Checker checker = visitor.checker();
+    JsonReader.parse("{\"fixed32\":\"" + BigInteger.valueOf(0xFFFFFFFFL) + "\"}", SCALAR_TYPES, checker);
+    assertTrue(checker.isEmpty());
+    assertEquals(-1, JsonWriter.encode(visitor::apply).getValue("fixed32"));
+  }
+
+  @Test
   public void testUInt64() {
     RecordingVisitor visitor = new RecordingVisitor();
     visitor.init(SCALAR_TYPES);
@@ -130,6 +155,19 @@ public class DataTypesTest extends DataTypeTestBase {
     RecordingVisitor.Checker checker = visitor.checker();
     JsonReader.parse("{\"uint64\":\"18446744073709549568\"}", SCALAR_TYPES, checker);
     assertTrue(checker.isEmpty());
+    assertEquals("18446744073709549568", JsonWriter.encode(visitor::apply).getValue("uint64"));
+  }
+
+  @Test
+  public void testFixed64() {
+    RecordingVisitor visitor = new RecordingVisitor();
+    visitor.init(SCALAR_TYPES);
+    visitor.visitFixed64(FIXED64, -1);
+    visitor.destroy();
+    RecordingVisitor.Checker checker = visitor.checker();
+    JsonReader.parse("{\"fixed64\":\"18446744073709551615\"}", SCALAR_TYPES, checker);
+    assertTrue(checker.isEmpty());
+    assertEquals("18446744073709551615", JsonWriter.encode(visitor::apply).getValue("fixed64"));
   }
 
   @Test
