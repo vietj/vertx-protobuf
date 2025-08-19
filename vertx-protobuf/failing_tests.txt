@@ -1,1 +1,1 @@
-Required.Proto3.ProtobufInput.ValidDataScalar.FIXED64[2].JsonOutput # JSON output we received from test was unparseable.
+Required.Proto3.ProtobufInput.RepeatedScalarSelectsLast.FIXED32.JsonOutput # JSON output we received from test was unparseable.

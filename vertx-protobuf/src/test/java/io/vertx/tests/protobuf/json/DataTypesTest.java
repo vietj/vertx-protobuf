@@ -143,7 +143,7 @@ public class DataTypesTest extends DataTypeTestBase {
     RecordingVisitor.Checker checker = visitor.checker();
     JsonReader.parse("{\"fixed32\":\"" + BigInteger.valueOf(0xFFFFFFFFL) + "\"}", SCALAR_TYPES, checker);
     assertTrue(checker.isEmpty());
-    assertEquals(-1, JsonWriter.encode(visitor::apply).getValue("fixed32"));
+    assertEquals(4294967295L, JsonWriter.encode(visitor::apply).getValue("fixed32"));
   }
 
   @Test

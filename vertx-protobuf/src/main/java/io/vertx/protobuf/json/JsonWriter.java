@@ -224,7 +224,7 @@ public class JsonWriter implements RecordVisitor  {
   @Override
   public void visitFixed32(Field field, int v) {
     assert structWriter == null;
-    put(field, v);
+    put(field, (long)v & 0xFFFFFFFFL);
   }
 
   @Override
