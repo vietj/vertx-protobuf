@@ -9,5 +9,3 @@ Required.Proto3.JsonInput.AnyWithStruct.ProtobufOutput # Failed to parse input o
 Required.Proto3.JsonInput.AnyWithTimestamp.ProtobufOutput # Failed to parse input or produce output.
 Required.Proto3.JsonInput.AnyWithValueForInteger.ProtobufOutput # Failed to parse input or produce output.
 Required.Proto3.JsonInput.AnyWithValueForJsonObject.ProtobufOutput # Failed to parse input or produce output.
-Required.Proto3.JsonInput.EmptyFieldMask.ProtobufOutput # Failed to parse input or produce output.
-Required.Proto3.JsonInput.FieldMask.ProtobufOutput # Failed to parse input or produce output.

@@ -442,6 +442,18 @@ public class JsonReader {
           }
           visitor.leave(field);
           break;
+        case FieldMask:
+          if (parser.currentTokenId() != JsonTokenId.ID_STRING) {
+            throw new DecodeException();
+          }
+          String text = parser.getText();
+          String[] paths = text.isEmpty() ? new String[0] : text.split(",");
+          visitor.enter(field);
+          for (String path : paths) {
+            visitor.visitString(FieldLiteral.FieldMask_paths, toLowerCamel(path));
+          }
+          visitor.leave(field);
+          break;
         case Any:
 //          JsonObject entries = new JsonObject(JacksonCodec.parseObject(parser));
 //          String type = entries.getString("@type");
@@ -617,5 +629,20 @@ public class JsonReader {
     while (parser.nextToken() != JsonToken.END_ARRAY) {
       exhaustAny();
     }
+  }
+
+  public static String toLowerCamel(String s) {
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0;i < s.length();i++) {
+      char c = s.charAt(i);
+      if (c >= 'A' && c <= 'Z') {
+        if (i > 0) {
+          sb.append('_');
+        }
+        c += 'a' - 'A';
+      }
+      sb.append(c);
+    }
+    return sb.toString();
   }
 }

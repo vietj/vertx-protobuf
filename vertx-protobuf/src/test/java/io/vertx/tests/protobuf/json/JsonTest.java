@@ -7,6 +7,7 @@ import com.google.protobuf.ByteString;
 import com.google.protobuf.BytesValue;
 import com.google.protobuf.DoubleValue;
 import com.google.protobuf.Duration;
+import com.google.protobuf.FieldMask;
 import com.google.protobuf.FloatValue;
 import com.google.protobuf.Int32Value;
 import com.google.protobuf.Int64Value;
@@ -37,6 +38,9 @@ import junit.framework.AssertionFailedError;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -226,6 +230,39 @@ public class JsonTest {
         .put("value", new JsonObject().put("foo", 1))
     );
     Container container = read(json, MessageLiteral.Container);
+  }
+
+  @Test
+  public void testToLowerCamel() {
+    assertEquals("bar_baz", JsonReader.toLowerCamel("barBaz"));
+    assertEquals("b_b_b", JsonReader.toLowerCamel("BBB"));
+    assertEquals("a_ba_ba_b", JsonReader.toLowerCamel("aBaBaB"));
+    assertEquals("", JsonReader.toLowerCamel(""));
+  }
+
+  @Test
+  public void testFieldMask() throws Exception {
+    // {"optionalFieldMask": ""}
+    // {"optionalFieldMask": "foo,bar"}
+    testFieldMask("foo,barBaz", "foo", "bar_baz");
+    testFieldMask("foo,BBB", "foo", "b_b_b");
+    testFieldMask("foo,aBaBaB", "foo", "a_ba_ba_b");
+    testFieldMask("");
+  }
+
+  private void testFieldMask(String mask, String... expected) throws Exception {
+    JsonObject json = new JsonObject()
+      .put("field_mask", mask);
+    JsonProto.Container.Builder builder = JsonProto.Container.newBuilder();
+    JsonFormat.parser().merge(json.encode(), builder);
+    assertEquals(Arrays.asList(expected), builder.build().getFieldMask().getPathsList());
+    Container container = read(json, MessageLiteral.Container);
+    assertEquals(Arrays.asList(expected), container.getFieldMask().getPaths());
+  }
+
+  @Test
+  public void testEmptyFieldMask() {
+    // TODO
   }
 
   private <T> T read(MessageOrBuilder container, MessageType type) {
