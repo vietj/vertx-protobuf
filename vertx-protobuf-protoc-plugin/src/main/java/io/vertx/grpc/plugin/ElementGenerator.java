@@ -284,18 +284,21 @@ class ElementGenerator {
         }
       }
       writer.println(
+        "  private static class Hidden {",
+        "    private static final java.util.Map<Integer, " + descriptor.getName() + "> BY_NUMBER = new java.util.HashMap<>();",
+        "    static {",
+        "      for (" + descriptor.getName() + " value : values()) {",
+        "        BY_NUMBER.put(value.number, value);",
+        "      }",
+        "    }",
+        "  }");
+      writer.println(
         "",
-        "  private static final java.util.Map<Integer, " + descriptor.getName() + "> BY_NUMBER = new java.util.HashMap<>();",
         "",
         "  public static " + descriptor.getName() + " valueOf(int number) {",
-        "    return BY_NUMBER.get(number);",
+        "    return Hidden.BY_NUMBER.get(number);",
         "  }",
         "",
-        "  static {",
-        "    for (" + descriptor.getName() + " value : values()) {",
-        "      BY_NUMBER.put(value.number, value);",
-        "    }",
-        "  }",
         "",
         "  private final int number;",
         "",
