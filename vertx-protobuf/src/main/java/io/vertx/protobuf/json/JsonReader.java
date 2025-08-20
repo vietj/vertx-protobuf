@@ -239,8 +239,11 @@ public class JsonReader {
 
   private int readInt() throws IOException, DecodeException {
     switch (parser.currentTokenId()) {
-      case JsonTokenId.ID_NUMBER_INT:
       case JsonTokenId.ID_NUMBER_FLOAT:
+        if (parser.getDoubleValue() % 1 != 0D) {
+          throw new DecodeException("Invalid number " + parser.getText());
+        }
+      case JsonTokenId.ID_NUMBER_INT:
         return parser.getIntValue();
       case JsonTokenId.ID_STRING:
         return parseInt(parser.getText());
@@ -251,8 +254,11 @@ public class JsonReader {
 
   private int readUInt32() throws IOException, DecodeException {
     switch (parser.currentTokenId()) {
-      case JsonTokenId.ID_NUMBER_INT:
       case JsonTokenId.ID_NUMBER_FLOAT:
+        if (parser.getDoubleValue() % 1 != 0D) {
+          throw new DecodeException("Invalid number " + parser.getText());
+        }
+      case JsonTokenId.ID_NUMBER_INT:
         return (int)parser.getLongValue();
       case JsonTokenId.ID_STRING:
         return parseUInt32(parser.getText());
@@ -263,8 +269,11 @@ public class JsonReader {
 
   private long readLong() throws IOException, DecodeException {
     switch (parser.currentTokenId()) {
-      case JsonTokenId.ID_NUMBER_INT:
       case JsonTokenId.ID_NUMBER_FLOAT:
+        if (parser.getDoubleValue() % 1 != 0D) {
+          throw new DecodeException("Invalid number " + parser.getText());
+        }
+      case JsonTokenId.ID_NUMBER_INT:
         return parser.getLongValue();
       case JsonTokenId.ID_STRING:
         return parseLong(parser.getText());
@@ -275,8 +284,11 @@ public class JsonReader {
 
   private long readUInt64() throws IOException, DecodeException {
     switch (parser.currentTokenId()) {
-      case JsonTokenId.ID_NUMBER_INT:
       case JsonTokenId.ID_NUMBER_FLOAT:
+        if (parser.getDoubleValue() % 1 != 0D) {
+          throw new DecodeException("Invalid number " + parser.getText());
+        }
+      case JsonTokenId.ID_NUMBER_INT:
         try {
           return parser.getLongValue();
         } catch (InputCoercionException e) {
@@ -670,7 +682,7 @@ public class JsonReader {
     BigInteger parsed;
     try {
       parsed = new BigDecimal(value).toBigIntegerExact();
-    } catch (NumberFormatException e) {
+    } catch (ArithmeticException | NumberFormatException e) {
       throw new DecodeException("Invalid uint32: " + e.getMessage());
     }
     if (parsed.compareTo(BigInteger.ZERO) < 0 || parsed.compareTo(MAX_UINT32) > 0) {
@@ -683,7 +695,7 @@ public class JsonReader {
     BigInteger parsed;
     try {
       parsed = new BigDecimal(value).toBigIntegerExact();
-    } catch (NumberFormatException e) {
+    } catch (ArithmeticException | NumberFormatException e) {
       throw new DecodeException("Invalid uint64: " + e.getMessage());
     }
     if (parsed.compareTo(BigInteger.ZERO) < 0 || parsed.compareTo(MAX_UINT64) > 0) {

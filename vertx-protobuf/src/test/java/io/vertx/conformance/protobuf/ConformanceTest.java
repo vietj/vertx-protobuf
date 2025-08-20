@@ -62,7 +62,7 @@ public class ConformanceTest {
   @Test
   public void testJsonInput() throws Exception {
 
-    String json = "{\"optionalFieldMask\": \"\"}";
+    String json = "{\"optionalNestedEnum\": 123}";
 
 /*
     json = "{\n" +
@@ -77,8 +77,8 @@ public class ConformanceTest {
     JsonFormat.parser().usingTypeRegistry(typeRegistry).merge(json, builder);
     TestMessagesProto3.TestAllTypesProto3 d = builder.build();
 
-    System.out.println(d.getOptionalFieldMask());
-    System.out.println(d.getOptionalTimestamp().getNanos());
+    TestMessagesProto3.TestAllTypesProto3.NestedEnum a = d.getOptionalNestedEnum();
+    System.out.println(a);
 
 //    Any any = d.getOptionalAny();
 //    System.out.println(any.getTypeUrl());
@@ -88,9 +88,10 @@ public class ConformanceTest {
 //    System.out.println("struct = " + struct);
 //    any.
 
-//    ProtoReader reader = new ProtoReader();
-//    JsonReader.parse(json, MessageLiteral.TestAllTypesProto3, reader);
-//    TestAllTypesProto3 testMessage = (TestAllTypesProto3) reader.stack.pop();
+    ProtoReader reader = new ProtoReader();
+    JsonReader.parse(json, MessageLiteral.TestAllTypesProto3, reader);
+    TestAllTypesProto3 testMessage = (TestAllTypesProto3) reader.stack.pop();
+    System.out.println(testMessage.getOptionalNestedEnum());
   }
 
   @Test

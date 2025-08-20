@@ -1,1 +1,5 @@
-Required.Proto3.JsonInput.EmptyFieldMask.JsonOutput # Failed to parse input or produce output.
+Required.Proto3.JsonInput.EnumFieldUnknownValue.Validator # JSON payload validation failed.
+Required.Proto3.JsonInput.OneofFieldDuplicate # Should have failed to parse, but didn't.
+Required.Proto3.JsonInput.RejectTopLevelNull # Should have failed to parse, but didn't.
+Required.Proto3.JsonInput.Uint32FieldTooLarge # Should have failed to parse, but didn't.
+Required.Proto3.JsonInput.Uint64FieldNotInteger # Should have failed to parse, but didn't.

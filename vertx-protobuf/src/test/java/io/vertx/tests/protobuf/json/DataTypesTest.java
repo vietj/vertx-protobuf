@@ -44,18 +44,16 @@ public class DataTypesTest extends DataTypeTestBase {
         try {
           entry.setValue(Long.parseLong((String) value));
         } catch (NumberFormatException ignore) {
-          continue;
         }
       } else if (value instanceof Number) {
         entry.setValue(value.toString());
       } else {
-        continue;
       }
-      json = jsonObject.encode();
-      checker = visitor.checker();
-      JsonReader.parse(json, messageType, checker);
-      assertTrue(checker.isEmpty());
     }
+    json = jsonObject.encode();
+    checker = visitor.checker();
+    JsonReader.parse(json, messageType, checker);
+    assertTrue(checker.isEmpty());
 
     String encoded = JsonWriter.encode(visitor::apply).toString();
     Message.Builder builder = ((Message) expected).newBuilderForType();
@@ -237,6 +235,70 @@ public class DataTypesTest extends DataTypeTestBase {
     assertDecodeException(FLOAT.jsonName(), "\"-3.502823e+38\"");
     assertDecodeException(FLOAT.jsonName(), "3.502823e+38");
     assertDecodeException(FLOAT.jsonName(), "-3.502823e+38");
+  }
+
+  @Test
+  public void testInvalidInteger() {
+    Field[] fields = {
+      INT32,
+      UINT32,
+      SINT32,
+      FIXED32,
+      SFIXED32,
+      INT64,
+      UINT64,
+      SINT64,
+      FIXED64,
+      SFIXED64
+    };
+    for (Field field : fields) {
+      assertDecodeException(field.jsonName(), "0.5");
+      assertDecodeException(field.jsonName(), "\"0.5\"");
+    }
+  }
+
+  @Test
+  public void testParseExactFloatingValueInt32() {
+    RecordingVisitor visitor = new RecordingVisitor();
+    visitor.init(SCALAR_TYPES);
+    visitor.visitInt32(INT32, 4);
+    visitor.destroy();
+    RecordingVisitor.Checker checker = visitor.checker();
+    JsonReader.parse("{\"" + INT32.jsonName() + "\":4.0}", SCALAR_TYPES, checker);
+    assertTrue(checker.isEmpty());
+  }
+
+  @Test
+  public void testParseExactFloatingValueInt64() {
+    RecordingVisitor visitor = new RecordingVisitor();
+    visitor.init(SCALAR_TYPES);
+    visitor.visitInt64(INT64, 4);
+    visitor.destroy();
+    RecordingVisitor.Checker checker = visitor.checker();
+    JsonReader.parse("{\"" + INT64.jsonName() + "\":4.0}", SCALAR_TYPES, checker);
+    assertTrue(checker.isEmpty());
+  }
+
+  @Test
+  public void testParseExactFloatingValueUInt32() {
+    RecordingVisitor visitor = new RecordingVisitor();
+    visitor.init(SCALAR_TYPES);
+    visitor.visitUInt32(UINT32, 4);
+    visitor.destroy();
+    RecordingVisitor.Checker checker = visitor.checker();
+    JsonReader.parse("{\"" + UINT32.jsonName() + "\":4.0}", SCALAR_TYPES, checker);
+    assertTrue(checker.isEmpty());
+  }
+
+  @Test
+  public void testParseExactFloatingValueUInt64() {
+    RecordingVisitor visitor = new RecordingVisitor();
+    visitor.init(SCALAR_TYPES);
+    visitor.visitUInt64(UINT64, 4);
+    visitor.destroy();
+    RecordingVisitor.Checker checker = visitor.checker();
+    JsonReader.parse("{\"" + UINT64.jsonName() + "\":4.0}", SCALAR_TYPES, checker);
+    assertTrue(checker.isEmpty());
   }
 
   private static void assertDecodeException(String fieldName, String value) {
