@@ -31,6 +31,7 @@ import io.vertx.protobuf.json.JsonReader;
 import io.vertx.protobuf.json.JsonWriter;
 import io.vertx.protobuf.schema.MessageType;
 import io.vertx.tests.json.Container;
+import io.vertx.tests.json.FieldLiteral;
 import io.vertx.tests.json.JsonProto;
 import io.vertx.tests.json.MessageLiteral;
 import io.vertx.tests.json.ProtoReader;
@@ -154,7 +155,48 @@ public class JsonTest {
 
     for (int i = 0; i < listOfSeconds.length; i++) {
       try {
-        write(new Container().setDuration(new io.vertx.protobuf.well_known_types.Duration()
+        toJson(new Container().setDuration(new io.vertx.protobuf.well_known_types.Duration()
+          .setSeconds(listOfSeconds[i])
+          .setNanos(listOfNano[i])));
+        fail();
+      } catch (EncodeException expected) {
+      }
+    }
+  }
+
+  @Test
+  public void testReadInvalidTimestamp() {
+    // [-14, 18, 7, 8, -128, -125, -47, -1, -81, 7]
+    // [-14, 18, 11, 8, -1, -111, -72, -61, -104, -2, -1, -1, -1, 1]
+    String[] timestamps = {
+      "0001-01-01t00:00:00Z",
+      "0001-01-01T00:00:00z",
+      "0001-01-01 00:00:00Z",
+      "0001-01-01T00:00:00",
+      "10000-01-01T00:00:00Z",
+      "0000-01-01T00:00:00Z"
+    };
+    for (int i = 0;i < timestamps.length;i++) {
+      String timestamp = timestamps[i];
+      try {
+        read(new JsonObject().put(FieldLiteral.Container_timestamp.jsonName(), timestamp), MessageLiteral.Container);
+        fail("Failed to parse " + i);
+      } catch (DecodeException expected) {
+      }
+    }
+  }
+
+  @Ignore
+  @Test
+  public void testWriteInvalidTimestamp() {
+    long[] listOfSeconds = { 253402300800L };
+    int[] listOfNano = { 0 };
+
+    // {"optionalDuration": "315576000001.000000000s"}
+
+    for (int i = 0; i < listOfSeconds.length; i++) {
+      try {
+        toJson(new Container().setTimestamp(new io.vertx.protobuf.well_known_types.Timestamp()
           .setSeconds(listOfSeconds[i])
           .setNanos(listOfNano[i])));
         fail();
@@ -344,10 +386,14 @@ public class JsonTest {
     return (T)pr.stack.pop();
   }
 
-  private JsonProto.Container write(Container container) {
-    JsonObject json = JsonWriter.encode(visitor -> {
+  private JsonObject toJson(Container container) {
+    return JsonWriter.encode(visitor -> {
       ProtoWriter.emit(container, visitor);
     });
+  }
+
+  private JsonProto.Container write(Container container) {
+    JsonObject json = toJson(container);
     JsonProto.Container.Builder builder = JsonProto.Container.newBuilder();
     try {
       JsonFormat.parser().merge(json.encode(), builder);

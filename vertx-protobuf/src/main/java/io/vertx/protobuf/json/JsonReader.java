@@ -21,19 +21,44 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.Instant;
 import java.time.OffsetDateTime;
+import java.time.chrono.IsoChronology;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.format.ResolverStyle;
 import java.util.Base64;
+import java.util.Locale;
 import java.util.Map;
 import java.util.OptionalInt;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static java.time.format.DateTimeFormatter.ISO_LOCAL_TIME;
+
 public class JsonReader {
+
+  private static final DateTimeFormatter f2 = new DateTimeFormatterBuilder()
+    .parseCaseSensitive()
+    .append(DateTimeFormatter.ISO_LOCAL_DATE)
+    .appendLiteral('T')
+    .parseStrict()
+    .append(ISO_LOCAL_TIME)
+    .toFormatter();
+
+  private static final DateTimeFormatter formatter = new DateTimeFormatterBuilder()
+    .parseCaseSensitive()
+    .append(f2)
+    .parseStrict()
+    .appendOffsetId()
+    .parseStrict()
+    .toFormatter();
 
   public static final long MIN_SECONDS_DURATION = -315_576_000_000L;
   public static final long MAX_SECONDS_DURATION = 315576000000L;
   public static final int MIN_NANOS_DURATION = -999_999_999;
   public static final int MAX_NANOS_DURATION = 999_999_999;
+  public static final Instant MIN_TIMESTAMP = OffsetDateTime.parse("0001-01-01T00:00:00Z", formatter).toInstant();
+  public static final long MIN_SECONDS_TIMESTAMP = OffsetDateTime.parse("0001-01-01T00:00:00Z", formatter).getSecond();
+
 
   public static boolean isValidDurationSeconds(long seconds) {
     return seconds >= MIN_SECONDS_DURATION && seconds <= MAX_SECONDS_DURATION;
@@ -45,6 +70,18 @@ public class JsonReader {
 
   public static boolean isValidDuration(long seconds, int nanos) {
     return isValidDurationSeconds(seconds) && isValidDurationNanos(nanos);
+  }
+
+  public static boolean isValidTimestampSeconds(long seconds) {
+    return seconds >= MIN_SECONDS_TIMESTAMP;
+  }
+
+  public static boolean isValidTimestampNanos(int nanos) {
+    return true;
+  }
+
+  public static boolean isValidTimestamp(long seconds, int nanos) {
+    return isValidTimestampSeconds(seconds) && isValidTimestampNanos(nanos);
   }
 
   private static void close(Closeable parser) {
@@ -471,9 +508,20 @@ public class JsonReader {
           if (parser.currentTokenId() != JsonTokenId.ID_STRING) {
             throw new DecodeException();
           }
+
+
+
           String timestampText = parser.getText();
-          OffsetDateTime odt = OffsetDateTime.parse(timestampText, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+          OffsetDateTime odt;
+          try {
+            odt = OffsetDateTime.parse(timestampText, formatter);
+          } catch (Exception e) {
+            throw new DecodeException("Failed to parse timestamp: " + e.getMessage());
+          }
           Instant i = odt.toInstant();
+          if (i.compareTo(MIN_TIMESTAMP) < 0) {
+            throw new DecodeException();
+          }
           visitor.enter(field);
           if (i.getEpochSecond() != 0) {
             visitor.visitInt64(FieldLiteral.Timestamp_seconds, i.getEpochSecond());

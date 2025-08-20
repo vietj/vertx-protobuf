@@ -1,17 +1,1 @@
-Required.Proto3.JsonInput.EmptyFieldMask.JsonOutput # Failed to parse input or produce output.
-Required.Proto3.JsonInput.EnumFieldUnknownValue.Validator # JSON payload validation failed.
-Required.Proto3.JsonInput.FieldMask.JsonOutput # Failed to parse input or produce output.
-Required.Proto3.JsonInput.Int32FieldNotInteger # Should have failed to parse, but didn't.
-Required.Proto3.JsonInput.OneofFieldDuplicate # Should have failed to parse, but didn't.
-Required.Proto3.JsonInput.RejectTopLevelNull # Should have failed to parse, but didn't.
 Required.Proto3.JsonInput.TimestampJsonInputLowercaseT # Should have failed to parse, but didn't.
-Required.Proto3.JsonInput.TimestampJsonInputLowercaseZ # Should have failed to parse, but didn't.
-Required.Proto3.JsonInput.TimestampJsonInputMissingT # Should have failed to parse, but didn't.
-Required.Proto3.JsonInput.TimestampJsonInputMissingZ # Should have failed to parse, but didn't.
-Required.Proto3.JsonInput.TimestampJsonInputTooLarge # Should have failed to parse, but didn't.
-Required.Proto3.JsonInput.TimestampJsonInputTooSmall # Should have failed to parse, but didn't.
-Required.Proto3.JsonInput.Uint32FieldNotInteger # Should have failed to parse, but didn't.
-Required.Proto3.JsonInput.Uint32FieldTooLarge # Should have failed to parse, but didn't.
-Required.Proto3.JsonInput.Uint64FieldNotInteger # Should have failed to parse, but didn't.
-Required.Proto3.TimestampProtoInputTooLarge.JsonOutput # Should have failed to serialize, but didn't.
-Required.Proto3.TimestampProtoInputTooSmall.JsonOutput # Should have failed to serialize, but didn't.
