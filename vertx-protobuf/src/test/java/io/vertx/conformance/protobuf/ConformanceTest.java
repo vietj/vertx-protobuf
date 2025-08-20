@@ -63,7 +63,7 @@ public class ConformanceTest {
   @Test
   public void testJsonInput() throws Exception {
 
-    String json = "{\"oneofUint32\": 1, \"oneofString\": \"test\"}";
+    String json = "{\"optionalNestedEnum\": 123}";
 
 /*
     json = "{\n" +
@@ -78,7 +78,7 @@ public class ConformanceTest {
     JsonFormat.parser().usingTypeRegistry(typeRegistry).merge(json, builder);
     TestMessagesProto3.TestAllTypesProto3 d = builder.build();
 
-    System.out.println(d.getOptionalUint32());
+    System.out.println(d.getOptionalNestedEnum().getNumber());
 
 //    Any any = d.getOptionalAny();
 //    System.out.println(any.getTypeUrl());
