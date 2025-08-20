@@ -21,6 +21,7 @@ import io.vertx.tests.protobuf.datatypes.EnumTypes;
 import io.vertx.tests.protobuf.datatypes.Enumerated;
 import io.vertx.tests.protobuf.datatypes.MessageLiteral;
 import io.vertx.tests.protobuf.datatypes.ProtoReader;
+import io.vertx.tests.protobuf.datatypes.ProtoWriter;
 import org.junit.Test;
 
 import java.math.BigDecimal;
@@ -362,6 +363,7 @@ public class DataTypesTest extends DataTypeTestBase {
     Enumerated enumerated = c.getEnum();
     assertTrue(enumerated.isUnknown());
     assertNull(enumerated.asEnum());
-    assertNull(enumerated.asEnum());
+    assertEquals("unknown", enumerated.name());
+//    JsonObject json = JsonWriter.encode(v -> ProtoWriter.emit(c, v));
   }
 }

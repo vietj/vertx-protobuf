@@ -3,7 +3,6 @@ package io.vertx.protobuf.schema;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.OptionalInt;
-import java.util.Set;
 
 public class DefaultEnumType implements EnumType {
 
@@ -35,10 +34,5 @@ public class DefaultEnumType implements EnumType {
   @Override
   public String nameOf(int number) {
     return nameByNumber.get(number);
-  }
-
-  @Override
-  public Set<Integer> numbers() {
-    return nameByNumber.keySet();
   }
 }

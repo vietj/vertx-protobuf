@@ -228,13 +228,10 @@ public class JsonReader {
         OptionalInt index = enumType.numberOf(parser.getText());
         if (index.isPresent()) {
           visitor.visitEnum(field, index.getAsInt());
+        } else if (visitor instanceof JsonVisitor) {
+          ((JsonVisitor)visitor).visitEnum(field, parser.getText());
         } else {
-          // Compute a value that is not present and will be handled as unknown
-          Set<Integer> numbers = enumType.numbers();
-          int i = -1;
-          while (numbers.contains(++i)) {
-          }
-          visitor.visitEnum(field, i);
+          throw new DecodeException("Unknown enum " + parser.getText());
         }
         break;
       case JsonTokenId.ID_NUMBER_INT:
