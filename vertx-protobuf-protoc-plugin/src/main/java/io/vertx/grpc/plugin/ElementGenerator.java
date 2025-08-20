@@ -284,19 +284,11 @@ class ElementGenerator {
         }
       }
       writer.println(
-        "  private static class Hidden {",
-        "    private static final java.util.Map<Integer, " + descriptor.getName() + "> BY_NUMBER = new java.util.HashMap<>();",
-        "    static {",
-        "      for (" + descriptor.getName() + " value : values()) {",
-        "        BY_NUMBER.put(value.number, value);",
-        "      }",
-        "    }",
-        "  }");
-      writer.println(
         "",
         "",
         "  public static " + descriptor.getName() + " valueOf(int number) {",
-        "    return Hidden.BY_NUMBER.get(number);",
+        "    String name = TYPE.nameOf(number);",
+        "    return name == null ? null : valueOf(name);",
         "  }",
         "",
         "",
