@@ -263,16 +263,10 @@ class ElementGenerator {
 
     @Override
     void generate2(GenWriter writer) {
-      writer.println("public enum " + descriptor.getName() + " {",
+      writer.println("public interface " + descriptor.getName() + " {",
         "");
 
-      for (Iterator<Constant> it = constants.iterator(); it.hasNext();) {
-        Constant constant = it.next();
-        writer.println(
-          "  " + constant.identifier + "(" + constant.number + ")" + (it.hasNext() ? "," : ";"));
-      }
-
-      writer.println("  enum Enum {");
+      writer.println("  enum Enum implements " + descriptor.getName() + " {");
       for (Iterator<Constant> it = constants.iterator(); it.hasNext();) {
         Constant constant = it.next();
         writer.println(
@@ -306,21 +300,17 @@ class ElementGenerator {
         "",
         "  public static " + descriptor.getName() + " valueOf(int number) {",
         "    String name = TYPE.nameOf(number);",
-        "    return name == null ? null : valueOf(name);",
+        "    return name == null ? null : Enum.valueOf(name);",
         "  }",
         "",
-        "",
-        "  private final int number;",
-        "",
-        "  " + descriptor.getName() + "(int number) {",
-        "    this.number = number;",
-        "  }",
-        "",
-        "  public int number() {",
-        "    return number;",
-        "  }",
-        "}"
+        "  int number();"
       );
+      for (Iterator<Constant> it = constants.iterator(); it.hasNext();) {
+        Constant constant = it.next();
+        writer.println(
+          "  " + descriptor.getName() + " " + constant.identifier + " = Enum." + constant.identifier + ";");
+      }
+      writer.println("}");
     }
 
     private class Constant {
