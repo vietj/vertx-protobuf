@@ -1,6 +1,5 @@
 package io.vertx.protobuf.json;
 
-import io.vertx.core.json.EncodeException;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.protobuf.RecordVisitor;
@@ -8,11 +7,11 @@ import io.vertx.protobuf.interop.ProtoReader;
 import io.vertx.protobuf.schema.EnumType;
 import io.vertx.protobuf.schema.Field;
 import io.vertx.protobuf.schema.MessageType;
-import io.vertx.protobuf.well_known_types.Duration;
 import io.vertx.protobuf.well_known_types.MessageLiteral;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayDeque;
@@ -78,12 +77,9 @@ public class JsonWriter implements RecordVisitor  {
       structWriter.destroy();
       Duration o = (Duration) structWriter.pop();
       structWriter = null;
-      int nanos = o.getNanos();
+      int nano = o.getNano();
       long seconds = o.getSeconds();
-      if (!JsonReader.isValidDuration(seconds, nanos)) {
-        throw new EncodeException("Invalid duration");
-      }
-      BigDecimal bd = new BigDecimal(seconds).add(BigDecimal.valueOf(nanos, 9));
+      BigDecimal bd = new BigDecimal(seconds).add(BigDecimal.valueOf(nano, 9));
       String t = bd.toPlainString() + "s";
       put(field, t);
     } else if (field.type() == MessageLiteral.Timestamp) {

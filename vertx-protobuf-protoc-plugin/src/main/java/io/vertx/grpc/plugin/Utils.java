@@ -27,6 +27,10 @@ public class Utils {
     return fields;
   }
 
+  static boolean isStruct(Descriptors.FieldDescriptor desc) {
+    return desc.getType() == Descriptors.FieldDescriptor.Type.MESSAGE && desc.getMessageType().getFullName().equals("google.protobuf.Struct");
+  }
+
   static boolean isStruct(Descriptors.Descriptor desc) {
     return desc.getFullName().equals("google.protobuf.Struct");
   }

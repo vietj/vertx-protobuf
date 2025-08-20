@@ -36,7 +36,7 @@ public class ConformanceTest {
   public void testJsonOutput() throws Exception {
 //    byte[] bytes = { 61, 0, 0, 0, 0, 61, 57, 48, 0, 0, 61, -1, -1, -1, -1 };
 //    byte[] bytes = { -46, 3, 4, 8, 1, 16, 0, -46, 3, 4, 8, 1, 16, 1 };
-    byte[] bytes = { -22, 18, 7, 8, -127, -68, -82, -50, -105, 9 } ;
+    byte[] bytes = { 61, 0, 0, 0, 0, 61, 57, 48, 0, 0, 61, -1, -1, -1, -1 } ;
     ProtoReader reader = new ProtoReader();
     Buffer buffer = Buffer.buffer(bytes);
     TestMessagesProto3.TestAllTypesProto3 d = TestMessagesProto3.TestAllTypesProto3.parseFrom(bytes);
