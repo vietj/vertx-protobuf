@@ -261,7 +261,11 @@ public class JsonReader {
       case JsonTokenId.ID_NUMBER_FLOAT:
         return parser.getDoubleValue();
       case JsonTokenId.ID_STRING:
-        return Double.parseDouble(parser.getText());
+        try {
+          return Double.parseDouble(parser.getText());
+        } catch (NumberFormatException e) {
+          throw new DecodeException("Invalid number: " + e.getMessage());
+        }
       default:
         throw new DecodeException("Unexpected token " + parser.currentTokenId());
     }
@@ -273,7 +277,11 @@ public class JsonReader {
       case JsonTokenId.ID_NUMBER_FLOAT:
         return parser.getFloatValue();
       case JsonTokenId.ID_STRING:
-        return Float.parseFloat(parser.getText());
+        try {
+          return Float.parseFloat(parser.getText());
+        } catch (NumberFormatException e) {
+          throw new DecodeException("Invalid float: " + e.getMessage());
+        }
       default:
         throw new DecodeException("Unexpected token " + parser.currentTokenId());
     }
@@ -598,7 +606,12 @@ public class JsonReader {
   }
 
   private static int parseUInt32(String value) {
-    BigInteger parsed = new BigDecimal(value).toBigIntegerExact();
+    BigInteger parsed;
+    try {
+      parsed = new BigDecimal(value).toBigIntegerExact();
+    } catch (NumberFormatException e) {
+      throw new DecodeException("Invalid uint32: " + e.getMessage());
+    }
     if (parsed.compareTo(BigInteger.ZERO) < 0 || parsed.compareTo(MAX_UINT32) > 0) {
       throw new DecodeException("Invalid uint64 value");
     }
@@ -606,7 +619,12 @@ public class JsonReader {
   }
 
   private static long parseUInt64(String value) {
-    BigInteger parsed = new BigDecimal(value).toBigIntegerExact();
+    BigInteger parsed;
+    try {
+      parsed = new BigDecimal(value).toBigIntegerExact();
+    } catch (NumberFormatException e) {
+      throw new DecodeException("Invalid uint64: " + e.getMessage());
+    }
     if (parsed.compareTo(BigInteger.ZERO) < 0 || parsed.compareTo(MAX_UINT64) > 0) {
       throw new DecodeException("Invalid uint64 value");
     }

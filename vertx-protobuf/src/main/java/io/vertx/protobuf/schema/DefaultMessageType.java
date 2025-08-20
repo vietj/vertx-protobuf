@@ -1,5 +1,6 @@
 package io.vertx.protobuf.schema;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -28,6 +29,10 @@ public class DefaultMessageType implements MessageType {
   @Override
   public WireType wireType() {
     return WireType.LEN;
+  }
+
+  public Collection<DefaultField> fields() {
+    return fields.values();
   }
 
   public DefaultField addField(Consumer<DefaultFieldBuilder> cfg) {

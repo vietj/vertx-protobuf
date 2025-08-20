@@ -1,1 +1,1 @@
-Required.Proto3.DurationProtoInputTooLarge.JsonOutput # Should have failed to serialize, but didn't.
+Required.Proto3.JsonInput.DoubleFieldEmptyString # Should have failed to parse, but didn't.

@@ -58,14 +58,7 @@ public class ConformanceTest {
   @Test
   public void testJsonInput() throws Exception {
 
-    String json = "{\n" +
-      "        \"optionalAny\": {\n" +
-      "          \"@type\": \"type.googleapis.com/google.protobuf.Struct\",\n" +
-      "          \"value\": {\n" +
-      "            \"foo\": 1\n" +
-      "    }\n" +
-      "  }\n" +
-      "      }";
+    String json = "{\"optionalDouble\": \"\"}";
 
 /*
     json = "{\n" +
@@ -76,14 +69,14 @@ public class ConformanceTest {
       "      }";
 */
 
-    TestMessagesProto3.TestAllTypesProto3.Builder builder = TestMessagesProto3.TestAllTypesProto3.newBuilder();
-    JsonFormat.parser().usingTypeRegistry(typeRegistry).merge(json, builder);
-    TestMessagesProto3.TestAllTypesProto3 d = builder.build();
+//    TestMessagesProto3.TestAllTypesProto3.Builder builder = TestMessagesProto3.TestAllTypesProto3.newBuilder();
+//    JsonFormat.parser().usingTypeRegistry(typeRegistry).merge(json, builder);
+//    TestMessagesProto3.TestAllTypesProto3 d = builder.build();
 
-    Any any = d.getOptionalAny();
-    System.out.println(any.getTypeUrl());
-    System.out.println(any.getValue());
-    Struct struct = any.unpack(Struct.class);
+//    Any any = d.getOptionalAny();
+//    System.out.println(any.getTypeUrl());
+//    System.out.println(any.getValue());
+//    Struct struct = any.unpack(Struct.class);
 //    TestMessagesProto3.TestAllTypesProto3 struct = any.unpack(TestMessagesProto3.TestAllTypesProto3.class);
 //    System.out.println("struct = " + struct);
 //    any.

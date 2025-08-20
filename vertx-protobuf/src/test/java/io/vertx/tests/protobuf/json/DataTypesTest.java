@@ -6,10 +6,14 @@ import com.google.protobuf.Message;
 import com.google.protobuf.MessageLite;
 import com.google.protobuf.MessageOrBuilder;
 import com.google.protobuf.util.JsonFormat;
+import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.JsonObject;
 import io.vertx.protobuf.json.JsonReader;
 import io.vertx.protobuf.json.JsonWriter;
+import io.vertx.protobuf.schema.Field;
 import io.vertx.protobuf.schema.MessageType;
+import io.vertx.protobuf.schema.ScalarType;
+import io.vertx.protobuf.schema.WireType;
 import io.vertx.tests.protobuf.DataTypeTestBase;
 import io.vertx.tests.protobuf.RecordingVisitor;
 import io.vertx.tests.protobuf.datatypes.DataTypesProto;
@@ -18,8 +22,7 @@ import org.junit.Test;
 import java.math.BigInteger;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class DataTypesTest extends DataTypeTestBase {
 
@@ -179,5 +182,22 @@ public class DataTypesTest extends DataTypeTestBase {
     RecordingVisitor.Checker checker = visitor.checker();
     JsonReader.parse("{\"_enum\":1}", ENUM_TYPES, checker);
     assertTrue(checker.isEmpty());
+  }
+
+  @Test
+  public void testEmptyNumber() {
+    for (Field field : SCALAR_TYPES.fields()) {
+      if (field.type() instanceof ScalarType && field.type().wireType() != WireType.LEN) {
+        RecordingVisitor visitor = new RecordingVisitor();
+        visitor.init(SCALAR_TYPES);
+        RecordingVisitor.Checker checker = visitor.checker();
+        try {
+          JsonReader.parse("{\"" + field.jsonName() + "\":\"\"}", SCALAR_TYPES, checker);
+          fail();
+        } catch (DecodeException expected) {
+        }
+        assertTrue(checker.isEmpty());
+      }
+      }
   }
 }
