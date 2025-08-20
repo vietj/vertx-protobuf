@@ -36,22 +36,22 @@ public class ConformanceTest {
   public void testJsonOutput() throws Exception {
 //    byte[] bytes = { 61, 0, 0, 0, 0, 61, 57, 48, 0, 0, 61, -1, -1, -1, -1 };
 //    byte[] bytes = { -46, 3, 4, 8, 1, 16, 0, -46, 3, 4, 8, 1, 16, 1 };
-    byte[] bytes = { 61, 0, 0, 0, 0, 61, 57, 48, 0, 0, 61, -1, -1, -1, -1 } ;
+    byte[] bytes = { -22, 18, 7, 8, -127, -68, -82, -50, -105, 9 } ;
     ProtoReader reader = new ProtoReader();
     Buffer buffer = Buffer.buffer(bytes);
     TestMessagesProto3.TestAllTypesProto3 d = TestMessagesProto3.TestAllTypesProto3.parseFrom(bytes);
 
     JsonFormat.Printer printer = JsonFormat.printer();
-    String expected = printer.print(d);
+//    String expected = printer.print(d);
 
-    System.out.println(expected);
+//    System.out.println(expected);
 
     ProtobufReader.parse(MessageLiteral.TestAllTypesProto3, reader, buffer);
     TestAllTypesProto3 testMessage = (TestAllTypesProto3) reader.stack.pop();
 
-    String output = JsonWriter.encode(v -> ProtoWriter.emit(testMessage, v)).encode();
+//    String output = JsonWriter.encode(v -> ProtoWriter.emit(testMessage, v)).encode();
 
-    System.out.println(output);
+//    System.out.println(output);
 
   }
 
@@ -97,7 +97,7 @@ public class ConformanceTest {
   public void testConformance() throws Exception {
 
     // Recommended.Proto3.ProtobufInput.ValidDataRepeated.ENUM.PackedInput.UnpackedOutput.ProtobufOutput
-    byte[] bytes ={ 8, -128, -128, -128, -128, -8, -1, -1, -1, -1, 1 };
+    byte[] bytes = { -22, 18, 7, 8, -127, -68, -82, -50, -105, 9 };
 
 
 

@@ -30,6 +30,23 @@ import java.util.regex.Pattern;
 
 public class JsonReader {
 
+  public static final long MIN_SECONDS_DURATION = -315_576_000_000L;
+  public static final long MAX_SECONDS_DURATION = 315576000000L;
+  public static final int MIN_NANOS_DURATION = -999_999_999;
+  public static final int MAX_NANOS_DURATION = 999_999_999;
+
+  public static boolean isValidDurationSeconds(long seconds) {
+    return seconds >= MIN_SECONDS_DURATION && seconds <= MAX_SECONDS_DURATION;
+  }
+
+  public static boolean isValidDurationNanos(int nanos) {
+    return nanos >= MIN_NANOS_DURATION && nanos <= MAX_NANOS_DURATION;
+  }
+
+  public static boolean isValidDuration(long seconds, int nanos) {
+    return isValidDurationSeconds(seconds) && isValidDurationNanos(nanos);
+  }
+
   private static void close(Closeable parser) {
     try {
       parser.close();

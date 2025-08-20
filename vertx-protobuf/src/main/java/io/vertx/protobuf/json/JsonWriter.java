@@ -1,5 +1,6 @@
 package io.vertx.protobuf.json;
 
+import io.vertx.core.json.EncodeException;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.protobuf.RecordVisitor;
@@ -94,6 +95,9 @@ public class JsonWriter implements RecordVisitor  {
   @Override
   public void leave(Field field) {
     if (field.type() == MessageLiteral.Duration) {
+      if (!JsonReader.isValidDuration(durationSeconds, durationNanos)) {
+        throw new EncodeException();
+      }
       BigDecimal bd = new BigDecimal(durationSeconds).add(BigDecimal.valueOf(durationNanos, 9));
       String t = bd.toPlainString() + "s";
       put(field, t);

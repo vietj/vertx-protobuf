@@ -103,9 +103,14 @@ public class Main {
       }
 
       case JSON:
-        JsonObject result = JsonWriter.encode(visitor -> {
-          ProtoWriter.emit(testMessage, visitor);
-        });
+        JsonObject result = null;
+        try {
+          result = JsonWriter.encode(visitor -> {
+            ProtoWriter.emit(testMessage, visitor);
+          });
+        } catch (Exception e) {
+          return Conformance.ConformanceResponse.newBuilder().setSerializeError(e.getMessage() != null ? e.getMessage() : e.getClass().getName()).build();
+        }
         return Conformance.ConformanceResponse.newBuilder()
           .setJsonPayload(result.encode())
           .build();

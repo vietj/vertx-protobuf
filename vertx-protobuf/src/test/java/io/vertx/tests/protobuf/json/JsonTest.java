@@ -22,6 +22,7 @@ import com.google.protobuf.UInt32Value;
 import com.google.protobuf.UInt64Value;
 import com.google.protobuf.Value;
 import com.google.protobuf.util.JsonFormat;
+import io.vertx.core.json.EncodeException;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.protobuf.json.Json;
@@ -128,6 +129,21 @@ public class JsonTest {
       assertEquals(listOfSeconds[i], (long)container.getDuration().getSeconds());
       assertEquals(listOfNano[i], (int)container.getDuration().getNanos());
       assertEquals(expected, write(container));
+    }
+  }
+
+  @Test
+  public void testInvalidDuration() {
+    long[] listOfSeconds = {JsonReader.MAX_SECONDS_DURATION + 1, JsonReader.MIN_SECONDS_DURATION - 1, 0, 0};
+    int[] listOfNano = {0, 0, JsonReader.MAX_NANOS_DURATION + 1, JsonReader.MIN_NANOS_DURATION - 1};
+    for (int i = 0; i < listOfSeconds.length; i++) {
+      try {
+        write(new Container().setDuration(new io.vertx.protobuf.well_known_types.Duration()
+          .setSeconds(listOfSeconds[i])
+          .setNanos(listOfNano[i])));
+        fail();
+      } catch (EncodeException expected) {
+      }
     }
   }
 
