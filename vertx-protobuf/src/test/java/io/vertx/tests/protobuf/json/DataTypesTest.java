@@ -360,5 +360,8 @@ public class DataTypesTest extends DataTypeTestBase {
     JsonReader.parse("{\"_enum\":\"unknown\"}", MessageLiteral.EnumTypes, reader);
     EnumTypes c = (EnumTypes) reader.stack.pop();
     Enumerated enumerated = c.getEnum();
+    assertTrue(enumerated.isUnknown());
+    assertNull(enumerated.asEnum());
+    assertNull(enumerated.asEnum());
   }
 }

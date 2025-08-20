@@ -23,6 +23,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.util.Base64;
 import java.util.OptionalInt;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -228,7 +229,12 @@ public class JsonReader {
         if (index.isPresent()) {
           visitor.visitEnum(field, index.getAsInt());
         } else {
-          throw new DecodeException("Missing enum " + parser.getText());
+          // Compute a value that is not present and will be handled as unknown
+          Set<Integer> numbers = enumType.numbers();
+          int i = -1;
+          while (numbers.contains(++i)) {
+          }
+          visitor.visitEnum(field, i);
         }
         break;
       case JsonTokenId.ID_NUMBER_INT:
