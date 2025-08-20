@@ -22,6 +22,7 @@ import com.google.protobuf.UInt32Value;
 import com.google.protobuf.UInt64Value;
 import com.google.protobuf.Value;
 import com.google.protobuf.util.JsonFormat;
+import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.EncodeException;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -133,9 +134,24 @@ public class JsonTest {
   }
 
   @Test
-  public void testInvalidDuration() {
+  public void testReadInvalidDuration() {
+    try {
+      read(new JsonObject().put("duration", (JsonReader.MAX_SECONDS_DURATION + 1) + "s"), MessageLiteral.Container);
+      read(new JsonObject().put("duration", (JsonReader.MIN_SECONDS_DURATION - 1) + "s"), MessageLiteral.Container);
+      read(new JsonObject().put("duration", "0." + (JsonReader.MAX_NANOS_DURATION + 1) + "s"), MessageLiteral.Container);
+      read(new JsonObject().put("duration", "0." + (JsonReader.MIN_NANOS_DURATION - 1) + "s"), MessageLiteral.Container);
+      fail();
+    } catch (DecodeException expected) {
+    }
+  }
+
+  @Test
+  public void testWriteInvalidDuration() {
     long[] listOfSeconds = {JsonReader.MAX_SECONDS_DURATION + 1, JsonReader.MIN_SECONDS_DURATION - 1, 0, 0};
     int[] listOfNano = {0, 0, JsonReader.MAX_NANOS_DURATION + 1, JsonReader.MIN_NANOS_DURATION - 1};
+
+    // {"optionalDuration": "315576000001.000000000s"}
+
     for (int i = 0; i < listOfSeconds.length; i++) {
       try {
         write(new Container().setDuration(new io.vertx.protobuf.well_known_types.Duration()

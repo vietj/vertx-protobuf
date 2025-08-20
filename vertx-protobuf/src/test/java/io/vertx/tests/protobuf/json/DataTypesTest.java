@@ -19,7 +19,9 @@ import io.vertx.tests.protobuf.RecordingVisitor;
 import io.vertx.tests.protobuf.datatypes.DataTypesProto;
 import org.junit.Test;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.Arrays;
 import java.util.Map;
 
 import static org.junit.Assert.*;
@@ -184,20 +186,68 @@ public class DataTypesTest extends DataTypeTestBase {
     assertTrue(checker.isEmpty());
   }
 
+  // {"optionalDouble": 1.89769e+308}
+
   @Test
   public void testEmptyNumber() {
     for (Field field : SCALAR_TYPES.fields()) {
       if (field.type() instanceof ScalarType && field.type().wireType() != WireType.LEN) {
-        RecordingVisitor visitor = new RecordingVisitor();
-        visitor.init(SCALAR_TYPES);
-        RecordingVisitor.Checker checker = visitor.checker();
-        try {
-          JsonReader.parse("{\"" + field.jsonName() + "\":\"\"}", SCALAR_TYPES, checker);
-          fail();
-        } catch (DecodeException expected) {
-        }
-        assertTrue(checker.isEmpty());
+        assertDecodeException(field.jsonName(), "\"\"");
       }
-      }
+    }
+  }
+
+  @Test
+  public void testDoubleInfinity() {
+    for (String infinity : Arrays.asList("Infinity", "-Infinity")) {
+      RecordingVisitor visitor = new RecordingVisitor();
+      visitor.init(SCALAR_TYPES);
+      visitor.visitDouble(DOUBLE, Double.parseDouble(infinity));
+      visitor.destroy();
+      RecordingVisitor.Checker checker = visitor.checker();
+      JsonReader.parse("{\"" + DOUBLE.jsonName() + "\":\"" + infinity + "\"}", SCALAR_TYPES, checker);
+      assertTrue(checker.isEmpty());
+    }
+  }
+
+  @Test
+  public void testFloatInfinity() {
+    for (String infinity : Arrays.asList("Infinity", "-Infinity")) {
+      RecordingVisitor visitor = new RecordingVisitor();
+      visitor.init(SCALAR_TYPES);
+      visitor.visitFloat(FLOAT, Float.parseFloat(infinity));
+      visitor.destroy();
+      RecordingVisitor.Checker checker = visitor.checker();
+      JsonReader.parse("{\"" + FLOAT.jsonName() + "\":\"" + infinity + "\"}", SCALAR_TYPES, checker);
+      assertTrue(checker.isEmpty());
+    }
+  }
+
+  @Test
+  public void testInvalidDouble() {
+    assertDecodeException(DOUBLE.jsonName(), "\"1.89769e+308\"");
+    assertDecodeException(DOUBLE.jsonName(), "\"-1.89769e+308\"");
+    assertDecodeException(DOUBLE.jsonName(), "1.89769e+308");
+    assertDecodeException(DOUBLE.jsonName(), "-1.89769e+308");
+  }
+
+  @Test
+  public void testInvalidFloat() {
+    assertDecodeException(FLOAT.jsonName(), "\"3.502823e+38\"");
+    assertDecodeException(FLOAT.jsonName(), "\"-3.502823e+38\"");
+    assertDecodeException(FLOAT.jsonName(), "3.502823e+38");
+    assertDecodeException(FLOAT.jsonName(), "-3.502823e+38");
+  }
+
+  private static void assertDecodeException(String fieldName, String value) {
+    RecordingVisitor visitor = new RecordingVisitor();
+    visitor.init(SCALAR_TYPES);
+    RecordingVisitor.Checker checker = visitor.checker();
+    try {
+      JsonReader.parse("{\"" + fieldName + "\":" + value + "}", SCALAR_TYPES, checker);
+      fail();
+    } catch (DecodeException expected) {
+    }
+    assertTrue(checker.isEmpty());
   }
 }

@@ -58,7 +58,7 @@ public class ConformanceTest {
   @Test
   public void testJsonInput() throws Exception {
 
-    String json = "{\"optionalDouble\": \"\"}";
+    String json = "{\"optionalDouble\": 1.89769e+308}";
 
 /*
     json = "{\n" +

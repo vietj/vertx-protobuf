@@ -256,35 +256,51 @@ public class JsonReader {
   }
 
   private double readDouble() throws IOException, DecodeException {
+    double value;
     switch (parser.currentTokenId()) {
       case JsonTokenId.ID_NUMBER_INT:
       case JsonTokenId.ID_NUMBER_FLOAT:
-        return parser.getDoubleValue();
+        value = parser.getDoubleValue();
+        break;
       case JsonTokenId.ID_STRING:
         try {
-          return Double.parseDouble(parser.getText());
+          value = Double.parseDouble(parser.getText());
         } catch (NumberFormatException e) {
           throw new DecodeException("Invalid number: " + e.getMessage());
         }
+        break;
       default:
         throw new DecodeException("Unexpected token " + parser.currentTokenId());
     }
+    String txt = parser.getText();
+    if (Double.isInfinite(value) && !"Infinity".equals(txt) && !"-Infinity".equals(txt)) {
+      throw new DecodeException("Invalid number: " + txt);
+    }
+    return value;
   }
 
   private float readFloat() throws IOException, DecodeException {
+    float value;
     switch (parser.currentTokenId()) {
       case JsonTokenId.ID_NUMBER_INT:
       case JsonTokenId.ID_NUMBER_FLOAT:
-        return parser.getFloatValue();
+        value = parser.getFloatValue();
+        break;
       case JsonTokenId.ID_STRING:
         try {
-          return Float.parseFloat(parser.getText());
+          value = Float.parseFloat(parser.getText());
         } catch (NumberFormatException e) {
           throw new DecodeException("Invalid float: " + e.getMessage());
         }
+        break;
       default:
         throw new DecodeException("Unexpected token " + parser.currentTokenId());
     }
+    String txt = parser.getText();
+    if (Float.isInfinite(value) && !"Infinity".equals(txt) && !"-Infinity".equals(txt)) {
+      throw new DecodeException("Invalid number: " + txt);
+    }
+    return value;
   }
 
   private void readEmbedded(Field field) throws IOException, DecodeException {
@@ -439,7 +455,7 @@ public class JsonReader {
           }
           String durationText = parser.getText();
           io.vertx.protobuf.well_known_types.Duration duration = parseDuration(durationText);
-          if (duration == null) {
+          if (duration == null || !isValidDuration(duration.getSeconds(), duration.getNanos())) {
             throw new DecodeException("Invalid duration " + durationText);
           }
           visitor.enter(field);
