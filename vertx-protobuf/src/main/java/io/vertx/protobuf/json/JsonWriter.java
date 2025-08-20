@@ -16,7 +16,9 @@ import java.math.BigInteger;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
+import java.util.List;
 import java.util.function.Consumer;
 
 public class JsonWriter implements RecordVisitor  {
@@ -33,6 +35,7 @@ public class JsonWriter implements RecordVisitor  {
   private int durationNanos;
   private long timestampSeconds;
   private int timestampNanos;
+  private List<String> fieldMask;
   private double doubleValue;
   private float floatValue;
   private boolean booleanValue;
@@ -64,6 +67,8 @@ public class JsonWriter implements RecordVisitor  {
           timestampSeconds = 0L;
           timestampNanos = 0;
           break;
+        case FieldMask:
+          break;
         case Struct:
         case Value:
         case ListValue:
@@ -79,6 +84,7 @@ public class JsonWriter implements RecordVisitor  {
           structWriter = new ProtoReader();
           structWriter.init((MessageType) field.type());
           break;
+
         default:
           throw new UnsupportedOperationException();
       }
@@ -110,6 +116,21 @@ public class JsonWriter implements RecordVisitor  {
       OffsetDateTime o = ProtoReader.toOffsetDateTime(timestampSeconds, timestampNanos);
       String t = o.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
       put(field, t);
+    } else if (field.type() == MessageLiteral.FieldMask) {
+      String ser;
+      if (fieldMask != null) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0;i < fieldMask.size();i++) {
+          if (i > 0) {
+            sb.append(',');
+          }
+          sb.append(JsonReader.snakeToLowerCamel(fieldMask.get(i)));
+        }
+        ser = sb.toString();
+      } else {
+        ser = "";
+      }
+      put(field, ser);
     } else if (
       (field.type() == MessageLiteral.Value && structWriter.rootType == MessageLiteral.Value && structWriter.depth() == 1) || // HACK !!! FIXME!!!!!!!
       field.type() == MessageLiteral.DoubleValue ||
@@ -311,6 +332,11 @@ public class JsonWriter implements RecordVisitor  {
   public void visitString(Field field, String s) {
     if (structWriter != null) {
       structWriter.visitString(field, s);
+    } else if (field == FieldLiteral.FieldMask_paths) {
+      if (fieldMask == null) {
+        fieldMask = new ArrayList<>();
+      }
+      fieldMask.add(s);
     } else {
       put(field, s);
     }

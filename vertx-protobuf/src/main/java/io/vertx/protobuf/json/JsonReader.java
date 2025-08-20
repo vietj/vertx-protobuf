@@ -536,7 +536,7 @@ public class JsonReader {
           String[] paths = text.isEmpty() ? new String[0] : text.split(",");
           visitor.enter(field);
           for (String path : paths) {
-            visitor.visitString(FieldLiteral.FieldMask_paths, toLowerCamel(path));
+            visitor.visitString(FieldLiteral.FieldMask_paths, lowerCamelToSnake(path));
           }
           visitor.leave(field);
           break;
@@ -727,17 +727,36 @@ public class JsonReader {
     }
   }
 
-  public static String toLowerCamel(String s) {
+  public static String lowerCamelToSnake(String s) {
     StringBuilder sb = new StringBuilder();
+    char prev = 'a'; // Whatever
     for (int i = 0;i < s.length();i++) {
       char c = s.charAt(i);
       if (c >= 'A' && c <= 'Z') {
-        if (i > 0) {
+        if (i > 0 && prev != '_') {
           sb.append('_');
         }
         c += 'a' - 'A';
-      }
+      } /*else if (i == 0 && c >= 'a' && c <= 'z') {
+
+      }*/
       sb.append(c);
+      prev = c;
+    }
+    return sb.toString();
+  }
+
+  public static String snakeToLowerCamel(String fieldName) {
+    StringBuilder sb = new StringBuilder(fieldName.length());
+    char prev = ' ';
+    for (int i = 0;i < fieldName.length();i++) {
+      char ch = fieldName.charAt(i);
+      boolean upperCase = ch >= 'a' && ch <= 'z' && (prev == '_');
+      prev = ch;
+      if (ch != '_') {
+        ch = (char)(upperCase ? ch + ('A' - 'a') : ch);
+        sb.append(ch);
+      }
     }
     return sb.toString();
   }

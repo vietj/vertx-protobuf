@@ -39,7 +39,7 @@ public class DefaultMessageType implements MessageType {
     DefaultFieldBuilder builder = new DefaultFieldBuilder();
     cfg.accept(builder);
     String name = builder.name;
-    String jsonName = name != null ? Field.toJsonName(builder.name) : null;
+    String jsonName = name != null ? DefaultField.toJsonName(builder.name) : null;
     int number = builder.number;
     if (number == 0) {
       throw new IllegalArgumentException();
@@ -56,7 +56,7 @@ public class DefaultMessageType implements MessageType {
   }
 
   public DefaultField addField(int number, String name, Type type) {
-    String jsonName = Field.toJsonName(name);
+    String jsonName = DefaultField.toJsonName(name);
     DefaultField field = new DefaultField(this, number, name, jsonName, false, false, false, false, false, type);
     if (byName.containsKey(name)) {
       throw new IllegalStateException("Duplicate field " + name);

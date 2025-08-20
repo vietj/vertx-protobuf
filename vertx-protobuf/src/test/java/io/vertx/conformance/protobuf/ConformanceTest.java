@@ -62,7 +62,7 @@ public class ConformanceTest {
   @Test
   public void testJsonInput() throws Exception {
 
-    String json = "{\"optionalTimestamp\": \"1993-02-10T00:00:00.000Z\"}";
+    String json = "{\"optionalFieldMask\": \"\"}";
 
 /*
     json = "{\n" +
@@ -77,7 +77,7 @@ public class ConformanceTest {
     JsonFormat.parser().usingTypeRegistry(typeRegistry).merge(json, builder);
     TestMessagesProto3.TestAllTypesProto3 d = builder.build();
 
-    System.out.println(d.getOptionalTimestamp().getSeconds());
+    System.out.println(d.getOptionalFieldMask());
     System.out.println(d.getOptionalTimestamp().getNanos());
 
 //    Any any = d.getOptionalAny();

@@ -12,6 +12,7 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.ListValue;
 import com.google.protobuf.MessageOrBuilder;
 import com.google.protobuf.NullValue;
+import com.google.protobuf.ProtocolStringList;
 import com.google.protobuf.StringValue;
 import com.google.protobuf.Struct;
 import com.google.protobuf.Timestamp;
@@ -295,17 +296,32 @@ public class JsonTest {
   }
 
   @Test
-  public void testToLowerCamel() {
-    assertEquals("bar_baz", JsonReader.toLowerCamel("barBaz"));
-    assertEquals("b_b_b", JsonReader.toLowerCamel("BBB"));
-    assertEquals("a_ba_ba_b", JsonReader.toLowerCamel("aBaBaB"));
-    assertEquals("", JsonReader.toLowerCamel(""));
+  public void testLowerCamelToSnake() {
+    assertEquals("bar_baz", JsonReader.lowerCamelToSnake("BarBaz"));
+    assertEquals("_bar_baz", JsonReader.lowerCamelToSnake("_BarBaz"));
+    assertEquals("bar_baz", JsonReader.lowerCamelToSnake("barBaz"));
+    assertEquals("bar_1234", JsonReader.lowerCamelToSnake("Bar_1234"));
+    assertEquals("bar_", JsonReader.lowerCamelToSnake("Bar_"));
+    assertEquals("bar_baz", JsonReader.lowerCamelToSnake("Bar_Baz"));
+    assertEquals("bar__baz", JsonReader.lowerCamelToSnake("Bar__Baz"));
+    assertEquals("b_b_b", JsonReader.lowerCamelToSnake("BBB"));
+    assertEquals("a_ba_ba_b", JsonReader.lowerCamelToSnake("aBaBaB"));
+    assertEquals("", JsonReader.lowerCamelToSnake(""));
+  }
+
+  @Test
+  public void testSnakeToLowerCamel() {
+    assertEquals("barBaz", JsonReader.snakeToLowerCamel("bar_baz"));
+    assertEquals("BarBaz", JsonReader.snakeToLowerCamel("_bar_baz"));
+    assertEquals("bar12Baz", JsonReader.snakeToLowerCamel("bar12_baz"));
+    assertEquals("barBaz", JsonReader.snakeToLowerCamel("bar_Baz"));
+    assertEquals("Bar", JsonReader.snakeToLowerCamel("__bar"));
+    assertEquals("123", JsonReader.snakeToLowerCamel("_123"));
+    assertEquals("bBB", JsonReader.snakeToLowerCamel("b_b_b"));
   }
 
   @Test
   public void testFieldMask() throws Exception {
-    // {"optionalFieldMask": ""}
-    // {"optionalFieldMask": "foo,bar"}
     testFieldMask("foo,barBaz", "foo", "bar_baz");
     testFieldMask("foo,BBB", "foo", "b_b_b");
     testFieldMask("foo,aBaBaB", "foo", "a_ba_ba_b");
@@ -314,12 +330,15 @@ public class JsonTest {
 
   private void testFieldMask(String mask, String... expected) throws Exception {
     JsonObject json = new JsonObject()
-      .put("field_mask", mask);
+      .put("fieldMask", mask);
     JsonProto.Container.Builder builder = JsonProto.Container.newBuilder();
     JsonFormat.parser().merge(json.encode(), builder);
-    assertEquals(Arrays.asList(expected), builder.build().getFieldMask().getPathsList());
+    ProtocolStringList list = builder.build().getFieldMask().getPathsList();
+    assertEquals(Arrays.asList(expected), list);
     Container container = read(json, MessageLiteral.Container);
     assertEquals(Arrays.asList(expected), container.getFieldMask().getPaths());
+    JsonObject ser = toJson(container);
+    assertEquals(new JsonObject(JsonFormat.printer().print(builder.build())), ser);
   }
 
   @Test
