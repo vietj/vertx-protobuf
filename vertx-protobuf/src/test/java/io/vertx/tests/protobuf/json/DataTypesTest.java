@@ -17,6 +17,10 @@ import io.vertx.protobuf.schema.WireType;
 import io.vertx.tests.protobuf.DataTypeTestBase;
 import io.vertx.tests.protobuf.RecordingVisitor;
 import io.vertx.tests.protobuf.datatypes.DataTypesProto;
+import io.vertx.tests.protobuf.datatypes.EnumTypes;
+import io.vertx.tests.protobuf.datatypes.Enumerated;
+import io.vertx.tests.protobuf.datatypes.MessageLiteral;
+import io.vertx.tests.protobuf.datatypes.ProtoReader;
 import org.junit.Test;
 
 import java.math.BigDecimal;
@@ -348,5 +352,13 @@ public class DataTypesTest extends DataTypeTestBase {
     } catch (DecodeException expected) {
     }
     assertTrue(checker.isEmpty());
+  }
+
+  @Test
+  public void testUnknownEnum() {
+    ProtoReader reader = new ProtoReader();
+    JsonReader.parse("{\"_enum\":\"unknown\"}", MessageLiteral.EnumTypes, reader);
+    EnumTypes c = (EnumTypes) reader.stack.pop();
+    Enumerated enumerated = c.getEnum();
   }
 }
