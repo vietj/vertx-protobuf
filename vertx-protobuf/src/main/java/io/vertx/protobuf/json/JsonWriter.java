@@ -19,6 +19,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 public class JsonWriter implements RecordVisitor  {
@@ -273,7 +274,9 @@ public class JsonWriter implements RecordVisitor  {
     if (structWriter != null) {
       structWriter.visitEnum(field, number);
     } else {
-      put(field, ((EnumType)field.type()).nameOf(number));
+      String name = ((EnumType) field.type()).nameOf(number);
+      // Best effort
+      put(field, Objects.requireNonNullElse(name, number));
     }
   }
 

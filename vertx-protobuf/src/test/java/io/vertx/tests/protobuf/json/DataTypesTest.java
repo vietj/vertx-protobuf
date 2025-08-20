@@ -356,14 +356,36 @@ public class DataTypesTest extends DataTypeTestBase {
   }
 
   @Test
-  public void testUnknownEnum() {
+  public void testUnknownNamedEnum() {
     ProtoReader reader = new ProtoReader();
     JsonReader.parse("{\"_enum\":\"unknown\"}", MessageLiteral.EnumTypes, reader);
     EnumTypes c = (EnumTypes) reader.stack.pop();
     Enumerated enumerated = c.getEnum();
     assertTrue(enumerated.isUnknown());
     assertNull(enumerated.asEnum());
+    try {
+      enumerated.number();
+      fail();
+    } catch (IllegalStateException expected) {
+    }
     assertEquals("unknown", enumerated.name());
-//    JsonObject json = JsonWriter.encode(v -> ProtoWriter.emit(c, v));
+  }
+
+  @Test
+  public void testUnknownIndexedEnum() {
+    ProtoReader reader = new ProtoReader();
+    JsonReader.parse("{\"_enum\":123}", MessageLiteral.EnumTypes, reader);
+    EnumTypes c = (EnumTypes) reader.stack.pop();
+    Enumerated enumerated = c.getEnum();
+    assertTrue(enumerated.isUnknown());
+    assertNull(enumerated.asEnum());
+    try {
+      assertEquals("unknown", enumerated.name());
+      fail();
+    } catch (IllegalStateException expected) {
+    }
+    assertEquals(123, enumerated.number());
+    JsonObject json = JsonWriter.encode(v -> ProtoWriter.emit(c, v));
+    assertEquals(123, json.getValue("Enum"));
   }
 }
