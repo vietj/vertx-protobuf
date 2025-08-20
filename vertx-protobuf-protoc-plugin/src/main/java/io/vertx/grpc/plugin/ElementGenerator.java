@@ -303,6 +303,7 @@ class ElementGenerator {
         "    return name == null ? null : Enum.valueOf(name);",
         "  }",
         "",
+        "  String name();",
         "  int number();"
       );
       for (Iterator<Constant> it = constants.iterator(); it.hasNext();) {
