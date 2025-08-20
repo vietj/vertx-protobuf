@@ -1,8 +1,12 @@
 package io.vertx.tests.protobuf;
 
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.json.JsonObject;
+import io.vertx.protobuf.ProtobufEncoder;
 import io.vertx.protobuf.ProtobufReader;
 import io.vertx.protobuf.ProtobufWriter;
+import io.vertx.protobuf.json.JsonReader;
+import io.vertx.tests.oneof.FieldLiteral;
 import io.vertx.tests.oneof.ProtoWriter;
 import io.vertx.tests.oneof.ProtoReader;
 import io.vertx.tests.oneof.MessageLiteral;
@@ -41,5 +45,19 @@ public class OneOfTest {
     assertFalse(apple.isPresent());
     assertTrue(v.asBanana().isPresent());
     assertEquals(Container.FruitDiscriminant.BANANA, v.discriminant());
+  }
+
+  @Test
+  public void testDuplicate() {
+    RecordingVisitor visitor = new RecordingVisitor();
+    visitor.init(MessageLiteral.Container);
+    visitor.visitString(FieldLiteral.Container_string, "str");
+    visitor.visitInt32(FieldLiteral.Container_integer, 4);
+    visitor.destroy();
+    Buffer encoded = ProtobufWriter.encode(visitor::apply);
+    ProtoReader reader = new ProtoReader();
+    ProtobufReader.parse(MessageLiteral.Container, reader, encoded);
+    Container msg = (Container) reader.stack.pop();
+    assertEquals(Container.ScalarDiscriminant.INTEGER, msg.getScalar().discriminant());
   }
 }

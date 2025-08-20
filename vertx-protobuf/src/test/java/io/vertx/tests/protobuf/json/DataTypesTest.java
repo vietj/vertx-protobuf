@@ -258,6 +258,43 @@ public class DataTypesTest extends DataTypeTestBase {
   }
 
   @Test
+  public void testIntegerInteger() {
+    Field[] fields = {
+      INT32,
+      UINT32,
+      SINT32,
+      FIXED32,
+      SFIXED32
+    };
+    for (Field field : fields) {
+      assertDecodeException(field.jsonName(), "4294967296");
+      assertDecodeException(field.jsonName(), "\"4294967296\"");
+    }
+  }
+
+  @Test
+  public void testUInt32MaxValue() {
+    RecordingVisitor visitor = new RecordingVisitor();
+    visitor.init(SCALAR_TYPES);
+    visitor.visitUInt32(UINT32, -1);
+    visitor.destroy();
+    RecordingVisitor.Checker checker = visitor.checker();
+    JsonReader.parse("{\"" + UINT32.jsonName() + "\":" + 0xFFFFFFFFL + "}", SCALAR_TYPES, checker);
+    assertTrue(checker.isEmpty());
+  }
+
+  @Test
+  public void testUInt64MaxValue() {
+    RecordingVisitor visitor = new RecordingVisitor();
+    visitor.init(SCALAR_TYPES);
+    visitor.visitUInt64(UINT64, -1);
+    visitor.destroy();
+    RecordingVisitor.Checker checker = visitor.checker();
+    JsonReader.parse("{\"" + UINT64.jsonName() + "\":" + new BigInteger("FFFFFFFFFFFFFFFF", 16) + "}", SCALAR_TYPES, checker);
+    assertTrue(checker.isEmpty());
+  }
+
+  @Test
   public void testParseExactFloatingValueInt32() {
     RecordingVisitor visitor = new RecordingVisitor();
     visitor.init(SCALAR_TYPES);

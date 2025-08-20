@@ -47,6 +47,16 @@ import static org.junit.Assert.*;
 public class JsonTest {
 
   @Test
+  public void testNonObject() {
+    try {
+      read("null", MessageLiteral.Container);
+      fail();
+    } catch (DecodeException expected) {
+    }
+
+  }
+
+  @Test
   public void testStruct() {
     assertEquals("string-value", testStruct(Value.newBuilder().setStringValue("string-value").build()).getKind().asStringValue().get());
     assertEquals(0, testStruct(Value.newBuilder().setNullValue(NullValue.NULL_VALUE).build()).getKind().asNullValue().get().number());
@@ -387,10 +397,14 @@ public class JsonTest {
     }
   }
 
-  private <T> T read(JsonObject json, MessageType type) {
+  private <T> T read(String json, MessageType type) {
     ProtoReader pr = new ProtoReader();
-    JsonReader.parse(json.encode(), type, pr);
+    JsonReader.parse(json, type, pr);
     return (T)pr.stack.pop();
+  }
+
+  private <T> T read(JsonObject json, MessageType type) {
+    return read(json.encode(), type);
   }
 
   private JsonObject toJson(Container container) {

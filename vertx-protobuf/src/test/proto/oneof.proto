@@ -11,6 +11,11 @@ message Container {
     AppleMsg apple = 2;
     OrangeMsg orange = 3;
   }
+  oneof scalar {
+    int32 integer = 4;
+    double double = 5;
+    string string = 6;
+  }
 }
 
 message BananaMsg {

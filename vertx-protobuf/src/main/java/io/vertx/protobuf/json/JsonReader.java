@@ -173,7 +173,9 @@ public class JsonReader {
   }
 
   private void readObject(MessageType type) throws IOException {
-    assert parser.hasToken(JsonToken.START_OBJECT);
+    if (!parser.hasToken(JsonToken.START_OBJECT)) {
+      throw new DecodeException("Unexpected token " + parser.getCurrentToken());
+    }
     while (parser.nextToken() == JsonToken.FIELD_NAME) {
       String key = parser.currentName();
       Field field = type.fieldByJsonName(key);
@@ -259,7 +261,11 @@ public class JsonReader {
           throw new DecodeException("Invalid number " + parser.getText());
         }
       case JsonTokenId.ID_NUMBER_INT:
-        return (int)parser.getLongValue();
+        try {
+          return parser.getIntValue();
+        } catch (InputCoercionException e) {
+          // Fallback to parseUInt32
+        }
       case JsonTokenId.ID_STRING:
         return parseUInt32(parser.getText());
       default:
@@ -292,7 +298,7 @@ public class JsonReader {
         try {
           return parser.getLongValue();
         } catch (InputCoercionException e) {
-          return parser.getBigIntegerValue().longValue();
+          // Fallback to parseUInt64
         }
       case JsonTokenId.ID_STRING:
         return parseUInt64(parser.getText());
