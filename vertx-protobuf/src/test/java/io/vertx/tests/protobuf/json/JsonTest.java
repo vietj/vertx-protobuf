@@ -59,7 +59,7 @@ public class JsonTest {
   @Test
   public void testStruct() {
     assertEquals("string-value", testStruct(Value.newBuilder().setStringValue("string-value").build()).getKind().asStringValue().get());
-    assertEquals(0, testStruct(Value.newBuilder().setNullValue(NullValue.NULL_VALUE).build()).getKind().asNullValue().get().number().orElseThrow());
+    assertEquals(0, testStruct(Value.newBuilder().setNullValue(NullValue.NULL_VALUE).build()).getKind().asNullValue().get().number());
     assertEquals(3.14D, testStruct(Value.newBuilder().setNumberValue(3.14).build()).getKind().asNumberValue().get(), 0.00001D);
     assertEquals(true, testStruct(Value.newBuilder().setBoolValue(true).build()).getKind().asBoolValue().get());
     assertEquals(false, testStruct(Value.newBuilder().setBoolValue(false).build()).getKind().asBoolValue().get());
@@ -81,7 +81,7 @@ public class JsonTest {
 
   @Test
   public void testValue() {
-    assertEquals(0, testValue(Value.newBuilder().setNullValue(NullValue.NULL_VALUE).build()).asNullValue().get().number().orElseThrow());
+    assertEquals(0, testValue(Value.newBuilder().setNullValue(NullValue.NULL_VALUE).build()).asNullValue().get().number());
     assertEquals(5.12D, testValue(Value.newBuilder().setNumberValue(5.12).build()).asNumberValue().get(), 0.0001D);
     assertEquals("the-string", testValue(Value.newBuilder().setStringValue("the-string").build()).asStringValue().get());
     assertTrue(testValue(Value.newBuilder().setBoolValue(true).build()).asBoolValue().get());
@@ -114,7 +114,7 @@ public class JsonTest {
       .build();
     Container read = read(expected, MessageLiteral.Container);
     assertEquals("string-value", read.getListValue().getValues().get(0).getKind().asStringValue().get());
-    assertEquals(0, read.getListValue().getValues().get(1).getKind().asNullValue().get().number().orElseThrow());
+    assertEquals(0, read.getListValue().getValues().get(1).getKind().asNullValue().get().number());
     assertEquals(3.14D, read.getListValue().getValues().get(2).getKind().asNumberValue().get(), 0.00001D);
     assertEquals(true, read.getListValue().getValues().get(3).getKind().asBoolValue().get());
     assertEquals(false, read.getListValue().getValues().get(4).getKind().asBoolValue().get());
@@ -287,7 +287,7 @@ public class JsonTest {
     assertEquals("1", repetition.getListValue().get(0).getValues().get(0).getKind().asStringValue().get());
     assertEquals(2, repetition.getListValue().get(1).getValues().get(0).getKind().asNumberValue().get(), 0.0001D);
     assertEquals(true, repetition.getListValue().get(2).getValues().get(0).getKind().asBoolValue().get());
-    assertEquals(0, repetition.getListValue().get(3).getValues().get(0).getKind().asNullValue().get().number().orElseThrow());
+    assertEquals(0, repetition.getListValue().get(3).getValues().get(0).getKind().asNullValue().get().number());
     assertEquals(1, repetition.getListValue().get(4).getValues().get(0).getKind().asListValue().get().getValues().size());
     assertEquals(1, repetition.getListValue().get(5).getValues().get(0).getKind().asStructValue().get().getFields().size());
     assertEquals(1, repetition.getValue().size());

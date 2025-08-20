@@ -48,7 +48,7 @@ public class DataTypeTest extends DataTypeTestBase {
     EnumTypes pop = (EnumTypes) reader.stack.pop();
     Enumerated enumerated = pop.getEnum();
     assertTrue(enumerated.isUnknown());
-    assertEquals(-1, enumerated.number().orElseThrow());
+    assertEquals(-1, enumerated.number());
     try {
       assertNull(enumerated.name());
       fail();
