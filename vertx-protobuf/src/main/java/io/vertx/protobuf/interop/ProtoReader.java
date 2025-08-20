@@ -5,11 +5,10 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.protobuf.RecordVisitor;
 import io.vertx.protobuf.schema.Field;
 import io.vertx.protobuf.schema.MessageType;
+import io.vertx.protobuf.well_known_types.Duration;
 import io.vertx.protobuf.well_known_types.FieldLiteral;
 import io.vertx.protobuf.well_known_types.MessageLiteral;
-import io.vertx.protobuf.well_known_types.Timestamp;
 
-import java.time.Duration;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
@@ -357,7 +356,7 @@ public class ProtoReader implements RecordVisitor {
   public void destroy() {
     switch (rootType) {
       case Duration:
-        stack.push(Duration.ofSeconds(durationSeconds, durationNanos));
+        stack.push(new Duration().setSeconds(durationSeconds).setNanos(durationNanos));
         break;
       case Timestamp:
         stack.push(OffsetDateTime.ofInstant(Instant.ofEpochSecond(timestampSeconds, timestampNanos), ZoneId.of("UTC")));

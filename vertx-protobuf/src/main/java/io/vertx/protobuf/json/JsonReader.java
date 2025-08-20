@@ -5,13 +5,11 @@ import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.core.JsonTokenId;
 import com.fasterxml.jackson.core.exc.InputCoercionException;
 import io.vertx.core.json.DecodeException;
-import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.jackson.JacksonCodec;
 import io.vertx.protobuf.RecordVisitor;
 import io.vertx.protobuf.schema.EnumType;
 import io.vertx.protobuf.schema.Field;
 import io.vertx.protobuf.schema.MessageType;
-import io.vertx.protobuf.schema.TypeID;
 import io.vertx.protobuf.well_known_types.FieldLiteral;
 import io.vertx.protobuf.well_known_types.MessageLiteral;
 
@@ -23,7 +21,6 @@ import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Base64;
-import java.util.Map;
 import java.util.OptionalInt;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -35,6 +32,23 @@ public class JsonReader {
       parser.close();
     } catch (IOException ignore) {
     }
+  }
+
+  public static final long MIN_SECONDS_DURATION = -315_576_000_000L;
+  public static final long MAX_SECONDS_DURATION = 315576000000L;
+  public static final int MIN_NANOS_DURATION = -999_999_999;
+  public static final int MAX_NANOS_DURATION = 999_999_999;
+
+  public static boolean isValidDurationSeconds(long seconds) {
+    return seconds >= MIN_SECONDS_DURATION && seconds <= MAX_SECONDS_DURATION;
+  }
+
+  public static boolean isValidDurationNanos(int nanos) {
+    return nanos >= MIN_NANOS_DURATION && nanos <= MAX_NANOS_DURATION;
+  }
+
+  public static boolean isValidDuration(long seconds, int nanos) {
+    return isValidDurationSeconds(seconds) && isValidDurationNanos(nanos);
   }
 
   public static io.vertx.protobuf.well_known_types.Duration parseDuration(String s) {
