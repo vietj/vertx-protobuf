@@ -5,13 +5,11 @@ import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.core.JsonTokenId;
 import com.fasterxml.jackson.core.exc.InputCoercionException;
 import io.vertx.core.json.DecodeException;
-import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.jackson.JacksonCodec;
 import io.vertx.protobuf.RecordVisitor;
 import io.vertx.protobuf.schema.EnumType;
 import io.vertx.protobuf.schema.Field;
 import io.vertx.protobuf.schema.MessageType;
-import io.vertx.protobuf.schema.TypeID;
 import io.vertx.protobuf.well_known_types.FieldLiteral;
 import io.vertx.protobuf.well_known_types.MessageLiteral;
 
@@ -21,13 +19,9 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.Instant;
 import java.time.OffsetDateTime;
-import java.time.chrono.IsoChronology;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
-import java.time.format.ResolverStyle;
 import java.util.Base64;
-import java.util.Locale;
-import java.util.Map;
 import java.util.OptionalInt;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -52,20 +46,23 @@ public class JsonReader {
     .parseStrict()
     .toFormatter();
 
-  public static final long MIN_SECONDS_DURATION = -315_576_000_000L;
-  public static final long MAX_SECONDS_DURATION = 315576000000L;
-  public static final int MIN_NANOS_DURATION = -999_999_999;
-  public static final int MAX_NANOS_DURATION = 999_999_999;
-  public static final Instant MIN_TIMESTAMP = OffsetDateTime.parse("0001-01-01T00:00:00Z", formatter).toInstant();
-  public static final long MIN_SECONDS_TIMESTAMP = OffsetDateTime.parse("0001-01-01T00:00:00Z", formatter).getSecond();
-
+  public static final long MIN_DURATION_SECONDS = -315_576_000_000L;
+  public static final long MAX_DURATION_SECONDS = 315576000000L;
+  public static final int MIN_DURATION_NANOS = -999_999_999;
+  public static final int MAX_DURATION_NANOS = 999_999_999;
+  public static final OffsetDateTime MIN_TIMESTAMP = OffsetDateTime.parse("0001-01-01T00:00:00Z", formatter);
+  public static final OffsetDateTime MAX_TIMESTAMP = OffsetDateTime.parse("9999-12-31T23:59:59Z", formatter);
+  public static final Instant MIN_TIMESTAMP_INSTANT = MIN_TIMESTAMP.toInstant();
+  public static final Instant MAX_TIMESTAMP_INSTANT = MAX_TIMESTAMP.toInstant();
+  public static final long MIN_TIMESTAMP_SECONDS = MIN_TIMESTAMP_INSTANT.getEpochSecond();
+  public static final long MAX_TIMESTAMP_SECONDS = MAX_TIMESTAMP_INSTANT.getEpochSecond();
 
   public static boolean isValidDurationSeconds(long seconds) {
-    return seconds >= MIN_SECONDS_DURATION && seconds <= MAX_SECONDS_DURATION;
+    return seconds >= MIN_DURATION_SECONDS && seconds <= MAX_DURATION_SECONDS;
   }
 
   public static boolean isValidDurationNanos(int nanos) {
-    return nanos >= MIN_NANOS_DURATION && nanos <= MAX_NANOS_DURATION;
+    return nanos >= MIN_DURATION_NANOS && nanos <= MAX_DURATION_NANOS;
   }
 
   public static boolean isValidDuration(long seconds, int nanos) {
@@ -73,11 +70,11 @@ public class JsonReader {
   }
 
   public static boolean isValidTimestampSeconds(long seconds) {
-    return seconds >= MIN_SECONDS_TIMESTAMP;
+    return seconds >= MIN_TIMESTAMP_SECONDS && seconds <= MAX_TIMESTAMP_SECONDS;
   }
 
   public static boolean isValidTimestampNanos(int nanos) {
-    return true;
+    return nanos >= 0 && nanos <= 999_999_999;
   }
 
   public static boolean isValidTimestamp(long seconds, int nanos) {
@@ -519,7 +516,7 @@ public class JsonReader {
             throw new DecodeException("Failed to parse timestamp: " + e.getMessage());
           }
           Instant i = odt.toInstant();
-          if (i.compareTo(MIN_TIMESTAMP) < 0) {
+          if (i.compareTo(MIN_TIMESTAMP_INSTANT) < 0) {
             throw new DecodeException();
           }
           visitor.enter(field);

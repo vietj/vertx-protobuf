@@ -13,7 +13,6 @@ import io.vertx.protobuf.well_known_types.MessageLiteral;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayDeque;
@@ -61,10 +60,13 @@ public class JsonWriter implements RecordVisitor  {
           durationSeconds = 0L;
           durationNanos = 0;
           break;
+        case Timestamp:
+          timestampSeconds = 0L;
+          timestampNanos = 0;
+          break;
         case Struct:
         case Value:
         case ListValue:
-        case Timestamp:
         case DoubleValue:
         case FloatValue:
         case Int64Value:
@@ -102,9 +104,10 @@ public class JsonWriter implements RecordVisitor  {
       String t = bd.toPlainString() + "s";
       put(field, t);
     } else if (field.type() == MessageLiteral.Timestamp) {
-      structWriter.destroy();
-      OffsetDateTime o = (OffsetDateTime) structWriter.pop();
-      structWriter = null;
+      if (!JsonReader.isValidTimestamp(timestampSeconds, timestampNanos)) {
+        throw new EncodeException();
+      }
+      OffsetDateTime o = ProtoReader.toOffsetDateTime(timestampSeconds, timestampNanos);
       String t = o.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
       put(field, t);
     } else if (
@@ -183,6 +186,9 @@ public class JsonWriter implements RecordVisitor  {
         case Duration_nanos:
           durationNanos = v;
           break;
+        case Timestamp_nanos:
+          timestampNanos = v;
+          break;
         default:
           throw new UnsupportedOperationException();
       }
@@ -214,6 +220,9 @@ public class JsonWriter implements RecordVisitor  {
       switch ((FieldLiteral)field) {
         case Duration_seconds:
           durationSeconds = v;
+          break;
+        case Timestamp_seconds:
+          timestampSeconds = v;
           break;
         default:
           throw new UnsupportedOperationException();

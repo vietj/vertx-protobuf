@@ -75,7 +75,8 @@ public class Main {
             break;
           case JSON_PAYLOAD:
             boolean ignoreUnknownJsonParsing = request.getTestCategory() == Conformance.TestCategory.JSON_IGNORE_UNKNOWN_PARSING_TEST;
-            JsonReader r = new JsonReader(request.getJsonPayload(), reader);
+            String json = request.getJsonPayload();
+            JsonReader r = new JsonReader(json, reader);
             r.ignoreUnknownFields(ignoreUnknownJsonParsing);
             r.read(MessageLiteral.TestAllTypesProto3);
             break;

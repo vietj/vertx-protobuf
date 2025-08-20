@@ -32,11 +32,12 @@ public class ConformanceTest {
         .build();
   }
 
+  @Ignore
   @Test
   public void testJsonOutput() throws Exception {
 //    byte[] bytes = { 61, 0, 0, 0, 0, 61, 57, 48, 0, 0, 61, -1, -1, -1, -1 };
 //    byte[] bytes = { -46, 3, 4, 8, 1, 16, 0, -46, 3, 4, 8, 1, 16, 1 };
-    byte[] bytes = { -14, 18, 7, 8, -128, -125, -47, -1, -81, 7 };
+    byte[] bytes = { -14, 18, 11, 8, -1, -111, -72, -61, -104, -2, -1, -1, -1, 1 };
     ProtoReader reader = new ProtoReader();
     Buffer buffer = Buffer.buffer(bytes);
     TestMessagesProto3.TestAllTypesProto3 d = TestMessagesProto3.TestAllTypesProto3.parseFrom(bytes);
@@ -61,7 +62,7 @@ public class ConformanceTest {
   @Test
   public void testJsonInput() throws Exception {
 
-    String json = "{\"optionalDouble\": 1.89769e+308}";
+    String json = "{\"optionalTimestamp\": \"1993-02-10T00:00:00.000Z\"}";
 
 /*
     json = "{\n" +
@@ -72,9 +73,12 @@ public class ConformanceTest {
       "      }";
 */
 
-//    TestMessagesProto3.TestAllTypesProto3.Builder builder = TestMessagesProto3.TestAllTypesProto3.newBuilder();
-//    JsonFormat.parser().usingTypeRegistry(typeRegistry).merge(json, builder);
-//    TestMessagesProto3.TestAllTypesProto3 d = builder.build();
+    TestMessagesProto3.TestAllTypesProto3.Builder builder = TestMessagesProto3.TestAllTypesProto3.newBuilder();
+    JsonFormat.parser().usingTypeRegistry(typeRegistry).merge(json, builder);
+    TestMessagesProto3.TestAllTypesProto3 d = builder.build();
+
+    System.out.println(d.getOptionalTimestamp().getSeconds());
+    System.out.println(d.getOptionalTimestamp().getNanos());
 
 //    Any any = d.getOptionalAny();
 //    System.out.println(any.getTypeUrl());

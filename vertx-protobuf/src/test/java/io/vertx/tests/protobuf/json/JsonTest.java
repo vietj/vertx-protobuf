@@ -1,13 +1,10 @@
 package io.vertx.tests.protobuf.json;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.google.protobuf.Any;
 import com.google.protobuf.BoolValue;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.BytesValue;
 import com.google.protobuf.DoubleValue;
 import com.google.protobuf.Duration;
-import com.google.protobuf.FieldMask;
 import com.google.protobuf.FloatValue;
 import com.google.protobuf.Int32Value;
 import com.google.protobuf.Int64Value;
@@ -26,7 +23,6 @@ import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.EncodeException;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.protobuf.json.Json;
 import io.vertx.protobuf.json.JsonReader;
 import io.vertx.protobuf.json.JsonWriter;
 import io.vertx.protobuf.schema.MessageType;
@@ -41,9 +37,7 @@ import junit.framework.AssertionFailedError;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -137,10 +131,10 @@ public class JsonTest {
   @Test
   public void testReadInvalidDuration() {
     try {
-      read(new JsonObject().put("duration", (JsonReader.MAX_SECONDS_DURATION + 1) + "s"), MessageLiteral.Container);
-      read(new JsonObject().put("duration", (JsonReader.MIN_SECONDS_DURATION - 1) + "s"), MessageLiteral.Container);
-      read(new JsonObject().put("duration", "0." + (JsonReader.MAX_NANOS_DURATION + 1) + "s"), MessageLiteral.Container);
-      read(new JsonObject().put("duration", "0." + (JsonReader.MIN_NANOS_DURATION - 1) + "s"), MessageLiteral.Container);
+      read(new JsonObject().put("duration", (JsonReader.MAX_DURATION_SECONDS + 1) + "s"), MessageLiteral.Container);
+      read(new JsonObject().put("duration", (JsonReader.MIN_DURATION_SECONDS - 1) + "s"), MessageLiteral.Container);
+      read(new JsonObject().put("duration", "0." + (JsonReader.MAX_DURATION_NANOS + 1) + "s"), MessageLiteral.Container);
+      read(new JsonObject().put("duration", "0." + (JsonReader.MIN_DURATION_NANOS - 1) + "s"), MessageLiteral.Container);
       fail();
     } catch (DecodeException expected) {
     }
@@ -148,8 +142,8 @@ public class JsonTest {
 
   @Test
   public void testWriteInvalidDuration() {
-    long[] listOfSeconds = {JsonReader.MAX_SECONDS_DURATION + 1, JsonReader.MIN_SECONDS_DURATION - 1, 0, 0};
-    int[] listOfNano = {0, 0, JsonReader.MAX_NANOS_DURATION + 1, JsonReader.MIN_NANOS_DURATION - 1};
+    long[] listOfSeconds = {JsonReader.MAX_DURATION_SECONDS + 1, JsonReader.MIN_DURATION_SECONDS - 1, 0, 0};
+    int[] listOfNano = {0, 0, JsonReader.MAX_DURATION_NANOS + 1, JsonReader.MIN_DURATION_NANOS - 1};
 
     // {"optionalDuration": "315576000001.000000000s"}
 
@@ -166,8 +160,6 @@ public class JsonTest {
 
   @Test
   public void testReadInvalidTimestamp() {
-    // [-14, 18, 7, 8, -128, -125, -47, -1, -81, 7]
-    // [-14, 18, 11, 8, -1, -111, -72, -61, -104, -2, -1, -1, -1, 1]
     String[] timestamps = {
       "0001-01-01t00:00:00Z",
       "0001-01-01T00:00:00z",
@@ -186,14 +178,10 @@ public class JsonTest {
     }
   }
 
-  @Ignore
   @Test
   public void testWriteInvalidTimestamp() {
-    long[] listOfSeconds = { 253402300800L };
-    int[] listOfNano = { 0 };
-
-    // {"optionalDuration": "315576000001.000000000s"}
-
+    long[] listOfSeconds = { 253402300800L, -62135596801L, 0L, 0L };
+    int[] listOfNano = { 0, 0, 1_000_000_000, -1 };
     for (int i = 0; i < listOfSeconds.length; i++) {
       try {
         toJson(new Container().setTimestamp(new io.vertx.protobuf.well_known_types.Timestamp()
@@ -207,8 +195,8 @@ public class JsonTest {
 
   @Test
   public void testTimestamp() {
-    long[] listOfSeconds = { 1, 0, 1, 1, 0 };
-    int[] listOfNano = { 1, 5, 0, 123456789, 500_000_000 };
+    long[] listOfSeconds = { 1, 0, 1, 1, 0, 729302400 };
+    int[] listOfNano = { 1, 5, 0, 123456789, 500_000_000, 0 };
     for (int i = 0;i < listOfSeconds.length;i++) {
       JsonProto.Container expected = JsonProto.Container.newBuilder()
         .setTimestamp(Timestamp.newBuilder().setSeconds(listOfSeconds[i]).setNanos(listOfNano[i]).build())

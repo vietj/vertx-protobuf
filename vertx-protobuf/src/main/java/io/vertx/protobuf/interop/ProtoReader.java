@@ -18,6 +18,10 @@ import java.util.Deque;
 
 public class ProtoReader implements RecordVisitor {
 
+  public static OffsetDateTime toOffsetDateTime(long seconds, int nanos) {
+    return OffsetDateTime.ofInstant(Instant.ofEpochSecond(seconds, nanos), ZoneId.of("UTC"));
+  }
+
   private final Deque<Object> stack;
   public MessageLiteral rootType;
 
@@ -360,7 +364,7 @@ public class ProtoReader implements RecordVisitor {
         stack.push(Duration.ofSeconds(durationSeconds, durationNanos));
         break;
       case Timestamp:
-        stack.push(OffsetDateTime.ofInstant(Instant.ofEpochSecond(timestampSeconds, timestampNanos), ZoneId.of("UTC")));
+        stack.push(toOffsetDateTime(timestampSeconds, timestampNanos));
         break;
       case DoubleValue:
         stack.push(doubleValue);
