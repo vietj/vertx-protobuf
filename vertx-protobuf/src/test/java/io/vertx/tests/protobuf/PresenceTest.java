@@ -7,8 +7,8 @@ import io.vertx.tests.presence.Default;
 import io.vertx.tests.presence.Optional;
 import io.vertx.tests.presence.PresenceProto;
 import io.vertx.tests.presence.ProtoWriter;
-import io.vertx.tests.presence.Enum;
 import io.vertx.tests.presence.Repeated;
+import io.vertx.tests.presence.Enumerated;
 import org.junit.Test;
 
 import java.util.Collections;
@@ -29,7 +29,7 @@ public class PresenceTest {
     msg.setSint32(0);
     msg.setSint64(0L);
     msg.setBool(false);
-    msg.setEnum(Enum.constant_0);
+    msg.setEnum(Enumerated.constant_0);
     msg.setFixed64(0L);
     msg.setSfixed64(0L);
     msg.setFloat(0f);
@@ -56,7 +56,7 @@ public class PresenceTest {
     msg.setSint32(0);
     msg.setSint64(0L);
     msg.setBool(false);
-    msg.setEnum(Enum.constant_1);
+    msg.setEnum(Enumerated.constant_1);
     msg.setFixed64(0L);
     msg.setSfixed64(0L);
     msg.setDouble(0D);
@@ -74,7 +74,7 @@ public class PresenceTest {
       .setSint32(0)
       .setSint64(0L)
       .setBool(false)
-      .setEnum(PresenceProto.Enum.constant_1)
+      .setEnum(PresenceProto.Enumerated.constant_1)
       .setFixed64(0L)
       .setSfixed64(0L)
       .setDouble(0D)

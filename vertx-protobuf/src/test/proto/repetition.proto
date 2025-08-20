@@ -15,7 +15,7 @@ message Repeated {
   repeated sint32 sint32 = 7 [packed = false];
   repeated sint64 sint64 = 8 [packed = false];
   repeated bool bool = 9 [packed = false];
-  repeated Enum _enum = 10 [packed = false];
+  repeated Enumerated _enum = 10 [packed = false];
   repeated fixed64 fixed64 = 11 [packed = false];
   repeated sfixed64 sfixed64 = 12 [packed = false];
   repeated double _double = 13 [packed = false];
@@ -33,7 +33,7 @@ message Packed {
   repeated sint32 sint32 = 7 [packed = true];
   repeated sint64 sint64 = 8 [packed = true];
   repeated bool bool = 9 [packed = true];
-  repeated Enum _enum = 10 [packed = true];
+  repeated Enumerated _enum = 10 [packed = true];
   repeated fixed64 fixed64 = 11 [packed = true];
   repeated sfixed64 sfixed64 = 12 [packed = true];
   repeated double _double = 13 [packed = true];
@@ -42,7 +42,7 @@ message Packed {
   repeated float _float = 16 [packed = true];
 }
 
-enum Enum {
+enum Enumerated {
   constant_0 = 0;
   constant_1 = 1;
 }

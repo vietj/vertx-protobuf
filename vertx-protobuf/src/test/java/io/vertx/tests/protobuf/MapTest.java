@@ -5,7 +5,7 @@ import io.vertx.protobuf.ProtobufReader;
 import io.vertx.protobuf.ProtobufWriter;
 import io.vertx.protobuf.schema.Field;
 import io.vertx.protobuf.schema.MessageType;
-import io.vertx.tests.map.Enum;
+import io.vertx.tests.map.Enumerated;
 import io.vertx.tests.map.MapKeyVariant;
 import io.vertx.tests.map.MapProto;
 import io.vertx.tests.map.MapValueVariant;
@@ -92,7 +92,7 @@ public class MapTest {
     testEmptyMapValueVariant(FieldLiteral.MapValueVariant_sint32_v, MapValueVariant::getSint32V, 0);
     testEmptyMapValueVariant(FieldLiteral.MapValueVariant_sint64_v, MapValueVariant::getSint64V, 0L);
     testEmptyMapValueVariant(FieldLiteral.MapKeyVariant_bool, MapValueVariant::getBoolV, false);
-    testEmptyMapValueVariant(FieldLiteral.MapValueVariant__enum_v, MapValueVariant::getEnumV, Enum.constant_0);
+    testEmptyMapValueVariant(FieldLiteral.MapValueVariant__enum_v, MapValueVariant::getEnumV, Enumerated.constant_0);
     testEmptyMapValueVariant(FieldLiteral.MapValueVariant_fixed64_v, MapValueVariant::getFixed64V, 0L);
     testEmptyMapValueVariant(FieldLiteral.MapValueVariant_sfixed64_v, MapValueVariant::getSfixed64V, 0L);
     testEmptyMapValueVariant(FieldLiteral.MapValueVariant__double_v, MapValueVariant::getDoubleV, 0D);

@@ -30,7 +30,7 @@ message MapValueVariant {
   map<int32, sint32> sint32_v = 7;
   map<int32, sint64> sint64_v = 8;
   map<int32, bool> bool_v = 9;
-  map<int32, Enum> _enum_v = 10;
+  map<int32, Enumerated> _enum_v = 10;
   map<int32, fixed64> fixed64_v = 11;
   map<int32, sfixed64> sfixed64_v = 12;
   map<int32, double> _double_v = 13;
@@ -44,7 +44,7 @@ message Value {
   int32 value = 1;
 }
 
-enum Enum {
+enum Enumerated {
   constant_0 = 0;
   constant_1 = 1;
 }

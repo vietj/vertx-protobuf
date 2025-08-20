@@ -272,6 +272,24 @@ class ElementGenerator {
           "  " + constant.identifier + "(" + constant.number + ")" + (it.hasNext() ? "," : ";"));
       }
 
+      writer.println("  enum Enum {");
+      for (Iterator<Constant> it = constants.iterator(); it.hasNext();) {
+        Constant constant = it.next();
+        writer.println(
+          "    " + constant.identifier + "(" + constant.number + ")" + (it.hasNext() ? "," : ";"));
+      }
+      writer.println(
+        "    private final int number;",
+        "",
+        "    Enum(int number) {",
+        "      this.number = number;",
+        "    }",
+        "",
+        "    public int number() {",
+        "      return number;",
+        "    }",
+        "  }");
+
       writer.println(
         "",
         "  public static final io.vertx.protobuf.schema.EnumType TYPE = new io.vertx.protobuf.schema.DefaultEnumType()");

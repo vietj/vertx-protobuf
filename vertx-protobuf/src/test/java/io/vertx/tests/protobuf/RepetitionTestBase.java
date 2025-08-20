@@ -5,7 +5,7 @@ import com.google.protobuf.MessageLite;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.protobuf.ProtobufWriter;
 import io.vertx.protobuf.schema.MessageType;
-import io.vertx.tests.repetition.Enum;
+import io.vertx.tests.repetition.Enumerated;
 import io.vertx.tests.repetition.FieldLiteral;
 import io.vertx.tests.repetition.MessageLiteral;
 import io.vertx.tests.repetition.Packed;
@@ -71,8 +71,8 @@ public abstract class RepetitionTestBase {
       .addSint64(1)
       .addBool(true)
       .addBool(false)
-      .addEnum(RepetitionProto.Enum.constant_0)
-      .addEnum(RepetitionProto.Enum.constant_1)
+      .addEnum(RepetitionProto.Enumerated.constant_0)
+      .addEnum(RepetitionProto.Enumerated.constant_1)
       .addFixed64(0)
       .addFixed64(1)
       .addSfixed64(0)
@@ -96,7 +96,7 @@ public abstract class RepetitionTestBase {
     assertEquals(Arrays.asList(0L, 1L), msg.getSint64());
     assertEquals(Arrays.asList(0, 1), msg.getFixed32());
     assertEquals(Arrays.asList(true, false), msg.getBool());
-    assertEquals(Arrays.asList(io.vertx.tests.repetition.Enum.constant_0, Enum.constant_1), msg.getEnum());
+    assertEquals(Arrays.asList(io.vertx.tests.repetition.Enumerated.constant_0, Enumerated.constant_1), msg.getEnum());
     assertEquals(Arrays.asList(0L, 1L), msg.getFixed64());
     assertEquals(Arrays.asList(0L, 1L), msg.getSfixed64());
     assertEquals(Arrays.asList(0d, 1d), msg.getDouble());
@@ -122,8 +122,8 @@ public abstract class RepetitionTestBase {
       .addSint64(1)
       .addBool(true)
       .addBool(false)
-      .addEnum(RepetitionProto.Enum.constant_0)
-      .addEnum(RepetitionProto.Enum.constant_1)
+      .addEnum(RepetitionProto.Enumerated.constant_0)
+      .addEnum(RepetitionProto.Enumerated.constant_1)
       .addFixed64(0)
       .addFixed64(1)
       .addSfixed64(0)
@@ -145,7 +145,7 @@ public abstract class RepetitionTestBase {
     assertEquals(Arrays.asList(0L, 1L), msg.getSint64());
     assertEquals(Arrays.asList(0, 1), msg.getFixed32());
     assertEquals(Arrays.asList(true, false), msg.getBool());
-    assertEquals(Arrays.asList(Enum.constant_0, Enum.constant_1), msg.getEnum());
+    assertEquals(Arrays.asList(Enumerated.constant_0, Enumerated.constant_1), msg.getEnum());
     assertEquals(Arrays.asList(0L, 1L), msg.getFixed64());
     assertEquals(Arrays.asList(0L, 1L), msg.getSfixed64());
     assertEquals(Arrays.asList(0d, 1d), msg.getDouble());

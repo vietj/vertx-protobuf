@@ -23,9 +23,9 @@ message ScalarTypes {
   bytes bytes = 15;
 }
 message EnumTypes {
-  Enum _enum = 1;
+  Enumerated _enum = 1;
 }
-enum Enum {
+enum Enumerated {
   zero = 0;
   one = 1;
   two = 2;

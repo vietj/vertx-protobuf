@@ -15,7 +15,7 @@ message Default {
   sint32 sint32 = 7;
   sint64 sint64 = 8;
   bool bool = 9;
-  Enum _enum = 10;
+  Enumerated _enum = 10;
   fixed64 fixed64 = 11;
   sfixed64 sfixed64 = 12;
   double _double = 13;
@@ -34,7 +34,7 @@ message Repeated {
   repeated sint32 sint32 = 7;
   repeated sint64 sint64 = 8;
   repeated bool bool = 9;
-  repeated Enum _enum = 10;
+  repeated Enumerated _enum = 10;
   repeated fixed64 fixed64 = 11;
   repeated sfixed64 sfixed64 = 12;
   repeated double _double = 13;
@@ -53,7 +53,7 @@ message Optional {
   optional sint32 sint32 = 7;
   optional sint64 sint64 = 8;
   optional bool bool = 9;
-  optional Enum _enum = 10;
+  optional Enumerated _enum = 10;
   optional fixed64 fixed64 = 11;
   optional sfixed64 sfixed64 = 12;
   optional double _double = 13;
@@ -62,7 +62,7 @@ message Optional {
   optional float _float = 16;
 }
 
-enum Enum {
+enum Enumerated {
   constant_0 = 0;
   constant_1 = 1;
 }
