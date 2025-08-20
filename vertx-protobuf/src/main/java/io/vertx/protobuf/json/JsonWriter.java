@@ -21,7 +21,7 @@ import java.util.Deque;
 import java.util.List;
 import java.util.function.Consumer;
 
-public class JsonWriter implements RecordVisitor  {
+public class JsonWriter implements JsonVisitor  {
 
   public static JsonObject encode(Consumer<RecordVisitor> consumer) {
     JsonWriter writer = new JsonWriter();
@@ -274,6 +274,15 @@ public class JsonWriter implements RecordVisitor  {
       structWriter.visitEnum(field, number);
     } else {
       put(field, ((EnumType)field.type()).nameOf(number));
+    }
+  }
+
+  @Override
+  public void visitEnum(Field field, String name) {
+    if (structWriter != null) {
+      throw new EncodeException();
+    } else {
+      put(field, name);
     }
   }
 

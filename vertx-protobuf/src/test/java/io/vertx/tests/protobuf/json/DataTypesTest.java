@@ -364,6 +364,7 @@ public class DataTypesTest extends DataTypeTestBase {
     assertTrue(enumerated.isUnknown());
     assertNull(enumerated.asEnum());
     assertEquals("unknown", enumerated.name());
-//    JsonObject json = JsonWriter.encode(v -> ProtoWriter.emit(c, v));
+    JsonObject json = JsonWriter.encode(v -> ProtoWriter.emit(c, v));
+    assertEquals("unknown", json.getValue("Enum"));
   }
 }

@@ -346,7 +346,15 @@ class ProtoWriterGenerator {
 //        if (field.typeTo.lengthDelimited) {
 //          content.println("      visitor.enter(FieldLiteral." + field.identifier + ");");
 //        }
-        content.println("      visitor." + field.typeTo.visitMethod + "(FieldLiteral." + field.identifier + ", " + field.typeTo.fn.apply("v") + ");");
+        if (field.typeTo.type == Descriptors.FieldDescriptor.Type.ENUM) {
+          content.println("      if (v.number().isPresent()) {");
+          content.println("        visitor." + field.typeTo.visitMethod + "(FieldLiteral." + field.identifier + ", v.number().getAsInt());");
+          content.println("      } else {");
+          content.println("        ((io.vertx.protobuf.json.JsonVisitor)visitor)." + field.typeTo.visitMethod + "(FieldLiteral." + field.identifier + ", v.name());");
+          content.println("      }");
+        } else {
+          content.println("      visitor." + field.typeTo.visitMethod + "(FieldLiteral." + field.identifier + ", " + field.typeTo.fn.apply("v") + ");");
+        }
 //        if (field.typeTo.lengthDelimited) {
 //          content.println("      visitor.leave(FieldLiteral." + field.identifier + ");");
 //        }
