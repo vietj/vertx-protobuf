@@ -1,1 +1,1 @@
-Required.Proto3.JsonInput.OneofFieldDuplicate # Should have failed to parse, but didn't.
+Required.Proto3.JsonInput.EnumFieldUnknownValue.Validator # JSON payload validation failed.
