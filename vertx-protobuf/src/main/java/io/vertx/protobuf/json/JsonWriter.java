@@ -7,6 +7,7 @@ import io.vertx.protobuf.interop.ProtoReader;
 import io.vertx.protobuf.schema.EnumType;
 import io.vertx.protobuf.schema.Field;
 import io.vertx.protobuf.schema.MessageType;
+import io.vertx.protobuf.well_known_types.FieldLiteral;
 import io.vertx.protobuf.well_known_types.MessageLiteral;
 
 import java.math.BigDecimal;
@@ -28,6 +29,17 @@ public class JsonWriter implements RecordVisitor  {
 
   private final Deque<Object> stack = new ArrayDeque<>();
   private ProtoReader structWriter;
+  private long durationSeconds;
+  private int durationNanos;
+  private long timestampSeconds;
+  private int timestampNanos;
+  private double doubleValue;
+  private float floatValue;
+  private boolean booleanValue;
+  private long intValue;
+  private long longValue;
+  private String stringValue;
+  private byte[] bytesValue;
 
   @Override
   public void init(MessageType type) {
@@ -42,23 +54,31 @@ public class JsonWriter implements RecordVisitor  {
   public void enter(Field field) {
     if (structWriter != null) {
       structWriter.enter(field);
-    } else if (field.type() == MessageLiteral.Struct ||
-               field.type() == MessageLiteral.Value ||
-               field.type() == MessageLiteral.ListValue ||
-               field.type() == MessageLiteral.Duration ||
-               field.type() == MessageLiteral.Timestamp ||
-               field.type() == MessageLiteral.DoubleValue ||
-               field.type() == MessageLiteral.FloatValue ||
-               field.type() == MessageLiteral.Int64Value ||
-               field.type() == MessageLiteral.UInt64Value ||
-               field.type() == MessageLiteral.Int32Value ||
-               field.type() == MessageLiteral.UInt32Value ||
-               field.type() == MessageLiteral.BoolValue ||
-               field.type() == MessageLiteral.StringValue ||
-               field.type() == MessageLiteral.BytesValue
-    ) {
-      structWriter = new ProtoReader();
-      structWriter.init((MessageType) field.type());
+    } else if (field.type() instanceof MessageLiteral) {
+      switch ((MessageLiteral)field.type()) {
+        case Duration:
+          durationSeconds = 0L;
+          durationNanos = 0;
+          break;
+        case Struct:
+        case Value:
+        case ListValue:
+        case Timestamp:
+        case DoubleValue:
+        case FloatValue:
+        case Int64Value:
+        case UInt64Value:
+        case Int32Value:
+        case UInt32Value:
+        case BoolValue:
+        case StringValue:
+        case BytesValue:
+          structWriter = new ProtoReader();
+          structWriter.init((MessageType) field.type());
+          break;
+        default:
+          throw new UnsupportedOperationException();
+      }
     } else if (field.isMap()) {
       stack.push(new Entry());
     } else {
@@ -74,12 +94,7 @@ public class JsonWriter implements RecordVisitor  {
   @Override
   public void leave(Field field) {
     if (field.type() == MessageLiteral.Duration) {
-      structWriter.destroy();
-      Duration o = (Duration) structWriter.pop();
-      structWriter = null;
-      int nano = o.getNano();
-      long seconds = o.getSeconds();
-      BigDecimal bd = new BigDecimal(seconds).add(BigDecimal.valueOf(nano, 9));
+      BigDecimal bd = new BigDecimal(durationSeconds).add(BigDecimal.valueOf(durationNanos, 9));
       String t = bd.toPlainString() + "s";
       put(field, t);
     } else if (field.type() == MessageLiteral.Timestamp) {
@@ -159,6 +174,14 @@ public class JsonWriter implements RecordVisitor  {
   public void visitInt32(Field field, int v) {
     if (structWriter != null) {
       structWriter.visitInt32(field, v);
+    } else if (field instanceof FieldLiteral) {
+      switch ((FieldLiteral)field) {
+        case Duration_nanos:
+          durationNanos = v;
+          break;
+        default:
+          throw new UnsupportedOperationException();
+      }
     } else {
       put(field, v);
     }
@@ -183,6 +206,14 @@ public class JsonWriter implements RecordVisitor  {
   public void visitInt64(Field field, long v) {
     if (structWriter != null) {
       structWriter.visitInt64(field, v);
+    } else if (field instanceof FieldLiteral) {
+      switch ((FieldLiteral)field) {
+        case Duration_seconds:
+          durationSeconds = v;
+          break;
+        default:
+          throw new UnsupportedOperationException();
+      }
     } else {
       put(field, v);
     }
