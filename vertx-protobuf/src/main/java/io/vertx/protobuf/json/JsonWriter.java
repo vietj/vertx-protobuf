@@ -30,7 +30,7 @@ public class JsonWriter implements RecordVisitor  {
     return (JsonObject) writer.stack.pop();
   }
 
-  private final Deque<Object> stack = new ArrayDeque<>();
+  public final Deque<Object> stack = new ArrayDeque<>();
   private ProtoReader structWriter;
   private long durationSeconds;
   private int durationNanos;
