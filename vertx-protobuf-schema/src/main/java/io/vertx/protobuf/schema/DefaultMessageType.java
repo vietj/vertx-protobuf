@@ -39,7 +39,10 @@ public class DefaultMessageType implements MessageType {
     DefaultFieldBuilder builder = new DefaultFieldBuilder();
     cfg.accept(builder);
     String name = builder.name;
-    String jsonName = name != null ? DefaultField.toJsonName(builder.name) : null;
+    String jsonName = builder.jsonName;
+    if (jsonName == null && name != null) {
+      jsonName = DefaultField.toJsonName(builder.name);
+    }
     int number = builder.number;
     if (number == 0) {
       throw new IllegalArgumentException();

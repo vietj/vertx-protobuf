@@ -4,6 +4,7 @@ public class DefaultFieldBuilder {
 
   int number;
   String name;
+  String jsonName;
   Type type;
   Boolean packed;
   boolean repeated;
@@ -18,6 +19,11 @@ public class DefaultFieldBuilder {
 
   public DefaultFieldBuilder name(String name) {
     this.name = name;
+    return this;
+  }
+
+  public DefaultFieldBuilder jsonName(String jsonName) {
+    this.jsonName = jsonName;
     return this;
   }
 
