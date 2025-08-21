@@ -1,15 +1,14 @@
 package io.vertx.tests.protobuf.json;
 
 import com.google.protobuf.ByteString;
-import com.google.protobuf.MapEntry;
 import com.google.protobuf.Message;
 import com.google.protobuf.MessageLite;
 import com.google.protobuf.MessageOrBuilder;
 import com.google.protobuf.util.JsonFormat;
 import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.JsonObject;
-import io.vertx.protobuf.json.JsonReader;
-import io.vertx.protobuf.json.JsonWriter;
+import io.vertx.protobuf.json.ProtoJsonReader;
+import io.vertx.protobuf.json.ProtoJsonWriter;
 import io.vertx.protobuf.schema.Field;
 import io.vertx.protobuf.schema.MessageType;
 import io.vertx.protobuf.schema.ScalarType;
@@ -24,7 +23,6 @@ import io.vertx.tests.protobuf.datatypes.ProtoReader;
 import io.vertx.tests.protobuf.datatypes.ProtoWriter;
 import org.junit.Test;
 
-import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Map;
@@ -38,7 +36,7 @@ public class DataTypesTest extends DataTypeTestBase {
     String json = JsonFormat.printer().print((MessageOrBuilder) expected);
 
     RecordingVisitor.Checker checker = visitor.checker();
-    JsonReader.parse(json, messageType, checker);
+    ProtoJsonReader.parse(json, messageType, checker);
     assertTrue(checker.isEmpty());
 
     // Try parsing string formatted numbers as real numbers, this must be parseable
@@ -57,10 +55,10 @@ public class DataTypesTest extends DataTypeTestBase {
     }
     json = jsonObject.encode();
     checker = visitor.checker();
-    JsonReader.parse(json, messageType, checker);
+    ProtoJsonReader.parse(json, messageType, checker);
     assertTrue(checker.isEmpty());
 
-    String encoded = JsonWriter.encode(visitor::apply).toString();
+    String encoded = ProtoJsonWriter.encode(visitor::apply).toString();
     Message.Builder builder = ((Message) expected).newBuilderForType();
     JsonFormat.parser().merge(encoded, builder);
     assertEquals(expected, builder.build());
@@ -93,7 +91,7 @@ public class DataTypesTest extends DataTypeTestBase {
       entry.setValue(null);
     }
     RecordingVisitor.Checker checker = visitor.checker();
-    JsonReader.parse(json.toString(), SCALAR_TYPES, checker);
+    ProtoJsonReader.parse(json.toString(), SCALAR_TYPES, checker);
     assertTrue(checker.isEmpty());
   }
 
@@ -104,7 +102,7 @@ public class DataTypesTest extends DataTypeTestBase {
     visitor.visitBool(BOOL, false);
     visitor.destroy();
     RecordingVisitor.Checker checker = visitor.checker();
-    JsonReader.parse("{\"bool\":false}", SCALAR_TYPES, checker);
+    ProtoJsonReader.parse("{\"bool\":false}", SCALAR_TYPES, checker);
     assertTrue(checker.isEmpty());
   }
 
@@ -115,7 +113,7 @@ public class DataTypesTest extends DataTypeTestBase {
     visitor.visitInt32(INT32, 500);
     visitor.destroy();
     RecordingVisitor.Checker checker = visitor.checker();
-    JsonReader.parse("{\"int32\":\"5e2\"}", SCALAR_TYPES, checker);
+    ProtoJsonReader.parse("{\"int32\":\"5e2\"}", SCALAR_TYPES, checker);
     assertTrue(checker.isEmpty());
   }
 
@@ -126,7 +124,7 @@ public class DataTypesTest extends DataTypeTestBase {
     visitor.visitUInt32(UINT32, 500);
     visitor.destroy();
     RecordingVisitor.Checker checker = visitor.checker();
-    JsonReader.parse("{\"uint32\":\"5e2\"}", SCALAR_TYPES, checker);
+    ProtoJsonReader.parse("{\"uint32\":\"5e2\"}", SCALAR_TYPES, checker);
     assertTrue(checker.isEmpty());
   }
 
@@ -137,9 +135,9 @@ public class DataTypesTest extends DataTypeTestBase {
     visitor.visitUInt32(UINT32, -1);
     visitor.destroy();
     RecordingVisitor.Checker checker = visitor.checker();
-    JsonReader.parse("{\"uint32\":\"" + BigInteger.valueOf(0xFFFFFFFFL) + "\"}", SCALAR_TYPES, checker);
+    ProtoJsonReader.parse("{\"uint32\":\"" + BigInteger.valueOf(0xFFFFFFFFL) + "\"}", SCALAR_TYPES, checker);
     assertTrue(checker.isEmpty());
-    assertEquals(BigInteger.valueOf(0xFFFFFFFFL).toString(), JsonWriter.encode(visitor::apply).getValue("uint32"));
+    assertEquals(BigInteger.valueOf(0xFFFFFFFFL).toString(), ProtoJsonWriter.encode(visitor::apply).getValue("uint32"));
   }
 
   @Test
@@ -149,9 +147,9 @@ public class DataTypesTest extends DataTypeTestBase {
     visitor.visitFixed32(FIXED32, -1);
     visitor.destroy();
     RecordingVisitor.Checker checker = visitor.checker();
-    JsonReader.parse("{\"fixed32\":\"" + BigInteger.valueOf(0xFFFFFFFFL) + "\"}", SCALAR_TYPES, checker);
+    ProtoJsonReader.parse("{\"fixed32\":\"" + BigInteger.valueOf(0xFFFFFFFFL) + "\"}", SCALAR_TYPES, checker);
     assertTrue(checker.isEmpty());
-    assertEquals(4294967295L, JsonWriter.encode(visitor::apply).getValue("fixed32"));
+    assertEquals(4294967295L, ProtoJsonWriter.encode(visitor::apply).getValue("fixed32"));
   }
 
   @Test
@@ -161,9 +159,9 @@ public class DataTypesTest extends DataTypeTestBase {
     visitor.visitUInt64(UINT64, -2048);
     visitor.destroy();
     RecordingVisitor.Checker checker = visitor.checker();
-    JsonReader.parse("{\"uint64\":\"18446744073709549568\"}", SCALAR_TYPES, checker);
+    ProtoJsonReader.parse("{\"uint64\":\"18446744073709549568\"}", SCALAR_TYPES, checker);
     assertTrue(checker.isEmpty());
-    assertEquals("18446744073709549568", JsonWriter.encode(visitor::apply).getValue("uint64"));
+    assertEquals("18446744073709549568", ProtoJsonWriter.encode(visitor::apply).getValue("uint64"));
   }
 
   @Test
@@ -173,9 +171,9 @@ public class DataTypesTest extends DataTypeTestBase {
     visitor.visitFixed64(FIXED64, -1);
     visitor.destroy();
     RecordingVisitor.Checker checker = visitor.checker();
-    JsonReader.parse("{\"fixed64\":\"18446744073709551615\"}", SCALAR_TYPES, checker);
+    ProtoJsonReader.parse("{\"fixed64\":\"18446744073709551615\"}", SCALAR_TYPES, checker);
     assertTrue(checker.isEmpty());
-    assertEquals("18446744073709551615", JsonWriter.encode(visitor::apply).getValue("fixed64"));
+    assertEquals("18446744073709551615", ProtoJsonWriter.encode(visitor::apply).getValue("fixed64"));
   }
 
   @Test
@@ -185,7 +183,7 @@ public class DataTypesTest extends DataTypeTestBase {
     visitor.visitEnum(ENUM, 1);
     visitor.destroy();
     RecordingVisitor.Checker checker = visitor.checker();
-    JsonReader.parse("{\"_enum\":1}", ENUM_TYPES, checker);
+    ProtoJsonReader.parse("{\"_enum\":1}", ENUM_TYPES, checker);
     assertTrue(checker.isEmpty());
   }
 
@@ -208,7 +206,7 @@ public class DataTypesTest extends DataTypeTestBase {
       visitor.visitDouble(DOUBLE, Double.parseDouble(infinity));
       visitor.destroy();
       RecordingVisitor.Checker checker = visitor.checker();
-      JsonReader.parse("{\"" + DOUBLE.jsonName() + "\":\"" + infinity + "\"}", SCALAR_TYPES, checker);
+      ProtoJsonReader.parse("{\"" + DOUBLE.jsonName() + "\":\"" + infinity + "\"}", SCALAR_TYPES, checker);
       assertTrue(checker.isEmpty());
     }
   }
@@ -221,7 +219,7 @@ public class DataTypesTest extends DataTypeTestBase {
       visitor.visitFloat(FLOAT, Float.parseFloat(infinity));
       visitor.destroy();
       RecordingVisitor.Checker checker = visitor.checker();
-      JsonReader.parse("{\"" + FLOAT.jsonName() + "\":\"" + infinity + "\"}", SCALAR_TYPES, checker);
+      ProtoJsonReader.parse("{\"" + FLOAT.jsonName() + "\":\"" + infinity + "\"}", SCALAR_TYPES, checker);
       assertTrue(checker.isEmpty());
     }
   }
@@ -284,7 +282,7 @@ public class DataTypesTest extends DataTypeTestBase {
     visitor.visitUInt32(UINT32, -1);
     visitor.destroy();
     RecordingVisitor.Checker checker = visitor.checker();
-    JsonReader.parse("{\"" + UINT32.jsonName() + "\":" + 0xFFFFFFFFL + "}", SCALAR_TYPES, checker);
+    ProtoJsonReader.parse("{\"" + UINT32.jsonName() + "\":" + 0xFFFFFFFFL + "}", SCALAR_TYPES, checker);
     assertTrue(checker.isEmpty());
   }
 
@@ -295,7 +293,7 @@ public class DataTypesTest extends DataTypeTestBase {
     visitor.visitUInt64(UINT64, -1);
     visitor.destroy();
     RecordingVisitor.Checker checker = visitor.checker();
-    JsonReader.parse("{\"" + UINT64.jsonName() + "\":" + new BigInteger("FFFFFFFFFFFFFFFF", 16) + "}", SCALAR_TYPES, checker);
+    ProtoJsonReader.parse("{\"" + UINT64.jsonName() + "\":" + new BigInteger("FFFFFFFFFFFFFFFF", 16) + "}", SCALAR_TYPES, checker);
     assertTrue(checker.isEmpty());
   }
 
@@ -306,7 +304,7 @@ public class DataTypesTest extends DataTypeTestBase {
     visitor.visitInt32(INT32, 4);
     visitor.destroy();
     RecordingVisitor.Checker checker = visitor.checker();
-    JsonReader.parse("{\"" + INT32.jsonName() + "\":4.0}", SCALAR_TYPES, checker);
+    ProtoJsonReader.parse("{\"" + INT32.jsonName() + "\":4.0}", SCALAR_TYPES, checker);
     assertTrue(checker.isEmpty());
   }
 
@@ -317,7 +315,7 @@ public class DataTypesTest extends DataTypeTestBase {
     visitor.visitInt64(INT64, 4);
     visitor.destroy();
     RecordingVisitor.Checker checker = visitor.checker();
-    JsonReader.parse("{\"" + INT64.jsonName() + "\":4.0}", SCALAR_TYPES, checker);
+    ProtoJsonReader.parse("{\"" + INT64.jsonName() + "\":4.0}", SCALAR_TYPES, checker);
     assertTrue(checker.isEmpty());
   }
 
@@ -328,7 +326,7 @@ public class DataTypesTest extends DataTypeTestBase {
     visitor.visitUInt32(UINT32, 4);
     visitor.destroy();
     RecordingVisitor.Checker checker = visitor.checker();
-    JsonReader.parse("{\"" + UINT32.jsonName() + "\":4.0}", SCALAR_TYPES, checker);
+    ProtoJsonReader.parse("{\"" + UINT32.jsonName() + "\":4.0}", SCALAR_TYPES, checker);
     assertTrue(checker.isEmpty());
   }
 
@@ -339,7 +337,7 @@ public class DataTypesTest extends DataTypeTestBase {
     visitor.visitUInt64(UINT64, 4);
     visitor.destroy();
     RecordingVisitor.Checker checker = visitor.checker();
-    JsonReader.parse("{\"" + UINT64.jsonName() + "\":4.0}", SCALAR_TYPES, checker);
+    ProtoJsonReader.parse("{\"" + UINT64.jsonName() + "\":4.0}", SCALAR_TYPES, checker);
     assertTrue(checker.isEmpty());
   }
 
@@ -348,7 +346,7 @@ public class DataTypesTest extends DataTypeTestBase {
     visitor.init(SCALAR_TYPES);
     RecordingVisitor.Checker checker = visitor.checker();
     try {
-      JsonReader.parse("{\"" + fieldName + "\":" + value + "}", SCALAR_TYPES, checker);
+      ProtoJsonReader.parse("{\"" + fieldName + "\":" + value + "}", SCALAR_TYPES, checker);
       fail();
     } catch (DecodeException expected) {
     }
@@ -359,7 +357,7 @@ public class DataTypesTest extends DataTypeTestBase {
   public void testUnknownNamedEnum() {
     ProtoReader reader = new ProtoReader();
     try {
-      JsonReader.parse("{\"_enum\":\"unknown\"}", MessageLiteral.EnumTypes, reader);
+      ProtoJsonReader.parse("{\"_enum\":\"unknown\"}", MessageLiteral.EnumTypes, reader);
       fail();
     } catch (DecodeException expected) {
 
@@ -369,7 +367,7 @@ public class DataTypesTest extends DataTypeTestBase {
   @Test
   public void testUnknownIndexedEnum() {
     ProtoReader reader = new ProtoReader();
-    JsonReader.parse("{\"_enum\":123}", MessageLiteral.EnumTypes, reader);
+    ProtoJsonReader.parse("{\"_enum\":123}", MessageLiteral.EnumTypes, reader);
     EnumTypes c = (EnumTypes) reader.stack.pop();
     Enumerated enumerated = c.getEnum();
     assertTrue(enumerated.isUnknown());
@@ -380,7 +378,7 @@ public class DataTypesTest extends DataTypeTestBase {
     } catch (IllegalStateException expected) {
     }
     assertEquals(123, enumerated.number());
-    JsonObject json = JsonWriter.encode(v -> ProtoWriter.emit(c, v));
+    JsonObject json = ProtoJsonWriter.encode(v -> ProtoWriter.emit(c, v));
     assertEquals(123, json.getValue("Enum"));
   }
 }

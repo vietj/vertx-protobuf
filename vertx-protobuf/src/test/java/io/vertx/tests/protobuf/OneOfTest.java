@@ -1,11 +1,8 @@
 package io.vertx.tests.protobuf;
 
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.json.JsonObject;
-import io.vertx.protobuf.ProtobufEncoder;
 import io.vertx.protobuf.ProtobufReader;
 import io.vertx.protobuf.ProtobufWriter;
-import io.vertx.protobuf.json.JsonReader;
 import io.vertx.tests.oneof.FieldLiteral;
 import io.vertx.tests.oneof.ProtoWriter;
 import io.vertx.tests.oneof.ProtoReader;

@@ -2,8 +2,8 @@ package io.vertx.tests.protobuf.json;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.util.JsonFormat;
-import io.vertx.protobuf.json.JsonReader;
-import io.vertx.protobuf.json.JsonWriter;
+import io.vertx.protobuf.json.ProtoJsonReader;
+import io.vertx.protobuf.json.ProtoJsonWriter;
 import io.vertx.protobuf.well_known_types.Duration;
 import io.vertx.tests.interop.Container;
 import io.vertx.tests.interop.InteropProto;
@@ -30,13 +30,13 @@ public class InteropTest extends InteropTestBase {
       throw afe;
     }
     ProtoReader reader = new ProtoReader();
-    JsonReader.parse(json, MessageLiteral.Container, reader);
+    ProtoJsonReader.parse(json, MessageLiteral.Container, reader);
     return (Container) reader.stack.pop();
   }
 
   @Override
   protected InteropProto.Container write(Container src) {
-    String json = JsonWriter.encode(v -> ProtoWriter.emit(src, v)).encode();
+    String json = ProtoJsonWriter.encode(v -> ProtoWriter.emit(src, v)).encode();
     try {
       InteropProto.Container.Builder builder = InteropProto.Container.newBuilder();
       JsonFormat.parser().merge(json, builder);
@@ -60,7 +60,7 @@ public class InteropTest extends InteropTestBase {
   }
 
   private void assertDuration(Duration expected, String s) {
-    Duration parsed = JsonReader.parseDuration(s);
+    Duration parsed = ProtoJsonReader.parseDuration(s);
     assertNotNull(parsed);
     assertEquals(expected.getSeconds(), parsed.getSeconds());
     assertEquals(expected.getNanos(), parsed.getNanos());

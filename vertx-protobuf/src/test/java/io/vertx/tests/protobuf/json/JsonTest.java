@@ -24,8 +24,8 @@ import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.EncodeException;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.protobuf.json.JsonReader;
-import io.vertx.protobuf.json.JsonWriter;
+import io.vertx.protobuf.json.ProtoJsonReader;
+import io.vertx.protobuf.json.ProtoJsonWriter;
 import io.vertx.protobuf.schema.MessageType;
 import io.vertx.tests.json.Container;
 import io.vertx.tests.json.FieldLiteral;
@@ -142,10 +142,10 @@ public class JsonTest {
   @Test
   public void testReadInvalidDuration() {
     try {
-      read(new JsonObject().put("duration", (JsonReader.MAX_DURATION_SECONDS + 1) + "s"), MessageLiteral.Container);
-      read(new JsonObject().put("duration", (JsonReader.MIN_DURATION_SECONDS - 1) + "s"), MessageLiteral.Container);
-      read(new JsonObject().put("duration", "0." + (JsonReader.MAX_DURATION_NANOS + 1) + "s"), MessageLiteral.Container);
-      read(new JsonObject().put("duration", "0." + (JsonReader.MIN_DURATION_NANOS - 1) + "s"), MessageLiteral.Container);
+      read(new JsonObject().put("duration", (ProtoJsonReader.MAX_DURATION_SECONDS + 1) + "s"), MessageLiteral.Container);
+      read(new JsonObject().put("duration", (ProtoJsonReader.MIN_DURATION_SECONDS - 1) + "s"), MessageLiteral.Container);
+      read(new JsonObject().put("duration", "0." + (ProtoJsonReader.MAX_DURATION_NANOS + 1) + "s"), MessageLiteral.Container);
+      read(new JsonObject().put("duration", "0." + (ProtoJsonReader.MIN_DURATION_NANOS - 1) + "s"), MessageLiteral.Container);
       fail();
     } catch (DecodeException expected) {
     }
@@ -153,8 +153,8 @@ public class JsonTest {
 
   @Test
   public void testWriteInvalidDuration() {
-    long[] listOfSeconds = {JsonReader.MAX_DURATION_SECONDS + 1, JsonReader.MIN_DURATION_SECONDS - 1, 0, 0};
-    int[] listOfNano = {0, 0, JsonReader.MAX_DURATION_NANOS + 1, JsonReader.MIN_DURATION_NANOS - 1};
+    long[] listOfSeconds = {ProtoJsonReader.MAX_DURATION_SECONDS + 1, ProtoJsonReader.MIN_DURATION_SECONDS - 1, 0, 0};
+    int[] listOfNano = {0, 0, ProtoJsonReader.MAX_DURATION_NANOS + 1, ProtoJsonReader.MIN_DURATION_NANOS - 1};
 
     // {"optionalDuration": "315576000001.000000000s"}
 
@@ -258,7 +258,7 @@ public class JsonTest {
   @Test
   public void testIgnoreUnknownFields() {
     ProtoReader pr = new ProtoReader();
-    JsonReader reader = new JsonReader("{\"unknown\":{\"foo\":3}}", pr);
+    ProtoJsonReader reader = new ProtoJsonReader("{\"unknown\":{\"foo\":3}}", pr);
     reader.ignoreUnknownFields(true);
     reader.read(MessageLiteral.Container);
   }
@@ -307,27 +307,27 @@ public class JsonTest {
 
   @Test
   public void testLowerCamelToSnake() {
-    assertEquals("bar_baz", JsonReader.lowerCamelToSnake("BarBaz"));
-    assertEquals("_bar_baz", JsonReader.lowerCamelToSnake("_BarBaz"));
-    assertEquals("bar_baz", JsonReader.lowerCamelToSnake("barBaz"));
-    assertEquals("bar_1234", JsonReader.lowerCamelToSnake("Bar_1234"));
-    assertEquals("bar_", JsonReader.lowerCamelToSnake("Bar_"));
-    assertEquals("bar_baz", JsonReader.lowerCamelToSnake("Bar_Baz"));
-    assertEquals("bar__baz", JsonReader.lowerCamelToSnake("Bar__Baz"));
-    assertEquals("b_b_b", JsonReader.lowerCamelToSnake("BBB"));
-    assertEquals("a_ba_ba_b", JsonReader.lowerCamelToSnake("aBaBaB"));
-    assertEquals("", JsonReader.lowerCamelToSnake(""));
+    assertEquals("bar_baz", ProtoJsonReader.lowerCamelToSnake("BarBaz"));
+    assertEquals("_bar_baz", ProtoJsonReader.lowerCamelToSnake("_BarBaz"));
+    assertEquals("bar_baz", ProtoJsonReader.lowerCamelToSnake("barBaz"));
+    assertEquals("bar_1234", ProtoJsonReader.lowerCamelToSnake("Bar_1234"));
+    assertEquals("bar_", ProtoJsonReader.lowerCamelToSnake("Bar_"));
+    assertEquals("bar_baz", ProtoJsonReader.lowerCamelToSnake("Bar_Baz"));
+    assertEquals("bar__baz", ProtoJsonReader.lowerCamelToSnake("Bar__Baz"));
+    assertEquals("b_b_b", ProtoJsonReader.lowerCamelToSnake("BBB"));
+    assertEquals("a_ba_ba_b", ProtoJsonReader.lowerCamelToSnake("aBaBaB"));
+    assertEquals("", ProtoJsonReader.lowerCamelToSnake(""));
   }
 
   @Test
   public void testSnakeToLowerCamel() {
-    assertEquals("barBaz", JsonReader.snakeToLowerCamel("bar_baz"));
-    assertEquals("BarBaz", JsonReader.snakeToLowerCamel("_bar_baz"));
-    assertEquals("bar12Baz", JsonReader.snakeToLowerCamel("bar12_baz"));
-    assertEquals("barBaz", JsonReader.snakeToLowerCamel("bar_Baz"));
-    assertEquals("Bar", JsonReader.snakeToLowerCamel("__bar"));
-    assertEquals("123", JsonReader.snakeToLowerCamel("_123"));
-    assertEquals("bBB", JsonReader.snakeToLowerCamel("b_b_b"));
+    assertEquals("barBaz", ProtoJsonReader.snakeToLowerCamel("bar_baz"));
+    assertEquals("BarBaz", ProtoJsonReader.snakeToLowerCamel("_bar_baz"));
+    assertEquals("bar12Baz", ProtoJsonReader.snakeToLowerCamel("bar12_baz"));
+    assertEquals("barBaz", ProtoJsonReader.snakeToLowerCamel("bar_Baz"));
+    assertEquals("Bar", ProtoJsonReader.snakeToLowerCamel("__bar"));
+    assertEquals("123", ProtoJsonReader.snakeToLowerCamel("_123"));
+    assertEquals("bBB", ProtoJsonReader.snakeToLowerCamel("b_b_b"));
   }
 
   @Test
@@ -399,7 +399,7 @@ public class JsonTest {
 
   private <T> T read(String json, MessageType type) {
     ProtoReader pr = new ProtoReader();
-    JsonReader.parse(json, type, pr);
+    ProtoJsonReader.parse(json, type, pr);
     return (T)pr.stack.pop();
   }
 
@@ -408,7 +408,7 @@ public class JsonTest {
   }
 
   private JsonObject toJson(Container container) {
-    return JsonWriter.encode(visitor -> {
+    return ProtoJsonWriter.encode(visitor -> {
       ProtoWriter.emit(container, visitor);
     });
   }

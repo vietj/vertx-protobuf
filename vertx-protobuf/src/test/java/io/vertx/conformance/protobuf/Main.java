@@ -11,8 +11,8 @@ import com.google.protobuf_test_messages.proto3.ProtoWriter;
 import com.google.protobuf_test_messages.proto3.TestAllTypesProto3;
 import com.google.protobuf_test_messages.proto3.ProtoReader;
 import com.google.protobuf_test_messages.proto3.MessageLiteral;
-import io.vertx.protobuf.json.JsonReader;
-import io.vertx.protobuf.json.JsonWriter;
+import io.vertx.protobuf.json.ProtoJsonReader;
+import io.vertx.protobuf.json.ProtoJsonWriter;
 
 public class Main {
 
@@ -76,7 +76,7 @@ public class Main {
           case JSON_PAYLOAD:
             boolean ignoreUnknownJsonParsing = request.getTestCategory() == Conformance.TestCategory.JSON_IGNORE_UNKNOWN_PARSING_TEST;
             String json = request.getJsonPayload();
-            JsonReader r = new JsonReader(json, reader);
+            ProtoJsonReader r = new ProtoJsonReader(json, reader);
             r.ignoreUnknownFields(ignoreUnknownJsonParsing);
             r.read(MessageLiteral.TestAllTypesProto3);
             break;
@@ -106,7 +106,7 @@ public class Main {
       case JSON:
         JsonObject result = null;
         try {
-          result = JsonWriter.encode(visitor -> {
+          result = ProtoJsonWriter.encode(visitor -> {
             ProtoWriter.emit(testMessage, visitor);
           });
         } catch (Exception e) {

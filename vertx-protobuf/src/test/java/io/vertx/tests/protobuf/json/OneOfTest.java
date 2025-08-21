@@ -1,9 +1,7 @@
 package io.vertx.tests.protobuf.json;
 
-import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
-import io.vertx.protobuf.ProtobufReader;
-import io.vertx.protobuf.json.JsonReader;
+import io.vertx.protobuf.json.ProtoJsonReader;
 import io.vertx.tests.oneof.Container;
 import io.vertx.tests.oneof.FieldLiteral;
 import io.vertx.tests.oneof.MessageLiteral;
@@ -23,7 +21,7 @@ public class OneOfTest {
     JsonObject json = new JsonObject()
       .put(FieldLiteral.Container_integer.jsonName(), 1)
       .put(FieldLiteral.Container_string.jsonName(), "str");
-    JsonReader.parse(json.encode(), MessageLiteral.Container, reader);
+    ProtoJsonReader.parse(json.encode(), MessageLiteral.Container, reader);
     Container msg = (Container) reader.stack.pop();
     System.out.println(msg.getScalar().discriminant());
   }

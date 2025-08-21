@@ -1,7 +1,5 @@
 package io.vertx.conformance.protobuf;
 
-import com.google.protobuf.Any;
-import com.google.protobuf.Struct;
 import com.google.protobuf.TypeRegistry;
 import com.google.protobuf.util.JsonFormat;
 import com.google.protobuf_test_messages.proto3.MessageLiteral;
@@ -10,11 +8,9 @@ import com.google.protobuf_test_messages.proto3.ProtoWriter;
 import com.google.protobuf_test_messages.proto3.TestAllTypesProto3;
 import com.google.protobuf_test_messages.proto3.TestMessagesProto3;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.json.JsonObject;
 import io.vertx.protobuf.ProtobufReader;
 import io.vertx.protobuf.ProtobufWriter;
-import io.vertx.protobuf.json.JsonReader;
-import io.vertx.protobuf.json.JsonWriter;
+import io.vertx.protobuf.json.ProtoJsonReader;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -89,7 +85,7 @@ public class ConformanceTest {
 //    any.
 
     ProtoReader reader = new ProtoReader();
-    JsonReader.parse(json, MessageLiteral.TestAllTypesProto3, reader);
+    ProtoJsonReader.parse(json, MessageLiteral.TestAllTypesProto3, reader);
     TestAllTypesProto3 testMessage = (TestAllTypesProto3) reader.stack.pop();
     System.out.println(testMessage.getOptionalNestedEnum());
   }

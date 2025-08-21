@@ -4,7 +4,7 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.MessageLite;
 import com.google.protobuf.MessageOrBuilder;
 import com.google.protobuf.util.JsonFormat;
-import io.vertx.protobuf.json.JsonReader;
+import io.vertx.protobuf.json.ProtoJsonReader;
 import io.vertx.protobuf.schema.MessageType;
 import io.vertx.tests.protobuf.RecordingVisitor;
 import io.vertx.tests.protobuf.RepetitionTestBase;
@@ -23,7 +23,7 @@ public class RepetitionTest extends RepetitionTestBase {
       afe.initCause(e);
       throw afe;
     }
-    JsonReader.parse(json, type, visitor.checker());
+    ProtoJsonReader.parse(json, type, visitor.checker());
   }
 
   @Override
@@ -37,7 +37,7 @@ public class RepetitionTest extends RepetitionTestBase {
       throw afe;
     }
     ProtoReader reader = new ProtoReader();
-    JsonReader.parse(json, type, reader);
+    ProtoJsonReader.parse(json, type, reader);
     return (T) reader.stack.pop();
   }
 }

@@ -1,8 +1,8 @@
 package io.vertx.tests.protobuf.json;
 
 import io.vertx.core.json.JsonObject;
-import io.vertx.protobuf.json.JsonReader;
-import io.vertx.protobuf.json.JsonWriter;
+import io.vertx.protobuf.json.ProtoJsonReader;
+import io.vertx.protobuf.json.ProtoJsonWriter;
 import io.vertx.tests.map.MapValueVariant;
 import io.vertx.tests.map.ProtoReader;
 import io.vertx.tests.map.MessageLiteral;
@@ -91,10 +91,10 @@ public class MapTest {
     JsonObject src = new JsonObject(json);
 
     ProtoReader pr = new ProtoReader();
-    JsonReader.parse(json, MessageLiteral.MapKeyVariant, pr);
+    ProtoJsonReader.parse(json, MessageLiteral.MapKeyVariant, pr);
 
     MapKeyVariant res = (MapKeyVariant) pr.stack.pop();
-    JsonObject encoded = JsonWriter.encode(v -> ProtoWriter.emit(res, v));
+    JsonObject encoded = ProtoJsonWriter.encode(v -> ProtoWriter.emit(res, v));
 
     assertEquals(src, encoded);
 
@@ -104,7 +104,7 @@ public class MapTest {
   @Test
   public void testSerializeMapValue() {
     ProtoReader pr = new ProtoReader();
-    JsonReader.parse("{\"_message_v\":{\"15\":{\"value\":4}}}", MessageLiteral.MapValueVariant, pr);
+    ProtoJsonReader.parse("{\"_message_v\":{\"15\":{\"value\":4}}}", MessageLiteral.MapValueVariant, pr);
     MapValueVariant pop = (MapValueVariant) pr.stack.pop();
     assertEquals(4, (int)pop.getMessageV().get(15).getValue());
   }

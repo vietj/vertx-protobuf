@@ -28,7 +28,7 @@ import java.util.regex.Pattern;
 
 import static java.time.format.DateTimeFormatter.ISO_LOCAL_TIME;
 
-public class JsonReader {
+public class ProtoJsonReader {
 
   private static final DateTimeFormatter f2 = new DateTimeFormatterBuilder()
     .parseCaseSensitive()
@@ -129,7 +129,7 @@ public class JsonReader {
   }
 
   public static void parse(JsonParser parser, MessageType messageType, ProtoVisitor visitor) throws DecodeException {
-    JsonReader reader = new JsonReader(parser, visitor);
+    ProtoJsonReader reader = new ProtoJsonReader(parser, visitor);
     try {
       reader.read(messageType);
     } finally {
@@ -141,17 +141,17 @@ public class JsonReader {
   private final ProtoVisitor visitor;
   private boolean ignoreUnknownFields;
 
-  public JsonReader(String json, ProtoVisitor visitor) {
+  public ProtoJsonReader(String json, ProtoVisitor visitor) {
     this(JacksonCodec.createParser(json), visitor);
   }
 
-  public JsonReader(JsonParser parser, ProtoVisitor visitor) {
+  public ProtoJsonReader(JsonParser parser, ProtoVisitor visitor) {
     this.parser = parser;
     this.visitor = visitor;
     this.ignoreUnknownFields = false;
   }
 
-  public JsonReader ignoreUnknownFields(boolean ignoreUnknownFields) {
+  public ProtoJsonReader ignoreUnknownFields(boolean ignoreUnknownFields) {
     this.ignoreUnknownFields = ignoreUnknownFields;
     return this;
   }

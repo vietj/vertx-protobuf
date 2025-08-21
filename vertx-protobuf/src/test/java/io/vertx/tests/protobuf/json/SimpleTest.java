@@ -5,13 +5,11 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.protobuf.ProtobufReader;
-import io.vertx.protobuf.ProtobufWriter;
-import io.vertx.protobuf.json.JsonReader;
-import io.vertx.protobuf.json.JsonWriter;
+import io.vertx.protobuf.json.ProtoJsonReader;
+import io.vertx.protobuf.json.ProtoJsonWriter;
 import io.vertx.tests.protobuf.MessageLiteral;
 import io.vertx.tests.protobuf.ProtoReader;
 import io.vertx.tests.protobuf.ProtoWriter;
-import io.vertx.tests.protobuf.RecordingVisitor;
 import io.vertx.tests.protobuf.SimpleMessage;
 import io.vertx.tests.protobuf.TestProto;
 import org.junit.Test;
@@ -34,7 +32,7 @@ public class SimpleTest {
 
     ProtoReader pr = new ProtoReader();
 
-    JsonReader.parse(json, MessageLiteral.SimpleMessage, pr);
+    ProtoJsonReader.parse(json, MessageLiteral.SimpleMessage, pr);
 
     SimpleMessage pop = (SimpleMessage) pr.stack.pop();
 
@@ -42,7 +40,7 @@ public class SimpleTest {
     assertEquals(4, (int)pop.getInt32Field());
     assertEquals(Arrays.asList("s1", "s2"), pop.getStringListField());
 
-    JsonObject actual = JsonWriter.encode(v -> ProtoWriter.emit(pop, v));
+    JsonObject actual = ProtoJsonWriter.encode(v -> ProtoWriter.emit(pop, v));
 
     assertEquals(new JsonObject(json), actual);
   }
@@ -56,7 +54,7 @@ public class SimpleTest {
       .addStringListField("s2")
       .build()
       .toByteArray();
-    JsonWriter writer = new JsonWriter();
+    ProtoJsonWriter writer = new ProtoJsonWriter();
     ProtobufReader.parse(MessageLiteral.SimpleMessage, writer, Buffer.buffer(bytes));
     JsonObject json = (JsonObject) writer.stack.pop();
     System.out.println("json = " + json);

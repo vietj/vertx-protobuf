@@ -3,7 +3,7 @@ package io.vertx.tests.protobuf.json;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.util.JsonFormat;
 import io.vertx.core.json.JsonObject;
-import io.vertx.protobuf.json.JsonWriter;
+import io.vertx.protobuf.json.ProtoJsonWriter;
 import io.vertx.tests.json.JsonProto;
 import io.vertx.tests.json.ProtoWriter;
 import io.vertx.tests.json.Unpacked;
@@ -13,7 +13,7 @@ import org.junit.Test;
 
 import java.util.Arrays;
 
-public class JsonWriterTest {
+public class ProtoJsonWriterTest {
 
   @Test
   public void testListOfNumbers() {
@@ -38,7 +38,7 @@ public class JsonWriterTest {
     } catch (InvalidProtocolBufferException e) {
       throw new AssertionFailedError(e.getMessage());
     }
-    JsonObject json = JsonWriter.encode(v -> ProtoWriter.emit(unpacked, v));
+    JsonObject json = ProtoJsonWriter.encode(v -> ProtoWriter.emit(unpacked, v));
     Assert.assertEquals(expectedJson, json);
   }
 }

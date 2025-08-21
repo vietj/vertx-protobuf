@@ -22,10 +22,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 
-public class JsonWriter implements ProtoVisitor {
+public class ProtoJsonWriter implements ProtoVisitor {
 
   public static JsonObject encode(Consumer<ProtoVisitor> consumer) {
-    JsonWriter writer = new JsonWriter();
+    ProtoJsonWriter writer = new ProtoJsonWriter();
     consumer.accept(writer);
     return (JsonObject) writer.stack.pop();
   }
@@ -104,14 +104,14 @@ public class JsonWriter implements ProtoVisitor {
   @Override
   public void leave(Field field) {
     if (field.type() == MessageLiteral.Duration) {
-      if (!JsonReader.isValidDuration(durationSeconds, durationNanos)) {
+      if (!ProtoJsonReader.isValidDuration(durationSeconds, durationNanos)) {
         throw new EncodeException();
       }
       BigDecimal bd = new BigDecimal(durationSeconds).add(BigDecimal.valueOf(durationNanos, 9));
       String t = bd.toPlainString() + "s";
       put(field, t);
     } else if (field.type() == MessageLiteral.Timestamp) {
-      if (!JsonReader.isValidTimestamp(timestampSeconds, timestampNanos)) {
+      if (!ProtoJsonReader.isValidTimestamp(timestampSeconds, timestampNanos)) {
         throw new EncodeException();
       }
       OffsetDateTime o = ProtoReader.toOffsetDateTime(timestampSeconds, timestampNanos);
@@ -125,7 +125,7 @@ public class JsonWriter implements ProtoVisitor {
           if (i > 0) {
             sb.append(',');
           }
-          sb.append(JsonReader.snakeToLowerCamel(fieldMask.get(i)));
+          sb.append(ProtoJsonReader.snakeToLowerCamel(fieldMask.get(i)));
         }
         ser = sb.toString();
       } else {
