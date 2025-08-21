@@ -122,9 +122,7 @@ public class ProtobufReader {
     int len = decoder.intValue();
     byte[] data = decoder.readBytes(len);
     Field field = messageType.unknownField(fieldNumber, WireType.LEN);
-    unknownFieldHandler.enter(field);
     unknownFieldHandler.visitBytes(field, data);
-    unknownFieldHandler.leave(field);
   }
 
   private static void parseUnknownI32(ProtobufDecoder decoder, MessageType messageType, int fieldNumber, ProtoVisitor unknownFieldHandler) {

@@ -32,13 +32,9 @@ public class UnknownTest {
     RecordingVisitor.Checker checker = visitor.checker();
     checker.init(MessageLiteral.Message);
     Field uf2 = MessageLiteral.Message.unknownField(2, WireType.LEN);
-    checker.enter(uf2);
     checker.visitBytes(uf2, "Hello".getBytes(StandardCharsets.UTF_8));
-    checker.leave(uf2);
     Field uf3 = MessageLiteral.Message.unknownField(3, WireType.LEN);
-    checker.enter(uf3);
     checker.visitBytes(uf3, "World".getBytes(StandardCharsets.UTF_8));
-    checker.leave(uf3);
     checker.destroy();
     assertTrue(checker.isEmpty());
   }
