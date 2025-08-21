@@ -1,6 +1,6 @@
 package io.vertx.tests.protobuf;
 
-import io.vertx.protobuf.RecordVisitor;
+import io.vertx.protobuf.ProtoVisitor;
 import io.vertx.protobuf.schema.Field;
 import io.vertx.protobuf.schema.MessageType;
 
@@ -11,10 +11,10 @@ import java.util.List;
 
 import static org.junit.Assert.*;
 
-public class RecordingVisitor implements RecordVisitor {
+public class RecordingVisitor implements ProtoVisitor {
 
   private static abstract class Action {
-    protected abstract void apply(RecordVisitor visitor);
+    protected abstract void apply(ProtoVisitor visitor);
   }
 
   private static class Enter extends Action {
@@ -23,7 +23,7 @@ public class RecordingVisitor implements RecordVisitor {
       this.field = field;
     }
     @Override
-    protected void apply(RecordVisitor visitor) {
+    protected void apply(ProtoVisitor visitor) {
       visitor.enter(field);
     }
   }
@@ -34,7 +34,7 @@ public class RecordingVisitor implements RecordVisitor {
       this.field = field;
     }
     @Override
-    protected void apply(RecordVisitor visitor) {
+    protected void apply(ProtoVisitor visitor) {
       visitor.leave(field);
     }
   }
@@ -45,7 +45,7 @@ public class RecordingVisitor implements RecordVisitor {
       this.field = field;
     }
     @Override
-    protected void apply(RecordVisitor visitor) {
+    protected void apply(ProtoVisitor visitor) {
       visitor.enterPacked(field);
     }
   }
@@ -56,7 +56,7 @@ public class RecordingVisitor implements RecordVisitor {
       this.field = field;
     }
     @Override
-    protected void apply(RecordVisitor visitor) {
+    protected void apply(ProtoVisitor visitor) {
       visitor.leavePacked(field);
     }
   }
@@ -67,14 +67,14 @@ public class RecordingVisitor implements RecordVisitor {
       this.messageType = messageType;
     }
     @Override
-    protected void apply(RecordVisitor visitor) {
+    protected void apply(ProtoVisitor visitor) {
       visitor.init(messageType);
     }
   }
 
   private static class Destroy extends Action {
     @Override
-    protected void apply(RecordVisitor visitor) {
+    protected void apply(ProtoVisitor visitor) {
       visitor.destroy();
     }
   }
@@ -87,7 +87,7 @@ public class RecordingVisitor implements RecordVisitor {
       this.value = value;
     }
     @Override
-    protected void apply(RecordVisitor visitor) {
+    protected void apply(ProtoVisitor visitor) {
       visitor.visitFloat(field, value);
     }
   }
@@ -100,7 +100,7 @@ public class RecordingVisitor implements RecordVisitor {
       this.value = value;
     }
     @Override
-    protected void apply(RecordVisitor visitor) {
+    protected void apply(ProtoVisitor visitor) {
       visitor.visitDouble(field, value);
     }
   }
@@ -113,7 +113,7 @@ public class RecordingVisitor implements RecordVisitor {
       this.value = value;
     }
     @Override
-    protected void apply(RecordVisitor visitor) {
+    protected void apply(ProtoVisitor visitor) {
       visitor.visitInt64(field, value);
     }
   }
@@ -126,7 +126,7 @@ public class RecordingVisitor implements RecordVisitor {
       this.value = value;
     }
     @Override
-    protected void apply(RecordVisitor visitor) {
+    protected void apply(ProtoVisitor visitor) {
       visitor.visitUInt64(field, value);
     }
   }
@@ -139,7 +139,7 @@ public class RecordingVisitor implements RecordVisitor {
       this.value = value;
     }
     @Override
-    protected void apply(RecordVisitor visitor) {
+    protected void apply(ProtoVisitor visitor) {
       visitor.visitSInt64(field, value);
     }
   }
@@ -152,7 +152,7 @@ public class RecordingVisitor implements RecordVisitor {
       this.value = value;
     }
     @Override
-    protected void apply(RecordVisitor visitor) {
+    protected void apply(ProtoVisitor visitor) {
       visitor.visitInt32(field, value);
     }
   }
@@ -165,7 +165,7 @@ public class RecordingVisitor implements RecordVisitor {
       this.value = value;
     }
     @Override
-    protected void apply(RecordVisitor visitor) {
+    protected void apply(ProtoVisitor visitor) {
       visitor.visitSInt32(field, value);
     }
   }
@@ -178,7 +178,7 @@ public class RecordingVisitor implements RecordVisitor {
       this.value = value;
     }
     @Override
-    protected void apply(RecordVisitor visitor) {
+    protected void apply(ProtoVisitor visitor) {
       visitor.visitUInt32(field, value);
     }
   }
@@ -191,7 +191,7 @@ public class RecordingVisitor implements RecordVisitor {
       this.value = value;
     }
     @Override
-    protected void apply(RecordVisitor visitor) {
+    protected void apply(ProtoVisitor visitor) {
       visitor.visitEnum(field, value);
     }
   }
@@ -204,7 +204,7 @@ public class RecordingVisitor implements RecordVisitor {
       this.value = value;
     }
     @Override
-    protected void apply(RecordVisitor visitor) {
+    protected void apply(ProtoVisitor visitor) {
       visitor.visitBool(field, value);
     }
   }
@@ -217,7 +217,7 @@ public class RecordingVisitor implements RecordVisitor {
       this.value = value;
     }
     @Override
-    protected void apply(RecordVisitor visitor) {
+    protected void apply(ProtoVisitor visitor) {
       visitor.visitFixed32(field, value);
     }
   }
@@ -230,7 +230,7 @@ public class RecordingVisitor implements RecordVisitor {
       this.value = value;
     }
     @Override
-    protected void apply(RecordVisitor visitor) {
+    protected void apply(ProtoVisitor visitor) {
       visitor.visitFixed64(field, value);
     }
   }
@@ -243,7 +243,7 @@ public class RecordingVisitor implements RecordVisitor {
       this.value = value;
     }
     @Override
-    protected void apply(RecordVisitor visitor) {
+    protected void apply(ProtoVisitor visitor) {
       visitor.visitSFixed32(field, value);
     }
   }
@@ -256,7 +256,7 @@ public class RecordingVisitor implements RecordVisitor {
       this.value = value;
     }
     @Override
-    protected void apply(RecordVisitor visitor) {
+    protected void apply(ProtoVisitor visitor) {
       visitor.visitSFixed64(field, value);
     }
   }
@@ -269,7 +269,7 @@ public class RecordingVisitor implements RecordVisitor {
       this.bytes = bytes;
     }
     @Override
-    protected void apply(RecordVisitor visitor) {
+    protected void apply(ProtoVisitor visitor) {
       visitor.visitBytes(field, bytes.clone());
     }
   }
@@ -282,7 +282,7 @@ public class RecordingVisitor implements RecordVisitor {
       this.s = s;
     }
     @Override
-    protected void apply(RecordVisitor visitor) {
+    protected void apply(ProtoVisitor visitor) {
       visitor.visitString(field, s);
     }
   }
@@ -399,7 +399,7 @@ public class RecordingVisitor implements RecordVisitor {
     log.add(new Destroy());
   }
 
-  public void apply(RecordVisitor visitor) {
+  public void apply(ProtoVisitor visitor) {
     for (Action action : log) {
       action.apply(visitor);
     }
@@ -410,7 +410,7 @@ public class RecordingVisitor implements RecordVisitor {
     return new Checker(log);
   }
 
-  public static class Checker implements RecordVisitor {
+  public static class Checker implements ProtoVisitor {
 
     private final Deque<Action> expectations;
 

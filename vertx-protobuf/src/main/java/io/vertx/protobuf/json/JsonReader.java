@@ -6,7 +6,7 @@ import com.fasterxml.jackson.core.JsonTokenId;
 import com.fasterxml.jackson.core.exc.InputCoercionException;
 import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.jackson.JacksonCodec;
-import io.vertx.protobuf.RecordVisitor;
+import io.vertx.protobuf.ProtoVisitor;
 import io.vertx.protobuf.schema.EnumType;
 import io.vertx.protobuf.schema.Field;
 import io.vertx.protobuf.schema.MessageType;
@@ -23,7 +23,6 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.util.Base64;
 import java.util.OptionalInt;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -117,7 +116,7 @@ public class JsonReader {
   private static final BigInteger MAX_UINT32 = new BigInteger("FFFFFFFF", 16);
   private static final BigInteger MAX_UINT64 = new BigInteger("FFFFFFFFFFFFFFFF", 16);
 
-  public static void parse(String json, MessageType messageType, RecordVisitor visitor) {
+  public static void parse(String json, MessageType messageType, ProtoVisitor visitor) {
     JsonParser parser = JacksonCodec.createParser(json);
     try {
       parse(parser, messageType, visitor);
@@ -129,7 +128,7 @@ public class JsonReader {
     }
   }
 
-  public static void parse(JsonParser parser, MessageType messageType, RecordVisitor visitor) throws DecodeException {
+  public static void parse(JsonParser parser, MessageType messageType, ProtoVisitor visitor) throws DecodeException {
     JsonReader reader = new JsonReader(parser, visitor);
     try {
       reader.read(messageType);
@@ -139,14 +138,14 @@ public class JsonReader {
   }
 
   private final JsonParser parser;
-  private final RecordVisitor visitor;
+  private final ProtoVisitor visitor;
   private boolean ignoreUnknownFields;
 
-  public JsonReader(String json, RecordVisitor visitor) {
+  public JsonReader(String json, ProtoVisitor visitor) {
     this(JacksonCodec.createParser(json), visitor);
   }
 
-  public JsonReader(JsonParser parser, RecordVisitor visitor) {
+  public JsonReader(JsonParser parser, ProtoVisitor visitor) {
     this.parser = parser;
     this.visitor = visitor;
     this.ignoreUnknownFields = false;

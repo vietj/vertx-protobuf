@@ -3,7 +3,7 @@ package io.vertx.protobuf.json;
 import io.vertx.core.json.EncodeException;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.protobuf.RecordVisitor;
+import io.vertx.protobuf.ProtoVisitor;
 import io.vertx.protobuf.interop.ProtoReader;
 import io.vertx.protobuf.schema.EnumType;
 import io.vertx.protobuf.schema.Field;
@@ -22,9 +22,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 
-public class JsonWriter implements RecordVisitor  {
+public class JsonWriter implements ProtoVisitor {
 
-  public static JsonObject encode(Consumer<RecordVisitor> consumer) {
+  public static JsonObject encode(Consumer<ProtoVisitor> consumer) {
     JsonWriter writer = new JsonWriter();
     consumer.accept(writer);
     return (JsonObject) writer.stack.pop();

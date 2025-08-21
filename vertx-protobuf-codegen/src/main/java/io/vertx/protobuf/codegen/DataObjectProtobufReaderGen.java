@@ -62,13 +62,13 @@ public class DataObjectProtobufReaderGen extends Generator<Model> {
 
     code.codeln("import io.vertx.protobuf.schema.Field;");
     code.codeln("import io.vertx.protobuf.schema.MessageType;");
-    code.codeln("import io.vertx.protobuf.RecordVisitor;");
+    code.codeln("import io.vertx.protobuf.ProtoVisitor;");
     code.codeln("import java.util.ArrayDeque;");
     code.codeln("import java.util.Deque;");
     code.newLine();
 
     code
-      .codeln("public abstract class ProtoReader implements RecordVisitor {"
+      .codeln("public abstract class ProtoReader implements ProtoVisitor {"
       ).newLine();
 
     //

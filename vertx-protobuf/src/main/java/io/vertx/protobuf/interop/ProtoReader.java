@@ -2,12 +2,11 @@ package io.vertx.protobuf.interop;
 
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.protobuf.RecordVisitor;
+import io.vertx.protobuf.ProtoVisitor;
 import io.vertx.protobuf.schema.Field;
 import io.vertx.protobuf.schema.MessageType;
 import io.vertx.protobuf.well_known_types.FieldLiteral;
 import io.vertx.protobuf.well_known_types.MessageLiteral;
-import io.vertx.protobuf.well_known_types.Timestamp;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -16,7 +15,7 @@ import java.time.ZoneId;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
-public class ProtoReader implements RecordVisitor {
+public class ProtoReader implements ProtoVisitor {
 
   public static OffsetDateTime toOffsetDateTime(long seconds, int nanos) {
     return OffsetDateTime.ofInstant(Instant.ofEpochSecond(seconds, nanos), ZoneId.of("UTC"));

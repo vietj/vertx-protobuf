@@ -2,7 +2,7 @@ package io.vertx.protobuf.interop;
 
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.protobuf.RecordVisitor;
+import io.vertx.protobuf.ProtoVisitor;
 import io.vertx.protobuf.well_known_types.FieldLiteral;
 import io.vertx.protobuf.well_known_types.MessageLiteral;
 
@@ -13,13 +13,13 @@ import java.util.Map;
 
 public class ProtoWriter {
 
-  public static void emit(Duration duration, RecordVisitor visitor) {
+  public static void emit(Duration duration, ProtoVisitor visitor) {
     visitor.init(MessageLiteral.Duration);
     visit(duration, visitor);
     visitor.destroy();
   }
 
-  public static void visit(Duration duration, RecordVisitor visitor) {
+  public static void visit(Duration duration, ProtoVisitor visitor) {
     long seconds = duration.getSeconds();
     if (seconds != 0L) {
       visitor.visitInt64(FieldLiteral.Duration_seconds, seconds);
@@ -30,13 +30,13 @@ public class ProtoWriter {
     }
   }
 
-  public static void emit(OffsetDateTime timestamp, RecordVisitor visitor) {
+  public static void emit(OffsetDateTime timestamp, ProtoVisitor visitor) {
     visitor.init(MessageLiteral.Timestamp);
     visit(timestamp, visitor);
     visitor.destroy();
   }
 
-  public static void visit(OffsetDateTime timestamp, RecordVisitor visitor) {
+  public static void visit(OffsetDateTime timestamp, ProtoVisitor visitor) {
     Instant instant = timestamp.toInstant();
     long seconds = instant.getEpochSecond();
     if (seconds != 0L) {
@@ -48,13 +48,13 @@ public class ProtoWriter {
     }
   }
 
-  public static void emit(JsonObject json, RecordVisitor visitor) {
+  public static void emit(JsonObject json, ProtoVisitor visitor) {
     visitor.init(MessageLiteral.Struct);
     visit(json, visitor);
     visitor.destroy();
   }
 
-  public static void visit(JsonObject json, RecordVisitor visitor) {
+  public static void visit(JsonObject json, ProtoVisitor visitor) {
     Map<String, Object> map = json.getMap();
     for (Map.Entry<String, Object> entry : map.entrySet()) {
       visitor.enter(FieldLiteral.Struct_fields); // fields
@@ -66,13 +66,13 @@ public class ProtoWriter {
     }
   }
 
-  public static void emit(JsonArray json, RecordVisitor visitor) {
+  public static void emit(JsonArray json, ProtoVisitor visitor) {
     visitor.init(MessageLiteral.ListValue);
     visit(json, visitor);
     visitor.destroy();
   }
 
-  public static void visit(JsonArray json, RecordVisitor visitor) {
+  public static void visit(JsonArray json, ProtoVisitor visitor) {
     for (Object value : json.getList()) {
       visitor.enter(FieldLiteral.ListValue_values); // values
       visitValueInternal(value, visitor);
@@ -80,7 +80,7 @@ public class ProtoWriter {
     }
   }
 
-  private static void visitValueInternal(Object value, RecordVisitor visitor) {
+  private static void visitValueInternal(Object value, ProtoVisitor visitor) {
     if (value == null) {
       visitor.visitEnum(FieldLiteral.Value_null_value, 0);
     } else if (value instanceof String) {

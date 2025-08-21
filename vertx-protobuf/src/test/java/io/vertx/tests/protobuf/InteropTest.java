@@ -7,9 +7,9 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.protobuf.ProtoVisitor;
 import io.vertx.protobuf.ProtobufReader;
 import io.vertx.protobuf.ProtobufWriter;
-import io.vertx.protobuf.RecordVisitor;
 import io.vertx.protobuf.interop.ProtoWriter;
 import io.vertx.tests.interop.Container;
 import io.vertx.tests.interop.InteropProto;
@@ -18,7 +18,6 @@ import io.vertx.tests.interop.ProtoReader;
 import junit.framework.AssertionFailedError;
 import org.junit.Test;
 
-import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.Duration;
 import java.util.function.Consumer;
@@ -130,7 +129,7 @@ public class InteropTest extends InteropTestBase {
   }
 
   private void testEncodeDuration(long seconds, int nano) throws Exception {
-    Consumer<RecordVisitor> consumer = visitor -> {
+    Consumer<ProtoVisitor> consumer = visitor -> {
       ProtoWriter.emit(Duration.ofSeconds(seconds, nano), visitor);
     };
     Buffer buffer = ProtobufWriter.encode(consumer);

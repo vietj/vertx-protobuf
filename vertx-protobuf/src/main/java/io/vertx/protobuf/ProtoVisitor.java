@@ -4,7 +4,7 @@ package io.vertx.protobuf;
 import io.vertx.protobuf.schema.Field;
 import io.vertx.protobuf.schema.MessageType;
 
-public interface RecordVisitor {
+public interface ProtoVisitor {
 
   void init(MessageType type);
 

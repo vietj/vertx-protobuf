@@ -4,14 +4,14 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.core.JsonTokenId;
 import io.vertx.core.json.DecodeException;
-import io.vertx.protobuf.RecordVisitor;
+import io.vertx.protobuf.ProtoVisitor;
 import io.vertx.protobuf.well_known_types.FieldLiteral;
 
 import java.io.IOException;
 
 class StructParser {
 
-  static void parseObject(JsonParser parser, RecordVisitor visitor) throws IOException {
+  static void parseObject(JsonParser parser, ProtoVisitor visitor) throws IOException {
     assert parser.hasToken(JsonToken.START_OBJECT);
     visitor.enterPacked(FieldLiteral.Struct_fields);
     while (parser.nextToken() == JsonToken.FIELD_NAME) {
@@ -27,7 +27,7 @@ class StructParser {
     visitor.leavePacked(FieldLiteral.Struct_fields);
   }
 
-  public static void parseValue(JsonParser parser, RecordVisitor visitor) throws IOException, DecodeException {
+  public static void parseValue(JsonParser parser, ProtoVisitor visitor) throws IOException, DecodeException {
     switch (parser.currentTokenId()) {
       case JsonTokenId.ID_START_OBJECT:
         visitor.enter(FieldLiteral.Value_struct_value);
@@ -62,7 +62,7 @@ class StructParser {
     }
   }
 
-  public static void parseArray(JsonParser parser, RecordVisitor visitor) throws IOException {
+  public static void parseArray(JsonParser parser, ProtoVisitor visitor) throws IOException {
     assert parser.hasToken(JsonToken.START_ARRAY);
     visitor.enterPacked(FieldLiteral.ListValue_values);
     while (parser.nextToken() != JsonToken.END_ARRAY) {

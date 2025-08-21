@@ -21,11 +21,11 @@ public class ProtobufWriter {
     return (value << 1) ^ (value >> 63);
   }
 
-  public static Buffer encode(Consumer<RecordVisitor> consumer) {
+  public static Buffer encode(Consumer<ProtoVisitor> consumer) {
     return Buffer.buffer(encodeToByteArray(consumer));
   }
 
-  public static byte[] encodeToByteArray(Consumer<RecordVisitor> consumer) {
+  public static byte[] encodeToByteArray(Consumer<ProtoVisitor> consumer) {
     State state = new State();
     ComputePhase visitor = new ComputePhase();
     visitor.state = state;
@@ -41,7 +41,7 @@ public class ProtobufWriter {
     Buffer buffer;
   }
 
-  static class ComputePhase implements RecordVisitor {
+  static class ComputePhase implements ProtoVisitor {
 
     State state;
     int[] numbers = new int[10];
@@ -226,7 +226,7 @@ public class ProtobufWriter {
     }
   }
 
-  static class EncodingPhase implements RecordVisitor {
+  static class EncodingPhase implements ProtoVisitor {
 
     State state;
     ProtobufEncoder encoder;

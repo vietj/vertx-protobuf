@@ -220,17 +220,16 @@ class ProtoReaderGenerator {
     out.println(
       "package " + javaPkgFqn + ";",
       "",
-      "import io.vertx.protobuf.RecordVisitor;",
-      "import io.vertx.protobuf.json.JsonVisitor;",
+      "import io.vertx.protobuf.ProtoVisitor;",
       "import io.vertx.protobuf.schema.MessageType;",
       "import io.vertx.protobuf.schema.Field;",
       "import java.util.Deque;",
       "import java.util.ArrayDeque;",
       "",
-      "public class ProtoReader implements JsonVisitor {",
+      "public class ProtoReader implements ProtoVisitor {",
       "",
       "  public final Deque<Object> stack;",
-      "  private RecordVisitor next;",
+      "  private ProtoVisitor next;",
       "",
       "  public ProtoReader(Deque<Object> stack) {",
       "    this.stack = stack;", "  }",
@@ -276,35 +275,32 @@ class ProtoReaderGenerator {
       final Descriptors.FieldDescriptor.Type type;
       final String next;
       final boolean allowsUnkown;
-      final boolean requiresJsonVisitor;
 
-      VisitMethod(String methodStart, String next, Descriptors.FieldDescriptor.Type type, boolean allowsUnkown, boolean requiresJsonVisitor) {
+      VisitMethod(String methodStart, String next, Descriptors.FieldDescriptor.Type type, boolean allowsUnkown) {
         this.methodStart = methodStart;
         this.type = type;
         this.next = next;
         this.allowsUnkown = allowsUnkown;
-        this.requiresJsonVisitor = requiresJsonVisitor;
       }
     }
 
     VisitMethod[] visitMethods = {
-      new VisitMethod("visitString(Field field, String value)", "visitString(field, value)", Descriptors.FieldDescriptor.Type.STRING, false, false),
-      new VisitMethod("visitBytes(Field field, byte[] value)", "visitBytes(field, value)", Descriptors.FieldDescriptor.Type.BYTES, true, false),
-      new VisitMethod("visitFixed32(Field field, int value)", "visitFixed32(field, value)", Descriptors.FieldDescriptor.Type.FIXED32, true, false),
-      new VisitMethod("visitFixed64(Field field, long value)", "visitFixed64(field, value)", Descriptors.FieldDescriptor.Type.FIXED64, true, false),
-      new VisitMethod("visitSFixed32(Field field, int value)", "visitSFixed32(field, value)", Descriptors.FieldDescriptor.Type.SFIXED32, false, false),
-      new VisitMethod("visitSFixed64(Field field, long value)", "visitSFixed64(field, value)", Descriptors.FieldDescriptor.Type.SFIXED64, false, false),
-      new VisitMethod("visitFloat(Field field, float value)", "visitFloat(field, value)", Descriptors.FieldDescriptor.Type.FLOAT, false, false),
-      new VisitMethod("visitDouble(Field field, double value)", "visitDouble(field, value)", Descriptors.FieldDescriptor.Type.DOUBLE, false, false),
-      new VisitMethod("visitInt32(Field field, int value)", "visitInt32(field, value)", Descriptors.FieldDescriptor.Type.INT32, false, false),
-      new VisitMethod("visitUInt32(Field field, int value)", "visitUInt32(field, value)", Descriptors.FieldDescriptor.Type.UINT32, false, false),
-      new VisitMethod("visitSInt32(Field field, int value)", "visitSInt32(field, value)", Descriptors.FieldDescriptor.Type.SINT32, false, false),
-      new VisitMethod("visitBool(Field field, boolean value)", "visitBool(field, value)", Descriptors.FieldDescriptor.Type.BOOL, false, false),
-      new VisitMethod("visitEnum(Field field, int value)", "visitEnum(field, value)", Descriptors.FieldDescriptor.Type.ENUM, false, false),
-      new VisitMethod("visitEnum(Field field, String value)", "visitEnum(field, value)", Descriptors.FieldDescriptor.Type.ENUM, false, true),
-      new VisitMethod("visitInt64(Field field, long value)", "visitInt64(field, value)", Descriptors.FieldDescriptor.Type.INT64, true, false),
-      new VisitMethod("visitSInt64(Field field, long value)", "visitSInt64(field, value)", Descriptors.FieldDescriptor.Type.SINT64, false, false),
-      new VisitMethod("visitUInt64(Field field, long value)", "visitUInt64(field, value)", Descriptors.FieldDescriptor.Type.UINT64, false, false)
+      new VisitMethod("visitString(Field field, String value)", "visitString(field, value)", Descriptors.FieldDescriptor.Type.STRING, false),
+      new VisitMethod("visitBytes(Field field, byte[] value)", "visitBytes(field, value)", Descriptors.FieldDescriptor.Type.BYTES, true),
+      new VisitMethod("visitFixed32(Field field, int value)", "visitFixed32(field, value)", Descriptors.FieldDescriptor.Type.FIXED32, true),
+      new VisitMethod("visitFixed64(Field field, long value)", "visitFixed64(field, value)", Descriptors.FieldDescriptor.Type.FIXED64, true),
+      new VisitMethod("visitSFixed32(Field field, int value)", "visitSFixed32(field, value)", Descriptors.FieldDescriptor.Type.SFIXED32, false),
+      new VisitMethod("visitSFixed64(Field field, long value)", "visitSFixed64(field, value)", Descriptors.FieldDescriptor.Type.SFIXED64, false),
+      new VisitMethod("visitFloat(Field field, float value)", "visitFloat(field, value)", Descriptors.FieldDescriptor.Type.FLOAT, false),
+      new VisitMethod("visitDouble(Field field, double value)", "visitDouble(field, value)", Descriptors.FieldDescriptor.Type.DOUBLE, false),
+      new VisitMethod("visitInt32(Field field, int value)", "visitInt32(field, value)", Descriptors.FieldDescriptor.Type.INT32, false),
+      new VisitMethod("visitUInt32(Field field, int value)", "visitUInt32(field, value)", Descriptors.FieldDescriptor.Type.UINT32, false),
+      new VisitMethod("visitSInt32(Field field, int value)", "visitSInt32(field, value)", Descriptors.FieldDescriptor.Type.SINT32, false),
+      new VisitMethod("visitBool(Field field, boolean value)", "visitBool(field, value)", Descriptors.FieldDescriptor.Type.BOOL, false),
+      new VisitMethod("visitEnum(Field field, int value)", "visitEnum(field, value)", Descriptors.FieldDescriptor.Type.ENUM, false),
+      new VisitMethod("visitInt64(Field field, long value)", "visitInt64(field, value)", Descriptors.FieldDescriptor.Type.INT64, true),
+      new VisitMethod("visitSInt64(Field field, long value)", "visitSInt64(field, value)", Descriptors.FieldDescriptor.Type.SINT64, false),
+      new VisitMethod("visitUInt64(Field field, long value)", "visitUInt64(field, value)", Descriptors.FieldDescriptor.Type.UINT64, false)
     };
 
     for (VisitMethod visitMethod : visitMethods) {
@@ -360,13 +356,8 @@ class ProtoReaderGenerator {
       }
       out.println(
         "    } else if (next != null) {");
-      if (visitMethod.requiresJsonVisitor) {
-        out.println(
-          "      ((JsonVisitor)next)." + visitMethod.next + ";");
-      } else {
-        out.println(
-          "      next." + visitMethod.next + ";");
-      }
+      out.println(
+        "      next." + visitMethod.next + ";");
       out.println(
         "    } else {",
         "      throw new UnsupportedOperationException();",
@@ -396,7 +387,7 @@ class ProtoReaderGenerator {
         } else {
           if (field.imported) {
             out.println(
-              "          RecordVisitor v = new " + field.protoReaderJavaType + "(stack);",
+              "          ProtoVisitor v = new " + field.protoReaderJavaType + "(stack);",
               "          v.init((MessageType)field.type());",
               "          next = v;");
           } else {
