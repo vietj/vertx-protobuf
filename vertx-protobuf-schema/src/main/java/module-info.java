@@ -8,19 +8,15 @@
  *
  * SPDX-License-Identifier: EPL-2.0 OR Apache-2.0
  */
-module io.vertx.protobuf {
+module io.vertx.protobuf.schema {
 
   requires io.vertx.core;
-  requires io.vertx.protobuf.schema;
   requires com.google.protobuf;
   requires com.google.protobuf.util;
   requires io.netty.codec;
   requires io.netty.buffer;
   requires com.fasterxml.jackson.core;
 
-  exports io.vertx.protobuf.json;
-  exports io.vertx.protobuf;
-  exports io.vertx.protobuf.well_known_types;
-  exports io.vertx.protobuf.interop;
+  exports io.vertx.protobuf.schema;
 
 }

@@ -12,6 +12,7 @@ open module io.vertx.tests {
   requires static io.vertx.codegen.api;
   requires io.vertx.core;
   requires io.vertx.protobuf;
+  requires io.vertx.protobuf.schema;
   requires io.vertx.protobuf.extension;
   requires junit;
   requires com.google.protobuf;
