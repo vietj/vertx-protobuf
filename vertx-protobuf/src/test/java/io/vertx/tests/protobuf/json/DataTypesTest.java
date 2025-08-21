@@ -358,17 +358,12 @@ public class DataTypesTest extends DataTypeTestBase {
   @Test
   public void testUnknownNamedEnum() {
     ProtoReader reader = new ProtoReader();
-    JsonReader.parse("{\"_enum\":\"unknown\"}", MessageLiteral.EnumTypes, reader);
-    EnumTypes c = (EnumTypes) reader.stack.pop();
-    Enumerated enumerated = c.getEnum();
-    assertTrue(enumerated.isUnknown());
-    assertNull(enumerated.asEnum());
     try {
-      enumerated.number();
+      JsonReader.parse("{\"_enum\":\"unknown\"}", MessageLiteral.EnumTypes, reader);
       fail();
-    } catch (IllegalStateException expected) {
+    } catch (DecodeException expected) {
+
     }
-    assertEquals("unknown", enumerated.name());
   }
 
   @Test
