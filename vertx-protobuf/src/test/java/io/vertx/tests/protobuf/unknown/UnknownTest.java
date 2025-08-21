@@ -80,7 +80,7 @@ public class UnknownTest {
     ProtobufReader.parse(MessageLiteral.Message, visitor, Buffer.buffer(bytes));
     RecordingVisitor.Checker checker = visitor.checker();
     checker.init(MessageLiteral.Message);
-    checker.visitVarInt64(MessageLiteral.Message.unknownField(2, WireType.VARINT), 15L);
+    checker.visitInt64(MessageLiteral.Message.unknownField(2, WireType.VARINT), 15L);
     checker.destroy();
     assertTrue(checker.isEmpty());
   }

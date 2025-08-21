@@ -57,22 +57,88 @@ public class ProtobufWriter {
     }
 
     @Override
+    public void visitInt32(Field field, int v) {
+      visitVarInt32(field, v);
+    }
+
+    @Override
+    public void visitUInt32(Field field, int v) {
+      visitVarInt32(field, v);
+    }
+
+    @Override
+    public void visitSInt32(Field field, int v) {
+      visitVarInt32(field, encodeSInt32(v));
+    }
+
+    @Override
+    public void visitEnum(Field field, int number) {
+      visitVarInt32(field, number);
+    }
+
     public void visitVarInt32(Field field, int v) {
       int delta = (packed ? 0 : sizeOf(field)) + ProtobufEncoder.computeRawVarint32Size(v);
       lengths[depth] += delta;
     }
 
     @Override
+    public void visitInt64(Field field, long v) {
+      visitVarInt64(field, v);
+    }
+
+    @Override
+    public void visitUInt64(Field field, long v) {
+      visitVarInt64(field, v);
+    }
+
+    @Override
+    public void visitSInt64(Field field, long v) {
+      visitVarInt64(field, encodeSInt64(v));
+    }
+
+    @Override
+    public void visitBool(Field field, boolean v) {
+      visitVarInt64(field, v ? 1 : 0);
+    }
+
     public void visitVarInt64(Field field, long v) {
       lengths[depth] +=  (packed ? 0 : sizeOf(field)) + ProtobufEncoder.computeRawVarint64Size(v);
     }
 
     @Override
+    public void visitFloat(Field field, float f) {
+      visitI32(field, Float.floatToRawIntBits(f));
+    }
+
+    @Override
+    public void visitFixed32(Field field, int v) {
+      visitI32(field, v);
+    }
+
+    @Override
+    public void visitSFixed32(Field field, int v) {
+      visitI32(field, v);
+    }
+
     public void visitI32(Field field, int value) {
       lengths[depth] += (packed ? 0 : sizeOf(field)) + 4;
     }
 
     @Override
+    public void visitDouble(Field field, double d) {
+      visitI64(field, Double.doubleToRawLongBits(d));
+    }
+
+    @Override
+    public void visitFixed64(Field field, long v) {
+      visitI64(field, v);
+    }
+
+    @Override
+    public void visitSFixed64(Field field, long v) {
+      visitI64(field, v);
+    }
+
     public void visitI64(Field field, long value) {
       lengths[depth] +=  (packed ? 0 : sizeOf(field)) + 8;
     }
@@ -176,6 +242,25 @@ public class ProtobufWriter {
     }
 
     @Override
+    public void visitInt32(Field field, int v) {
+      visitVarInt32(field, v);
+    }
+
+    @Override
+    public void visitUInt32(Field field, int v) {
+      visitVarInt32(field, v);
+    }
+
+    @Override
+    public void visitSInt32(Field field, int v) {
+      visitVarInt32(field, encodeSInt32(v));
+    }
+
+    @Override
+    public void visitEnum(Field field, int number) {
+      visitVarInt32(field, number);
+    }
+
     public void visitVarInt32(Field field, int v) {
       if (!packed) {
         encoder.writeTag(field.number(), WireType.VARINT.id);
@@ -184,6 +269,25 @@ public class ProtobufWriter {
     }
 
     @Override
+    public void visitInt64(Field field, long v) {
+      visitVarInt64(field, v);
+    }
+
+    @Override
+    public void visitUInt64(Field field, long v) {
+      visitVarInt64(field, v);
+    }
+
+    @Override
+    public void visitSInt64(Field field, long v) {
+      visitVarInt64(field, encodeSInt64(v));
+    }
+
+    @Override
+    public void visitBool(Field field, boolean v) {
+      visitVarInt64(field, v ? 1 : 0);
+    }
+
     public void visitVarInt64(Field field, long v) {
       if (!packed) {
         encoder.writeTag(field.number(), WireType.VARINT.id);
@@ -192,6 +296,20 @@ public class ProtobufWriter {
     }
 
     @Override
+    public void visitFloat(Field field, float f) {
+      visitI32(field, Float.floatToRawIntBits(f));
+    }
+
+    @Override
+    public void visitFixed32(Field field, int v) {
+      visitI32(field, v);
+    }
+
+    @Override
+    public void visitSFixed32(Field field, int v) {
+      visitI32(field, v);
+    }
+
     public void visitI32(Field field, int value) {
       if (!packed) {
         encoder.writeTag(field.number(), WireType.I32.id);
@@ -200,6 +318,20 @@ public class ProtobufWriter {
     }
 
     @Override
+    public void visitDouble(Field field, double d) {
+      visitI64(field, Double.doubleToRawLongBits(d));
+    }
+
+    @Override
+    public void visitFixed64(Field field, long v) {
+      visitI64(field, v);
+    }
+
+    @Override
+    public void visitSFixed64(Field field, long v) {
+      visitI64(field, v);
+    }
+
     public void visitI64(Field field, long value) {
       if (!packed) {
         encoder.writeTag(field.number(), WireType.I64.id);

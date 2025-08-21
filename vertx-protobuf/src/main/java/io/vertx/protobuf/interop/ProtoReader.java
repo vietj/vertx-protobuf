@@ -188,6 +188,36 @@ public class ProtoReader implements RecordVisitor {
   }
 
   @Override
+  public void visitFixed32(Field field, int v) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public void visitSFixed32(Field field, int v) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public void visitFixed64(Field field, long v) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public void visitSFixed64(Field field, long v) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public void visitSInt32(Field field, int v) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public void visitSInt64(Field field, long v) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public void visitUInt64(Field field, long v) {
     switch ((FieldLiteral)field) {
       case UInt64Value_value:

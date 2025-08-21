@@ -82,11 +82,11 @@ public class ProtoWriter {
 
   private static void visitValueInternal(Object value, RecordVisitor visitor) {
     if (value == null) {
-      visitor.visitVarInt32(FieldLiteral.Value_null_value, 0);
+      visitor.visitEnum(FieldLiteral.Value_null_value, 0);
     } else if (value instanceof String) {
       visitor.visitString(FieldLiteral.Value_string_value, (String) value);
     } else if (value instanceof Boolean) {
-      visitor.visitVarInt64(FieldLiteral.Value_bool_value, ((Boolean) value) ? 1 : 0);
+      visitor.visitBool(FieldLiteral.Value_bool_value, (Boolean) value);
     } else if (value instanceof Number) {
       visitor.visitDouble(FieldLiteral.Value_number_value, ((Number) value).doubleValue());
     } else if (value instanceof JsonObject) {

@@ -63,7 +63,7 @@ public class MapTest {
     Buffer buffer = ProtobufWriter.encode(visitor -> {
       visitor.init(MessageLiteral.MapKeyVariant);
       visitor.enter(mapField);
-      visitor.visitVarInt32(((MessageType)mapField.type()).field(2), 4);
+      visitor.visitInt32(((MessageType)mapField.type()).field(2), 4);
 //      visitor.enter(((MessageType) mapField.type()).field(1));
       visitor.visitString(((MessageType)mapField.type()).field(1), "string-value");
 //      visitor.leave(((MessageType) mapField.type()).field(1));

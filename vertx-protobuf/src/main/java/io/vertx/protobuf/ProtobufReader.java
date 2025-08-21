@@ -29,13 +29,45 @@ public class ProtobufReader {
   private static void parseI64(ProtobufDecoder decoder, Field field, RecordVisitor visitor) {
     assertTrue(decoder.readI64());
     long v = decoder.longValue();
-    visitor.visitI64(field, v);
+    dispatchI64(field, v, visitor);
+  }
+
+  private static void dispatchI64(Field field, long value, RecordVisitor visitor) {
+    switch (field.type().id()) {
+      case FIXED64:
+        visitor.visitFixed64(field, value);
+        break;
+      case SFIXED64:
+        visitor.visitSFixed64(field, value);
+        break;
+      case DOUBLE:
+        visitor.visitDouble(field, Double.longBitsToDouble(value));
+        break;
+      default:
+        throw new UnsupportedOperationException();
+    }
+  }
+
+  private static void dispatchI32(Field field, int value, RecordVisitor visitor) {
+    switch (field.type().id()) {
+      case FIXED32:
+        visitor.visitFixed32(field, value);
+        break;
+      case SFIXED32:
+        visitor.visitSFixed32(field, value);
+        break;
+      case FLOAT:
+        visitor.visitFloat(field, Float.intBitsToFloat(value));
+        break;
+      default:
+        throw new UnsupportedOperationException();
+    }
   }
 
   private static void parseI32(ProtobufDecoder decoder, Field field, RecordVisitor visitor) {
     assertTrue(decoder.readI32());
     int v = decoder.intValue();
-    visitor.visitI32(field, v);
+    dispatchI32(field, v, visitor);
   }
 
   public static int decodeSInt32(int value) {
@@ -49,18 +81,36 @@ public class ProtobufReader {
   private static void parseVarInt(ProtobufDecoder decoder, Field field, RecordVisitor visitor) {
     switch (field.type().id()) {
       case SINT32:
+        assertTrue(decoder.readVarInt32());
+        visitor.visitSInt32(field, decodeSInt32(decoder.intValue()));
+        break;
       case ENUM:
+        assertTrue(decoder.readVarInt32());
+        visitor.visitEnum(field, decoder.intValue());
+        break;
       case UINT32:
+        assertTrue(decoder.readVarInt32());
+        visitor.visitUInt32(field, decoder.intValue());
+        break;
       case INT32:
         assertTrue(decoder.readVarInt32());
-        visitor.visitVarInt32(field, decoder.intValue());
+        visitor.visitInt32(field, decoder.intValue());
         break;
       case SINT64:
+        assertTrue(decoder.readVarInt64());
+        visitor.visitSInt64(field, decodeSInt64(decoder.longValue()));
+        break;
       case INT64:
+        assertTrue(decoder.readVarInt64());
+        visitor.visitInt64(field, decoder.longValue());
+        break;
       case UINT64:
+        assertTrue(decoder.readVarInt64());
+        visitor.visitUInt64(field, decoder.longValue());
+        break;
       case BOOL:
         assertTrue(decoder.readVarInt64());
-        visitor.visitVarInt64(field, decoder.longValue());
+        visitor.visitBool(field, decoder.longValue() != 0);
         break;
       default:
         throw new UnsupportedOperationException("" + field.type());
@@ -80,7 +130,7 @@ public class ProtobufReader {
   private static void parseUnknownI32(ProtobufDecoder decoder, MessageType messageType, int fieldNumber, RecordVisitor unknownFieldHandler) {
     assertTrue(decoder.readI32());
     int v = decoder.intValue();
-    unknownFieldHandler.visitI32(messageType.unknownField(fieldNumber, WireType.I32), v);
+    unknownFieldHandler.visitFixed32(messageType.unknownField(fieldNumber, WireType.I32), v);
   }
 
   private static void parseUnknownI64(ProtobufDecoder decoder, MessageType messageType, int fieldNumber, RecordVisitor unknownFieldHandler) {
@@ -92,7 +142,7 @@ public class ProtobufReader {
   private static void parseUnknownVarInt(ProtobufDecoder decoder, MessageType messageType, int fieldNumber, RecordVisitor unknownFieldHandler) {
     assertTrue(decoder.readVarInt64());
     long v = decoder.longValue();
-    unknownFieldHandler.visitVarInt64(messageType.unknownField(fieldNumber, WireType.VARINT), v);
+    unknownFieldHandler.visitInt64(messageType.unknownField(fieldNumber, WireType.VARINT), v);
   }
 
   private static class Region {
@@ -171,7 +221,7 @@ public class ProtobufReader {
     while (decoder.index() < to) {
       assertTrue(decoder.readI64());
       long v = decoder.longValue();
-      visitor.visitI64(field, v);
+      dispatchI64(field, v, visitor);
     }
   }
 
@@ -180,7 +230,7 @@ public class ProtobufReader {
     while (decoder.index() < to) {
       assertTrue(decoder.readI32());
       int v = decoder.intValue();
-      visitor.visitI32(field, v);
+      dispatchI32(field, v, visitor);
     }
   }
 

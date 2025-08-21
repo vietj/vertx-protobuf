@@ -68,7 +68,7 @@ public class DataObjectProtobufReaderGen extends Generator<Model> {
     code.newLine();
 
     code
-      .codeln("public class ProtoReader implements RecordVisitor {"
+      .codeln("public abstract class ProtoReader implements RecordVisitor {"
       ).newLine();
 
     //
