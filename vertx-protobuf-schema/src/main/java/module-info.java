@@ -11,8 +11,8 @@
 module io.vertx.protobuf.schema {
 
   requires io.vertx.core;
-  requires com.google.protobuf;
-  requires com.google.protobuf.util;
+  requires static com.google.protobuf;
+  requires static com.google.protobuf.util;
   requires io.netty.codec;
   requires io.netty.buffer;
   requires com.fasterxml.jackson.core;

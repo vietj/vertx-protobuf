@@ -10,6 +10,7 @@ public interface Field {
   boolean isMapKey();
   boolean isMapValue();
   boolean isPacked();
+  String name();
   String jsonName();
   default boolean isUnknown() {
     return false;

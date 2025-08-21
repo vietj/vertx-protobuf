@@ -46,6 +46,11 @@ public class DefaultField implements Field {
   }
 
   @Override
+  public String name() {
+    return name;
+  }
+
+  @Override
   public String jsonName() {
     return jsonName;
   }

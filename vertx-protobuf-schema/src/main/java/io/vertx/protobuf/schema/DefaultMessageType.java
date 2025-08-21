@@ -46,12 +46,18 @@ public class DefaultMessageType implements MessageType {
     }
     boolean packed = builder.packed != null ? builder.packed : builder.repeated;
     DefaultField field = new DefaultField(this, number, name, jsonName, builder.map, builder.mapKey, builder.mapValue, builder.repeated, packed, Objects.requireNonNull(builder.type));
+    if (fields.containsKey(number)) {
+      throw new IllegalStateException("Duplicate field " + number);
+    }
     if (byName.containsKey(name)) {
       throw new IllegalStateException("Duplicate field " + name);
     }
     if (byJsonName.containsKey(jsonName)) {
-      throw new IllegalStateException("Duplicate field " + name);
+      throw new IllegalStateException("Duplicate field " + jsonName);
     }
+    fields.put(number, field);
+    byName.put(name, field);
+    byJsonName.put(jsonName, field);
     return field;
   }
 
