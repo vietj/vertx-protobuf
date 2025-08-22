@@ -12,6 +12,12 @@ public interface MessageType extends Type {
     return WireType.LEN;
   }
   String name();
+  default String packageName() {
+    return null;
+  }
+  default String javaPackageName() {
+    return null;
+  }
   Field field(int number);
   default Collection<? extends Field> fields() {
     throw new UnsupportedOperationException();

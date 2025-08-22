@@ -27,7 +27,7 @@ public class SchemaCompiler {
   public DefaultEnumType compile(Descriptors.EnumDescriptor enumDesc) {
     DefaultEnumType enumType = enumMap.get(enumDesc);
     if (enumType == null) {
-      enumType = new DefaultEnumType(enumDesc.getName());
+      enumType = new DefaultEnumType(enumDesc.getName(), enumDesc.getFile().getPackage(), enumDesc.getFile().getOptions().getJavaPackage());
       enumMap.put(enumDesc, enumType);
       if (enumDesc.getContainingType() != null) {
         enumType.enclosingElement(compile(enumDesc.getContainingType()));
@@ -47,7 +47,10 @@ public class SchemaCompiler {
   public DefaultMessageType compile(Descriptors.Descriptor typeDesc) {
     DefaultMessageType messageType = typeMap.get(typeDesc);
     if (messageType == null) {
-      messageType = new DefaultMessageType(typeDesc.getName());
+      messageType = new DefaultMessageType(
+        typeDesc.getName(),
+        typeDesc.getFile().getPackage(),
+        typeDesc.getFile().getOptions().getJavaPackage());
       typeMap.put(typeDesc, messageType);
       for (Descriptors.FieldDescriptor field : typeDesc.getFields()) {
         Type type;

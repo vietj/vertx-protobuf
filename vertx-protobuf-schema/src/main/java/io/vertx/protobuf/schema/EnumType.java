@@ -6,6 +6,10 @@ public interface EnumType extends Type {
 
   String name();
 
+  String packageName();
+
+  String javaPackageName();
+
   OptionalInt numberOf(String name);
 
   String nameOf(int number);
