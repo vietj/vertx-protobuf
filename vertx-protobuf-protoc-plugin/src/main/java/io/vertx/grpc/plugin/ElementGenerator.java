@@ -91,7 +91,7 @@ class ElementGenerator {
     public DataObjectElement(Descriptors.Descriptor descriptor) {
       super(descriptor);
       fields = Utils.actualFields(descriptor);
-      oneOfs = Utils.oneOfs(descriptor);
+      oneOfs = descriptor.getRealOneofs();
     }
 
     @Override

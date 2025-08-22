@@ -115,7 +115,7 @@ class ProtoWriterGenerator {
 
       Map<Descriptors.OneofDescriptor, OneofProperty> blah = new HashMap<>();
       Map<Descriptors.FieldDescriptor, OneofProperty> oneOfs__ = new HashMap<>();
-      Utils.oneOfs(d).forEach(oneOf -> oneOf.getFields().forEach(f -> {
+      d.getRealOneofs().forEach(oneOf -> oneOf.getFields().forEach(f -> {
         oneOfs__.put(f, blah.computeIfAbsent(oneOf, k -> new OneofProperty()));
       }));
 
@@ -158,7 +158,7 @@ class ProtoWriterGenerator {
           if (fd.isRepeated()) {
             field.defaultValueChecker = s -> "!" + s + "." + field.getterMethod + "().isEmpty()";
           } else {
-            if (Utils.isOptional(fd)) {
+            if (fd.hasPresence()) {
               field.defaultValueChecker = s -> s + "." + field.fieldName + " != null";
             } else {
               switch (fd.getType()) {

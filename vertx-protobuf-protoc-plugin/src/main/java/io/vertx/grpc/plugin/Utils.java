@@ -8,23 +8,15 @@ import io.vertx.protobuf.extension.VertxProto;
 
 import java.time.Duration;
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class Utils {
 
   static List<Descriptors.FieldDescriptor> actualFields(Descriptors.Descriptor descriptor) {
-    List<Descriptors.FieldDescriptor> fields = new ArrayList<>(descriptor.getFields());
-    for (Descriptors.OneofDescriptor oneOf : descriptor.getOneofs()) {
-      for (Descriptors.FieldDescriptor fd : oneOf.getFields()) {
-        if (!isOptional(fd)) {
-          fields.remove(fd);
-        }
-      }
-    }
-    return fields;
+    return descriptor.getFields().stream().filter(field -> field.getRealContainingOneof() == null).collect(Collectors.toList());
   }
 
   static boolean isStruct(Descriptors.FieldDescriptor desc) {
@@ -53,21 +45,6 @@ public class Utils {
 
   static boolean useTimestamp(Descriptors.FileDescriptor fd) {
     return fd.getOptions().getExtension(VertxProto.vertxTimestamp);
-  }
-
-  static boolean isOptional(Descriptors.FieldDescriptor field) {
-    return field.toProto().hasProto3Optional();
-  }
-
-  static List<Descriptors.OneofDescriptor> oneOfs(Descriptors.Descriptor descriptor) {
-    List<Descriptors.OneofDescriptor> oneOfs = new ArrayList<>();
-    for (Descriptors.OneofDescriptor oneOf : descriptor.getOneofs()) {
-      boolean optional = oneOf.getFields().stream().anyMatch(Utils::isOptional);
-      if (!optional) {
-        oneOfs.add(oneOf);
-      }
-    }
-    return oneOfs;
   }
 
   static String setterOf(Descriptors.FieldDescriptor field) {

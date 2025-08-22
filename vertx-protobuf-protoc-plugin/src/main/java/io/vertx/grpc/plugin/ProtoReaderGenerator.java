@@ -69,7 +69,7 @@ class ProtoReaderGenerator {
 
       Map<Descriptors.FieldDescriptor, Descriptors.OneofDescriptor> oneOfMap = new HashMap<>();
       List<Descriptors.FieldDescriptor> fields = mt.getFields();
-      Utils.oneOfs(mt).forEach(oneOf -> {
+      mt.getRealOneofs().forEach(oneOf -> {
         oneOf.getFields().forEach(field -> {
           oneOfMap.put(field, oneOf);
         });

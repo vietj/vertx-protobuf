@@ -5,12 +5,11 @@ import java.util.Map;
 
 public class DefaultOneOf implements OneOf {
 
-  final DefaultMessageType owner;
+  DefaultMessageType owner;
   final String name;
   final Map<Integer, Field> fields = new LinkedHashMap<>();
 
-  DefaultOneOf(DefaultMessageType owner, String name) {
-    this.owner = owner;
+  DefaultOneOf(String name) {
     this.name = name;
   }
 

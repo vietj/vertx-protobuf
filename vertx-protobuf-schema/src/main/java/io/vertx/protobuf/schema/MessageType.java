@@ -1,5 +1,7 @@
 package io.vertx.protobuf.schema;
 
+import java.util.Collection;
+
 public interface MessageType extends Type {
   @Override
   default TypeID id() {
@@ -11,6 +13,15 @@ public interface MessageType extends Type {
   }
   String name();
   Field field(int number);
+  default Collection<? extends Field> fields() {
+    throw new UnsupportedOperationException();
+  }
+  default OneOf oneOf(String name) {
+    return null;
+  }
+  default Collection<? extends OneOf> oneOfs() {
+    throw new UnsupportedOperationException();
+  }
   default Field fieldByName(String name) {
     return null;
   }

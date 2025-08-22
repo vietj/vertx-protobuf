@@ -50,6 +50,11 @@ public class DefaultField implements Field {
   }
 
   @Override
+  public boolean isOptional() {
+    return optional;
+  }
+
+  @Override
   public OneOf oneOf() {
     return oneOf;
   }

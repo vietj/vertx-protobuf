@@ -14,7 +14,6 @@ import java.util.Map;
 public class SchemaCompiler {
 
   private Map<Descriptors.Descriptor, DefaultMessageType> typeMap = new LinkedHashMap();
-  private Map<Descriptors.OneofDescriptor, DefaultOneOf> oneOfMap = new LinkedHashMap<>();
   private Map<Descriptors.EnumDescriptor, DefaultEnumType> enumMap = new LinkedHashMap<>();
 
   public List<DefaultMessageType> compile(Descriptors.FileDescriptor file) {
@@ -77,7 +76,7 @@ public class SchemaCompiler {
           builder.map(field.isMapField());
           builder.name(field.getName());
           builder.repeated(field.isRepeated());
-          builder.optional(field.toProto().hasProto3Optional()); // Not good one ...
+          builder.optional(field.hasPresence());
           builder.mapKey(isMapEntry && field.getContainingType().getFields().get(0) == field);
           builder.mapValue(isMapEntry && field.getContainingType().getFields().get(1) == field);
           builder.number(field.getNumber());
@@ -87,9 +86,9 @@ public class SchemaCompiler {
       if (typeDesc.getContainingType() != null) {
         messageType.enclosingType(compile(typeDesc.getContainingType()));
       }
-      for (Descriptors.OneofDescriptor oneOfDesc : typeDesc.getOneofs()) {
-        DefaultOneOf oneOf = new DefaultOneOf(messageType, oneOfDesc.getName());
-        oneOfMap.put(oneOfDesc, oneOf);
+      for (Descriptors.OneofDescriptor oneOfDesc : typeDesc.getRealOneofs()) {
+        DefaultOneOf oneOf = new DefaultOneOf(oneOfDesc.getName());
+        messageType.addOneOf(oneOf);
         for (Descriptors.FieldDescriptor fieldDesc : oneOfDesc.getFields()) {
           DefaultField oneOfField = messageType.field(fieldDesc.getNumber());
           oneOf.add(oneOfField);

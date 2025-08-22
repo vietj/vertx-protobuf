@@ -4,15 +4,18 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.TreeMap;
 import java.util.function.Consumer;
 
 public class DefaultMessageType implements MessageType {
 
   private final String name;
-  private final Map<Integer, DefaultField> fields = new HashMap<>();
+  private final Map<Integer, DefaultField> fields = new TreeMap<>();
   private final Map<String, DefaultField> byName = new HashMap<>();
   private final Map<String, DefaultField> byJsonName = new HashMap<>();
   private DefaultMessageType enclosingType;
+  private Map<String, DefaultOneOf> oneOfs = new TreeMap<>();
 
   public DefaultMessageType(String name) {
     this.name = name;
@@ -44,6 +47,28 @@ public class DefaultMessageType implements MessageType {
 
   public Collection<DefaultField> fields() {
     return fields.values();
+  }
+
+  @Override
+  public OneOf oneOf(String name) {
+    return oneOfs.get(name);
+  }
+
+  @Override
+  public Collection<? extends OneOf> oneOfs() {
+    return oneOfs.values();
+  }
+
+  public DefaultMessageType addOneOf(DefaultOneOf oneOf) {
+    if (oneOfs.containsKey(oneOf.name)) {
+      throw new IllegalStateException();
+    }
+    if (oneOf.owner != null) {
+      throw new IllegalArgumentException();
+    }
+    oneOfs.put(oneOf.name(), oneOf);
+    oneOf.owner = this;
+    return this;
   }
 
   public DefaultField addField(Consumer<DefaultFieldBuilder> cfg) {
