@@ -8,9 +8,15 @@ public class DefaultFieldBuilder {
   Type type;
   Boolean packed;
   boolean repeated;
+  boolean optional;
   boolean map;
   boolean mapKey;
   boolean mapValue;
+
+  public DefaultFieldBuilder optional(boolean optional) {
+    this.optional = optional;
+    return this;
+  }
 
   public DefaultFieldBuilder number(int number) {
     this.number = number;

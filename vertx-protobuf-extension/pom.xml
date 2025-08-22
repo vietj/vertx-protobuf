@@ -53,12 +53,9 @@
       <plugin>
         <groupId>io.github.ascopes</groupId>
         <artifactId>protobuf-maven-plugin</artifactId>
-        <version>3.6.1</version>
         <configuration>
-          <protocVersion>${protoc.version}</protocVersion>
           <javaEnabled>true</javaEnabled>
         </configuration>
-
         <executions>
           <execution>
             <goals>

@@ -26,10 +26,11 @@ public class DefaultField implements Field {
   private final boolean mapValue;
   private final boolean repeated;
   private final boolean packed;
+  private final boolean optional;
   private final Type type;
   private OneOf oneOf;
 
-  DefaultField(DefaultMessageType owner, int number, String name, String jsonName, boolean map, boolean mapKey, boolean mapValue, boolean repeated, boolean packed, Type type) {
+  DefaultField(DefaultMessageType owner, int number, String name, String jsonName, boolean map, boolean mapKey, boolean mapValue, boolean repeated, boolean packed, boolean optional, Type type) {
     this.owner = owner;
     this.number = number;
     this.jsonName = jsonName;
@@ -39,6 +40,7 @@ public class DefaultField implements Field {
     this.mapKey = mapKey;
     this.mapValue = mapValue;
     this.packed = packed;
+    this.optional = optional;
     this.type = type;
   }
 

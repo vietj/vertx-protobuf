@@ -77,6 +77,7 @@ public class SchemaCompiler {
           builder.map(field.isMapField());
           builder.name(field.getName());
           builder.repeated(field.isRepeated());
+          builder.optional(field.toProto().hasProto3Optional()); // Not good one ...
           builder.mapKey(isMapEntry && field.getContainingType().getFields().get(0) == field);
           builder.mapValue(isMapEntry && field.getContainingType().getFields().get(1) == field);
           builder.number(field.getNumber());

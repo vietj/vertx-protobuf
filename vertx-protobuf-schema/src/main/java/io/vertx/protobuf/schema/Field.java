@@ -5,6 +5,9 @@ public interface Field {
   MessageType owner();
   int number();
   Type type();
+  default boolean isOptional() {
+    return false;
+  }
   boolean isRepeated();
   boolean isMap();
   boolean isMapKey();

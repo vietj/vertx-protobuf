@@ -59,7 +59,7 @@ public class DefaultMessageType implements MessageType {
       throw new IllegalArgumentException();
     }
     boolean packed = builder.packed != null ? builder.packed : builder.repeated;
-    DefaultField field = new DefaultField(this, number, name, jsonName, builder.map, builder.mapKey, builder.mapValue, builder.repeated, packed, Objects.requireNonNull(builder.type));
+    DefaultField field = new DefaultField(this, number, name, jsonName, builder.map, builder.mapKey, builder.mapValue, builder.repeated, packed, builder.optional, Objects.requireNonNull(builder.type));
     if (fields.containsKey(number)) {
       throw new IllegalStateException("Duplicate field " + number);
     }
@@ -77,7 +77,7 @@ public class DefaultMessageType implements MessageType {
 
   public DefaultField addField(int number, String name, Type type) {
     String jsonName = DefaultField.toJsonName(name);
-    DefaultField field = new DefaultField(this, number, name, jsonName, false, false, false, false, false, type);
+    DefaultField field = new DefaultField(this, number, name, jsonName, false, false, false, false, false, false, type);
     if (byName.containsKey(name)) {
       throw new IllegalStateException("Duplicate field " + name);
     }
@@ -91,7 +91,7 @@ public class DefaultMessageType implements MessageType {
   }
 
   public DefaultField addField(int number, Type type) {
-    DefaultField field = new DefaultField(this, number, null, null, false, false, false, false, false, type);
+    DefaultField field = new DefaultField(this, number, null, null, false, false, false, false, false, false, type);
     fields.put(number, field);
     return field;
   }

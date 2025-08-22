@@ -21,3 +21,12 @@ message EnclosingMessage {
     foo = 0;
   }
 }
+
+message MessageWithOptional {
+  string field_1 = 1;
+  optional string optional_field_2 = 2;
+  oneof oneof_fields {
+    string oneone_field_3 = 3;
+    string oneone_field_4 = 4;
+  }
+}

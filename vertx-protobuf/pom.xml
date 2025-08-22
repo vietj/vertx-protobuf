@@ -137,10 +137,8 @@
       <plugin>
         <groupId>io.github.ascopes</groupId>
         <artifactId>protobuf-maven-plugin</artifactId>
-        <version>3.6.1</version>
 
         <configuration>
-          <protocVersion>${protoc.version}</protocVersion>
 
           <!-- Vanilla protoc plugins - these are platform specific executables
                just like protoc is. -->
