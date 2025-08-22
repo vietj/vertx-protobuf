@@ -27,6 +27,7 @@ public class DefaultField implements Field {
   private final boolean repeated;
   private final boolean packed;
   private final Type type;
+  private OneOf oneOf;
 
   DefaultField(DefaultMessageType owner, int number, String name, String jsonName, boolean map, boolean mapKey, boolean mapValue, boolean repeated, boolean packed, Type type) {
     this.owner = owner;
@@ -39,6 +40,16 @@ public class DefaultField implements Field {
     this.mapValue = mapValue;
     this.packed = packed;
     this.type = type;
+  }
+
+  public DefaultField oneOf(OneOf oneOf) {
+    this.oneOf = oneOf;
+    return this;
+  }
+
+  @Override
+  public OneOf oneOf() {
+    return oneOf;
   }
 
   public MessageType owner() {

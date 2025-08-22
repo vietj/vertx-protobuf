@@ -12,6 +12,7 @@ public class DefaultMessageType implements MessageType {
   private final Map<Integer, DefaultField> fields = new HashMap<>();
   private final Map<String, DefaultField> byName = new HashMap<>();
   private final Map<String, DefaultField> byJsonName = new HashMap<>();
+  private DefaultMessageType enclosingType;
 
   public DefaultMessageType(String name) {
     this.name = name;
@@ -19,6 +20,16 @@ public class DefaultMessageType implements MessageType {
 
   public String name() {
     return name;
+  }
+
+  public DefaultMessageType enclosingType(DefaultMessageType enclosingType) {
+    this.enclosingType = enclosingType;
+    return this;
+  }
+
+  @Override
+  public MessageType enclosingType() {
+    return enclosingType;
   }
 
   @Override

@@ -20,4 +20,7 @@ public interface MessageType extends Type {
   default Field unknownField(int number, WireType wireType) {
     return new UnknownField(this, number, wireType);
   }
+  default MessageType enclosingType() {
+    return null;
+  }
  }

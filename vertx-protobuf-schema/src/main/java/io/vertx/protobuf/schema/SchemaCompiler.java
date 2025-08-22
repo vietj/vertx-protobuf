@@ -3,18 +3,19 @@ package io.vertx.protobuf.schema;
 import com.google.protobuf.Descriptors;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Compile {@link com.google.protobuf.Descriptors.FileDescriptor} to a {@link Schema}
  */
 public class SchemaCompiler {
 
-  private DefaultSchema schema = new DefaultSchema();
-
-  public Schema schema() {
-    return schema;
-  }
+  private Map<Descriptors.Descriptor, DefaultMessageType> typeMap = new LinkedHashMap();
+  private Map<Descriptors.OneofDescriptor, DefaultOneOf> oneOfMap = new LinkedHashMap<>();
+  private Map<Descriptors.EnumDescriptor, DefaultEnumType> enumMap = new LinkedHashMap<>();
 
   public List<DefaultMessageType> compile(Descriptors.FileDescriptor file) {
     List<DefaultMessageType> list = new ArrayList<>();
@@ -24,18 +25,39 @@ public class SchemaCompiler {
     return list;
   }
 
-  public DefaultMessageType compile(Descriptors.Descriptor messageDesc) {
-    DefaultMessageType messageType = schema.peek(messageDesc.getName());
+  public DefaultEnumType compile(Descriptors.EnumDescriptor enumDesc) {
+    DefaultEnumType enumType = enumMap.get(enumDesc);
+    if (enumType == null) {
+      enumType = new DefaultEnumType(enumDesc.getName());
+      enumMap.put(enumDesc, enumType);
+      if (enumDesc.getContainingType() != null) {
+        enumType.enclosingElement(compile(enumDesc.getContainingType()));
+      }
+      for (Descriptors.EnumValueDescriptor enumValueDesc : enumDesc.getValues()) {
+        enumType.addValue(enumValueDesc.getNumber(), enumValueDesc.getName());
+      }
+    }
+    return enumType;
+  }
+
+  public DefaultField compile(Descriptors.FieldDescriptor fieldDesc) {
+    DefaultMessageType type = compile(fieldDesc.getContainingType());
+    return type.field(fieldDesc.getNumber());
+  }
+
+  public DefaultMessageType compile(Descriptors.Descriptor typeDesc) {
+    DefaultMessageType messageType = typeMap.get(typeDesc);
     if (messageType == null) {
-      messageType = schema.of(messageDesc.getName());
-      for (Descriptors.FieldDescriptor field : messageDesc.getFields()) {
+      messageType = new DefaultMessageType(typeDesc.getName());
+      typeMap.put(typeDesc, messageType);
+      for (Descriptors.FieldDescriptor field : typeDesc.getFields()) {
         Type type;
         switch (field.getType()) {
           case STRING:
             type = ScalarType.STRING;
             break;
           case ENUM:
-            type = new DefaultEnumType();
+            type = compile(field.getEnumType());
             break;
           case DOUBLE:
             type = ScalarType.DOUBLE;
@@ -60,6 +82,17 @@ public class SchemaCompiler {
           builder.number(field.getNumber());
           builder.packed(field.isPacked());
         });
+      }
+      if (typeDesc.getContainingType() != null) {
+        messageType.enclosingType(compile(typeDesc.getContainingType()));
+      }
+      for (Descriptors.OneofDescriptor oneOfDesc : typeDesc.getOneofs()) {
+        DefaultOneOf oneOf = new DefaultOneOf(messageType, oneOfDesc.getName());
+        oneOfMap.put(oneOfDesc, oneOf);
+        for (Descriptors.FieldDescriptor fieldDesc : oneOfDesc.getFields()) {
+          DefaultField oneOfField = messageType.field(fieldDesc.getNumber());
+          oneOf.add(oneOfField);
+        }
       }
     }
     return messageType;

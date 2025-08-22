@@ -15,4 +15,7 @@ public interface Field {
   default boolean isUnknown() {
     return false;
   }
+  default OneOf oneOf() {
+    return null;
+  }
 }

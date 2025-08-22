@@ -1,6 +1,7 @@
 package io.vertx.tests.protobuf;
 
 import com.google.protobuf.Struct;
+import io.vertx.protobuf.schema.EnumType;
 import io.vertx.protobuf.schema.Field;
 import io.vertx.protobuf.schema.MessageType;
 import io.vertx.protobuf.schema.ScalarType;
@@ -66,12 +67,15 @@ public class CompilerTest {
     assertEquals(1, nullValueField.number());
     assertEquals("null_value", nullValueField.name());
     assertEquals("nullValue", nullValueField.jsonName());
-    assertSame(TypeID.ENUM, nullValueField.type().id());
     assertFalse(nullValueField.isMap());
     assertFalse(nullValueField.isMapKey());
     assertFalse(nullValueField.isMapValue());
     assertFalse(nullValueField.isRepeated());
     assertSame(value, nullValueField.owner());
+
+    EnumType nullValueEnum = (EnumType) nullValueField.type();
+    assertEquals("NullValue", nullValueEnum.name());
+    assertEquals("NULL_VALUE", nullValueEnum.nameOf(0));
 
     assertEquals(2, numberValueField.number());
     assertEquals("number_value", numberValueField.name());

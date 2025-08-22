@@ -6,12 +6,37 @@ import java.util.OptionalInt;
 
 public class DefaultEnumType implements EnumType {
 
+  private final String name;
   private final Map<String, Integer> numberByName = new HashMap<>();
   private final Map<Integer, String> nameByNumber = new HashMap<>();
+  private DefaultMessageType enclosingType;
+
+  public DefaultEnumType(String name) {
+    this.name = name;
+  }
+
+  public DefaultEnumType() {
+    this.name = null;
+  }
+
+  @Override
+  public String name() {
+    return name;
+  }
 
   @Override
   public TypeID id() {
     return TypeID.ENUM;
+  }
+
+  public DefaultEnumType enclosingElement(DefaultMessageType enclosingType) {
+    this.enclosingType = enclosingType;
+    return this;
+  }
+
+  @Override
+  public MessageType enclosingType() {
+    return enclosingType;
   }
 
   public DefaultEnumType addValue(int number, String name) {
