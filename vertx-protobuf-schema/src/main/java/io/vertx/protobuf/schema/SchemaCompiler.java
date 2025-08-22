@@ -52,6 +52,9 @@ public class SchemaCompiler {
       for (Descriptors.FieldDescriptor field : typeDesc.getFields()) {
         Type type;
         switch (field.getType()) {
+          case INT32:
+            type = ScalarType.INT32;
+            break;
           case STRING:
             type = ScalarType.STRING;
             break;

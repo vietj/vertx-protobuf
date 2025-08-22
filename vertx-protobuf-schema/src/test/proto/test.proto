@@ -14,6 +14,10 @@ message MessageWithOneOf {
   }
 }
 
+message MessageWithMap {
+  map<string, int32> field_1 = 1;
+}
+
 message EnclosingMessage {
   message EnclosedMessage {
   }

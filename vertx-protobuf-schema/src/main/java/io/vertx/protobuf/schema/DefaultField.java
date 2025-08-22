@@ -21,7 +21,6 @@ public class DefaultField implements Field {
   private final int number;
   private final String name;
   private final String jsonName;
-  private final boolean map;
   private final boolean mapKey;
   private final boolean mapValue;
   private final boolean repeated;
@@ -30,13 +29,12 @@ public class DefaultField implements Field {
   private final Type type;
   private OneOf oneOf;
 
-  DefaultField(DefaultMessageType owner, int number, String name, String jsonName, boolean map, boolean mapKey, boolean mapValue, boolean repeated, boolean packed, boolean optional, Type type) {
+  DefaultField(DefaultMessageType owner, int number, String name, String jsonName, boolean mapKey, boolean mapValue, boolean repeated, boolean packed, boolean optional, Type type) {
     this.owner = owner;
     this.number = number;
     this.jsonName = jsonName;
     this.name = name;
     this.repeated = repeated;
-    this.map = map;
     this.mapKey = mapKey;
     this.mapValue = mapValue;
     this.packed = packed;
@@ -76,11 +74,6 @@ public class DefaultField implements Field {
   @Override
   public boolean isPacked() {
     return packed;
-  }
-
-  @Override
-  public boolean isMap() {
-    return map;
   }
 
   @Override

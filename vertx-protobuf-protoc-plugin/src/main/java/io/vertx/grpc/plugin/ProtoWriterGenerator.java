@@ -128,7 +128,7 @@ class ProtoWriterGenerator {
         field.javaTypeInternal = Utils.javaTypeOfInternal(fd);
         field.getterMethod = Utils.getterOf(fd);
         field.setterMethod = Utils.setterOf(fd);
-        field.fieldName = fd.getJsonName();
+        field.fieldName = Utils.nameOf(fd);
         field.repeated = fd.isRepeated();
         field.packed = fd.isPacked();
 

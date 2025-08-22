@@ -9,7 +9,9 @@ public interface Field {
     return false;
   }
   boolean isRepeated();
-  boolean isMap();
+  default boolean isMap() {
+    return false;
+  }
   boolean isMapKey();
   boolean isMapValue();
   boolean isPacked();
