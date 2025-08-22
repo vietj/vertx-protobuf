@@ -183,9 +183,17 @@ class SchemaGenerator {
 
     for (Iterator<FieldDeclaration> it  = list2.iterator();it.hasNext();) {
       FieldDeclaration decl = it.next();
-      writer.print("  " + decl.messageName + "_" + decl.name + "(MessageLiteral." + decl.messageName + ", "
-              + decl.number + ", " + decl.typeExpr + ", " + decl.map + ", " + decl.mapKey + ", " + decl.mapValue
-        + ", " +decl.repeated + ", " +decl.packed + ", \"" + decl.name + "\", \"" + decl.jsonName + "\")");
+      writer.print("  " + decl.messageName + "_" + decl.name + "(" +
+        decl.number + ", " +
+        decl.map + ", " +
+        decl.mapKey + ", " +
+        decl.mapValue + ", " +
+        decl.repeated + ", " +
+        decl.packed + ", " +
+        "\"" + decl.name + "\", " +
+        "\"" + decl.jsonName + "\"" +
+        ")"
+      );
       if (it.hasNext()) {
         writer.println(",");
       } else {
@@ -193,9 +201,9 @@ class SchemaGenerator {
       }
     }
 
-    writer.println("  private final MessageLiteral owner;");
+    writer.println("  private MessageLiteral owner;");
+    writer.println("  private io.vertx.protobuf.schema.Type type;");
     writer.println("  private final int number;");
-    writer.println("  private final io.vertx.protobuf.schema.Type type;");
     writer.println("  private final boolean map;");
     writer.println("  private final boolean mapKey;");
     writer.println("  private final boolean mapValue;");
@@ -203,10 +211,8 @@ class SchemaGenerator {
     writer.println("  private final boolean packed;");
     writer.println("  private final String name;");
     writer.println("  private final String jsonName;");
-    writer.println("  FieldLiteral(MessageLiteral owner, int number, io.vertx.protobuf.schema.Type type, boolean map, boolean mapKey, boolean mapValue, boolean repeated, boolean packed, String name, String jsonName) {");
-    writer.println("    this.owner = owner;");
+    writer.println("  FieldLiteral(int number, boolean map, boolean mapKey, boolean mapValue, boolean repeated, boolean packed, String name, String jsonName) {");
     writer.println("    this.number = number;");
-    writer.println("    this.type = type;");
     writer.println("    this.map = map;");
     writer.println("    this.mapKey = mapKey;");
     writer.println("    this.mapValue = mapValue;");
@@ -244,9 +250,8 @@ class SchemaGenerator {
     writer.println("  }");
     writer.println("  static {");
     for (FieldDeclaration decl : list2) {
-      writer.println("    MessageLiteral." + decl.messageName + ".byNumber.put(" + decl.number + ", FieldLiteral." + decl.messageName + "_" + decl.name + ");");
-      writer.println("    MessageLiteral." + decl.messageName + ".byJsonName.put(\"" + decl.jsonName + "\", FieldLiteral." + decl.messageName + "_" + decl.name + ");");
-      writer.println("    MessageLiteral." + decl.messageName + ".byName.put(\"" + decl.name + "\", FieldLiteral." + decl.messageName + "_" + decl.name + ");");
+      writer.println("    FieldLiteral." + decl.messageName + "_" + decl.name + ".owner = MessageLiteral." + decl.messageName + ";");
+      writer.println("    FieldLiteral." + decl.messageName + "_" + decl.name + ".type = " + decl.typeExpr + ";");
     }
     writer.println("  }");
     writer.println("}");
@@ -306,9 +311,9 @@ class SchemaGenerator {
     writer.println("  }");
     writer.println("  static {");
     for (FieldDeclaration decl : list2) {
-      // Force init
-      writer.println("    Object o = FieldLiteral." + decl.messageName + "_" + decl.name + ";");
-      break;
+      writer.println("    MessageLiteral." + decl.messageName + ".byNumber.put(" + decl.number + ", FieldLiteral." + decl.messageName + "_" + decl.name + ");");
+      writer.println("    MessageLiteral." + decl.messageName + ".byJsonName.put(\"" + decl.jsonName + "\", FieldLiteral." + decl.messageName + "_" + decl.name + ");");
+      writer.println("    MessageLiteral." + decl.messageName + ".byName.put(\"" + decl.name + "\", FieldLiteral." + decl.messageName + "_" + decl.name + ");");
     }
     writer.println("  }");
     writer.println("}");
