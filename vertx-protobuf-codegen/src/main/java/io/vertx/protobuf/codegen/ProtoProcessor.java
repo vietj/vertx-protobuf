@@ -35,7 +35,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@SupportedOptions({"codegen.generators"})
 @SupportedSourceVersion(SourceVersion.RELEASE_11)
 public class ProtoProcessor extends AbstractProcessor {
 
