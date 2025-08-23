@@ -6,8 +6,12 @@ import io.vertx.protobuf.schema.Field;
 import io.vertx.protobuf.schema.MessageType;
 import io.vertx.protobuf.schema.ScalarType;
 import io.vertx.protobuf.tests.codegen.simple.DataTypes;
+import io.vertx.protobuf.tests.codegen.simple.TestEnum;
 import org.junit.Test;
 
+import javax.tools.Diagnostic;
+import javax.tools.DiagnosticListener;
+import javax.tools.JavaFileObject;
 import java.io.File;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -19,8 +23,17 @@ public class ProcessorTest {
 
   @Test
   public void testDataTypes() throws Exception {
-    Compiler compiler = new Compiler(new ProtoProcessor());
-    assertTrue(compiler.compile(DataTypes.class));
+    Compiler compiler = new Compiler(new ProtoProcessor(), new DiagnosticListener<JavaFileObject>() {
+      @Override
+      public void report(Diagnostic<? extends JavaFileObject> diagnostic) {
+        System.out.println(diagnostic.getMessage(null));;
+      }
+    });
+    try {
+      assertTrue(compiler.compile(DataTypes.class, TestEnum.class));
+    } finally {
+      System.out.println(compiler.getSourceOutput());
+    }
     File dir = compiler.getClassOutput();
     assertTrue(new File(dir, DataTypes.class.getPackageName().replace('.', File.separatorChar) + File.separator + "MessageLiteral.class").exists());
     URL url = dir.toURI().toURL();
