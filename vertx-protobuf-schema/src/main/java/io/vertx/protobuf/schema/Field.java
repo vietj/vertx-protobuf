@@ -5,9 +5,6 @@ public interface Field {
   MessageType owner();
   int number();
   Type type();
-  default boolean isOptional() {
-    return false;
-  }
   boolean isRepeated();
   default boolean isMap() {
     return false;
@@ -19,8 +16,5 @@ public interface Field {
   String jsonName();
   default boolean isUnknown() {
     return false;
-  }
-  default OneOf oneOf() {
-    return null;
   }
 }

@@ -6,31 +6,10 @@ option java_package = "io.vertx.tests.protobuf.schema";
 option java_outer_classname = "Test";
 option java_multiple_files = true;
 
-message MessageWithOneOf {
-  string regular_field = 1;
-  oneof union {
-    string union_field_1 = 2;
-    string union_field_2 = 3;
-  }
-}
-
-message MessageWithMap {
-  map<string, int32> field_1 = 1;
-}
-
 message EnclosingMessage {
   message EnclosedMessage {
   }
   enum EnclosedEnum {
     foo = 0;
-  }
-}
-
-message MessageWithOptional {
-  string field_1 = 1;
-  optional string optional_field_2 = 2;
-  oneof oneof_fields {
-    string oneone_field_3 = 3;
-    string oneone_field_4 = 4;
   }
 }

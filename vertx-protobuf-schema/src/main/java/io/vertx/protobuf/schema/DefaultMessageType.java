@@ -17,7 +17,6 @@ public class DefaultMessageType implements MessageType {
   private final Map<String, DefaultField> byName = new HashMap<>();
   private final Map<String, DefaultField> byJsonName = new HashMap<>();
   private DefaultMessageType enclosingType;
-  private Map<String, DefaultOneOf> oneOfs = new TreeMap<>();
 
   public DefaultMessageType(String name) {
     this.name = name;
@@ -69,28 +68,6 @@ public class DefaultMessageType implements MessageType {
     return fields.values();
   }
 
-  @Override
-  public OneOf oneOf(String name) {
-    return oneOfs.get(name);
-  }
-
-  @Override
-  public Collection<? extends OneOf> oneOfs() {
-    return oneOfs.values();
-  }
-
-  public DefaultMessageType addOneOf(DefaultOneOf oneOf) {
-    if (oneOfs.containsKey(oneOf.name)) {
-      throw new IllegalStateException();
-    }
-    if (oneOf.owner != null) {
-      throw new IllegalArgumentException();
-    }
-    oneOfs.put(oneOf.name(), oneOf);
-    oneOf.owner = this;
-    return this;
-  }
-
   public DefaultField addField(Consumer<DefaultFieldBuilder> cfg) {
     DefaultFieldBuilder builder = new DefaultFieldBuilder();
     cfg.accept(builder);
@@ -105,11 +82,7 @@ public class DefaultMessageType implements MessageType {
     }
     boolean packed = builder.packed != null ? builder.packed : builder.repeated;
     DefaultField field;
-    if (builder.map) {
-      field = new DefaultMapField(this, number, name, jsonName, builder.mapKey, builder.mapValue, builder.repeated, packed, builder.optional, Objects.requireNonNull(builder.type));
-    } else {
-      field = new DefaultField(this, number, name, jsonName, builder.mapKey, builder.mapValue, builder.repeated, packed, builder.optional, Objects.requireNonNull(builder.type));
-    }
+    field = new DefaultField(this, number, name, jsonName, builder.map, builder.mapKey, builder.mapValue, builder.repeated, packed, Objects.requireNonNull(builder.type));
     if (fields.containsKey(number)) {
       throw new IllegalStateException("Duplicate field " + number);
     }

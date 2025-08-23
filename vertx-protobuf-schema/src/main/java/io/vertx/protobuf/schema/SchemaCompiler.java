@@ -92,14 +92,6 @@ public class SchemaCompiler {
       if (typeDesc.getContainingType() != null) {
         messageType.enclosingType(compile(typeDesc.getContainingType()));
       }
-      for (Descriptors.OneofDescriptor oneOfDesc : typeDesc.getRealOneofs()) {
-        DefaultOneOf oneOf = new DefaultOneOf(oneOfDesc.getName());
-        messageType.addOneOf(oneOf);
-        for (Descriptors.FieldDescriptor fieldDesc : oneOfDesc.getFields()) {
-          DefaultField oneOfField = messageType.field(fieldDesc.getNumber());
-          oneOf.add(oneOfField);
-        }
-      }
     }
     return messageType;
   }

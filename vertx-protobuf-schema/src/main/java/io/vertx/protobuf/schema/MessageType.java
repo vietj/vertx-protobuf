@@ -22,12 +22,6 @@ public interface MessageType extends Type {
   default Collection<? extends Field> fields() {
     throw new UnsupportedOperationException();
   }
-  default OneOf oneOf(String name) {
-    return null;
-  }
-  default Collection<? extends OneOf> oneOfs() {
-    throw new UnsupportedOperationException();
-  }
   default Field fieldByName(String name) {
     return null;
   }
