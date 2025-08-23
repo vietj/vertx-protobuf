@@ -25,6 +25,8 @@ public enum TypeID {
   // LEN
   STRING(),
   BYTES(),
-  MESSAGE()
+  MESSAGE(),
 
+  //
+  UNDEFINED()
 }

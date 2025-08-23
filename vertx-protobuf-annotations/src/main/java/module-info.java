@@ -9,6 +9,7 @@
  * SPDX-License-Identifier: EPL-2.0 OR Apache-2.0
  */
 module io.vertx.protobuf.annotations {
+  requires io.vertx.protobuf.schema;
 
   exports io.vertx.protobuf.annotations;
 

@@ -5,42 +5,63 @@ import com.google.protobuf.Descriptors;
 import io.vertx.grpc.plugin.schema.SchemaGenerator;
 import io.vertx.protobuf.annotations.ProtoField;
 import io.vertx.protobuf.annotations.ProtoMessage;
+import io.vertx.protobuf.schema.TypeID;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Filer;
+import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedOptions;
 import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
+import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.Modifier;
+import javax.lang.model.element.Name;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.TypeKind;
+import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.Elements;
+import javax.lang.model.util.Types;
 import javax.tools.JavaFileObject;
 import java.io.IOException;
 import java.io.Writer;
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @SupportedOptions({"codegen.generators"})
 @SupportedSourceVersion(SourceVersion.RELEASE_11)
 public class ProtoProcessor extends AbstractProcessor {
+
+  private Types typeUtils;
+  private Elements elementUtils;
+
+  private TypeMirror voidType;
+  private TypeMirror javaLangLong;
+  private TypeMirror javaLangString;
 
   @Override
   public Set<String> getSupportedAnnotationTypes() {
     return Set.of(ProtoMessage.class.getName());
   }
 
+
   @Override
   public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
 
     Set<? extends Element> rootElements = roundEnv.getRootElements();
 
-    DescriptorProtos.FileDescriptorProto.Builder proto = DescriptorProtos.FileDescriptorProto
-      .newBuilder();
-
     if (annotations.isEmpty()) {
       return true;
     }
+
+    Map<String, DescriptorProtos.FileDescriptorProto.Builder> protoMap = new HashMap<>();
 
     rootElements
       .stream()
@@ -49,63 +70,120 @@ public class ProtoProcessor extends AbstractProcessor {
         DescriptorProtos.DescriptorProto.Builder b = DescriptorProtos.DescriptorProto.newBuilder();
         b.setName(msgElt.getSimpleName().toString());
 
-        msgElt
+        List<ExecutableElement> list = msgElt
           .getEnclosedElements()
           .stream()
-          .filter(elt -> elt.getKind() == ElementKind.METHOD && elt.getAnnotation(ProtoField.class) != null)
-          .forEach(fieldElt -> {
-            ProtoField protoField = fieldElt.getAnnotation(ProtoField.class);
-            DescriptorProtos.FieldDescriptorProto f = DescriptorProtos.FieldDescriptorProto
-              .newBuilder()
-              .setNumber(protoField.number())
-              .setName(protoField.name())
-              .setType(DescriptorProtos.FieldDescriptorProto.Type.TYPE_STRING)
-              .build();
-            b.addField(f);
-          });
+          .filter(elt ->
+            elt.getKind() == ElementKind.METHOD && elt.getAnnotation(ProtoField.class) != null && accept(elt))
+          .map(ExecutableElement.class::cast)
+          .collect(Collectors.toList());
+
+
+        for (ExecutableElement fieldElt : list) {
+          ProtoField protoField = fieldElt.getAnnotation(ProtoField.class);
+          TypeMirror typeMirror = extractMethodType(fieldElt);
+          DescriptorProtos.FieldDescriptorProto.Type type = protoTypeOf(typeMirror);
+          DescriptorProtos.FieldDescriptorProto f = DescriptorProtos.FieldDescriptorProto
+            .newBuilder()
+            .setNumber(protoField.number())
+            .setName(protoField.name())
+            .setType(type)
+            .build();
+          b.addField(f);
+        }
 
         DescriptorProtos.DescriptorProto p = b.build();
 
-        proto.addMessageType(p);
+
+        Name qn = ((TypeElement) msgElt).getQualifiedName();
+        String pkg = qn.subSequence(0, qn.length() - msgElt.getSimpleName().length() - 1).toString();
+
+        DescriptorProtos.FileDescriptorProto.Builder bbb = protoMap.get(pkg);
+        if (bbb == null) {
+          bbb = DescriptorProtos.FileDescriptorProto.newBuilder();
+          bbb.setSyntax("proto3");
+          bbb.setPackage(pkg);
+          bbb.setOptions(DescriptorProtos.FileOptions.newBuilder().setJavaPackage(pkg).build());
+          protoMap.put(pkg, bbb);
+
+        }
+
+        bbb.addMessageType(p);
 
 
       });
 
-    proto.setSyntax("proto3");
-
-    proto.setPackage("test.proto");
-    proto.setOptions(DescriptorProtos.FileOptions.newBuilder().setJavaPackage("test.proto").build());
-
-    DescriptorProtos.FileDescriptorProto b = proto.build();
-
-    Descriptors.FileDescriptor fd;
-    try {
-      fd = Descriptors.FileDescriptor.buildFrom(b, new Descriptors.FileDescriptor[0]);
-    } catch (Descriptors.DescriptorValidationException e) {
-      throw new RuntimeException(e);
+    List<Descriptors.FileDescriptor> protos = new ArrayList<>();
+    for (DescriptorProtos.FileDescriptorProto.Builder b : protoMap.values()) {
+      try {
+        protos.add(Descriptors.FileDescriptor.buildFrom(b.build(), new Descriptors.FileDescriptor[0]));
+      } catch (Descriptors.DescriptorValidationException e) {
+        throw new RuntimeException(e);
+      }
     }
 
-    SchemaGenerator schemaGenerator = new SchemaGenerator("test.proto");
-    schemaGenerator.init(fd.getMessageTypes());
-
-    try {
-      Filer filer = processingEnv.getFiler();
-      JavaFileObject messageLiteralsFile = filer.createSourceFile("test.proto.MessageLiteral");
-      JavaFileObject fieldLiteralsFile = filer.createSourceFile("test.proto.FieldLiteral");
-      try (Writer writer = messageLiteralsFile.openWriter()) {
-        writer.write(schemaGenerator.generateMessageLiterals());
+    for (Descriptors.FileDescriptor p : protos) {
+      String javaPkg = p.getOptions().getJavaPackage();
+      SchemaGenerator schemaGenerator = new SchemaGenerator(javaPkg);
+      schemaGenerator.init(p.getMessageTypes());
+      try {
+        Filer filer = processingEnv.getFiler();
+        JavaFileObject messageLiteralsFile = filer.createSourceFile(javaPkg + ".MessageLiteral");
+        JavaFileObject fieldLiteralsFile = filer.createSourceFile(javaPkg + ".FieldLiteral");
+        try (Writer writer = messageLiteralsFile.openWriter()) {
+          writer.write(schemaGenerator.generateMessageLiterals());
+        }
+        try (Writer writer = fieldLiteralsFile.openWriter()) {
+          writer.write(schemaGenerator.generateFieldLiterals());
+        }
+      } catch (IOException e) {
+        throw new RuntimeException(e);
       }
-      try (Writer writer = fieldLiteralsFile.openWriter()) {
-        writer.write(schemaGenerator.generateFieldLiterals());
-      }
-    } catch (IOException e) {
-      throw new RuntimeException(e);
     }
+
 
     return true;
   }
 
+  public boolean accept(Element element) {
+    Set<Modifier> modifiers = element.getModifiers();
+    return modifiers.contains(Modifier.PUBLIC) && !modifiers.contains(Modifier.STATIC);
+  }
 
+  private TypeMirror extractMethodType(ExecutableElement elt) {
+    String name = elt.getSimpleName().toString();
+    if (name.startsWith("get") && name.length() > 3 && Character.isUpperCase(name.charAt(3)) && elt.getParameters().isEmpty() && elt.getReturnType().getKind() != TypeKind.VOID) {
+      return elt.getReturnType();
+    } else if (name.startsWith("is") && name.length() > 2 && Character.isUpperCase(name.charAt(2)) &&
+      elt.getParameters().isEmpty() && elt.getReturnType().getKind() != TypeKind.VOID) {
+      return elt.getReturnType();
+    } else {
+      if (name.startsWith("set") && name.length() > 3 && Character.isUpperCase(name.charAt(3)) && elt.getParameters().size() == 1 &&
+        typeUtils.isSameType(elt.getReturnType(), voidType)) {
+        return elt.getParameters().get(0).asType();
+      } else {
+        return null;
+      }
+    }
+  }
 
+  private DescriptorProtos.FieldDescriptorProto.Type protoTypeOf(TypeMirror type) {
+    if (typeUtils.isSameType(javaLangString, type)) {
+      return DescriptorProtos.FieldDescriptorProto.Type.TYPE_STRING;
+    } else if (typeUtils.isSameType(javaLangLong, type)) {
+      return DescriptorProtos.FieldDescriptorProto.Type.TYPE_INT64;
+    } else {
+      return null;
+    }
+  }
 
+  @Override
+  public synchronized void init(ProcessingEnvironment processingEnv) {
+    typeUtils = processingEnv.getTypeUtils();
+    elementUtils = processingEnv.getElementUtils();
+    super.init(processingEnv);
+    voidType = elementUtils.getTypeElement("java.lang.Void").asType();
+    javaLangLong = elementUtils.getTypeElement("java.lang.Long").asType();
+    javaLangString = elementUtils.getTypeElement("java.lang.String").asType();
+  }
 }

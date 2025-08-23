@@ -4,17 +4,15 @@ import io.vertx.protobuf.annotations.ProtoField;
 import io.vertx.protobuf.annotations.ProtoMessage;
 
 @ProtoMessage
-public class SimpleBean {
-
-  private String stringField;
+public class DataTypes {
 
   @ProtoField(number = 1, name = "string_field")
   public String getStringField() {
-    return stringField;
+    throw new UnsupportedOperationException();
   }
 
-  public SimpleBean setStringField(String stringField) {
-    this.stringField = stringField;
-    return this;
+  @ProtoField(number = 2, name = "long_field")
+  public Long getLongField() {
+    throw new UnsupportedOperationException();
   }
 }

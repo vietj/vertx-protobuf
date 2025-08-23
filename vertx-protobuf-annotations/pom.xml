@@ -29,4 +29,12 @@
 
   <name>Vert.x Protobuf Annotations</name>
 
+  <dependencies>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-protobuf-schema</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+  </dependencies>
+
 </project>
