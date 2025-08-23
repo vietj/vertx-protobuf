@@ -1,14 +1,14 @@
-package io.vertx.protobuf.tests.codegen.dataobjects;
+package io.vertx.protobuf.tests.codegen.simple;
 
-import io.vertx.codegen.annotations.DataObject;
-import io.vertx.protobuf.codegen.annotations.ProtobufGen;
+import io.vertx.protobuf.codegen.annotations.ProtoField;
+import io.vertx.protobuf.codegen.annotations.ProtoMessage;
 
-@DataObject
-@ProtobufGen
+@ProtoMessage
 public class SimpleBean {
 
   private String stringField;
 
+  @ProtoField(number = 1, name = "string_field")
   public String getStringField() {
     return stringField;
   }
