@@ -33,15 +33,41 @@
 
     <dependency>
       <groupId>io.vertx</groupId>
-      <artifactId>vertx-core</artifactId>
+      <artifactId>vertx-protobuf-schema</artifactId>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
-      <artifactId>vertx-protobuf-codegen</artifactId>
+      <artifactId>vertx-protobuf-annotations</artifactId>
       <version>${project.version}</version>
     </dependency>
 
   </dependencies>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <executions>
+            <execution>
+              <id>default-compile</id>
+              <configuration>
+                <annotationProcessorPaths>
+                  <annotationProcessorPath>
+                    <groupId>io.vertx</groupId>
+                    <artifactId>vertx-protobuf-codegen</artifactId>
+                    <classifier>processor</classifier>
+                    <version>${project.version}</version>
+                  </annotationProcessorPath>
+                </annotationProcessorPaths>
+              </configuration>
+            </execution>
+          </executions>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
 
 
 </project>
