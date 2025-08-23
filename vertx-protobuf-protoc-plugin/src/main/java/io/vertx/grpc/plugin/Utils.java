@@ -63,7 +63,7 @@ public class Utils {
     return "get" + nameOf(oneOf);
   }
 
-  static String schemaIdentifier(Descriptors.FieldDescriptor field) {
+  public static String schemaIdentifier(Descriptors.FieldDescriptor field) {
     return schemaIdentifier(field.getContainingType()) + "_" + field.getName().toUpperCase();
   }
 
@@ -71,19 +71,19 @@ public class Utils {
     return literalIdentifier(field.getContainingType()) + "_" + field.getName();
   }
 
-  static String schemaIdentifier(Descriptors.Descriptor type) {
+  public static String schemaIdentifier(Descriptors.Descriptor type) {
     return type.getName().toUpperCase();
   }
 
-  static String literalIdentifier(Descriptors.Descriptor type) {
+  public static String literalIdentifier(Descriptors.Descriptor type) {
     return type.getName();
   }
 
-  static boolean isMapKey(Descriptors.FieldDescriptor field) {
+  public static boolean isMapKey(Descriptors.FieldDescriptor field) {
     return field.getContainingType().toProto().getOptions().getMapEntry() && field.getContainingType().getFields().get(0) == field;
   }
 
-  static boolean isMapValue(Descriptors.FieldDescriptor field) {
+  public static boolean isMapValue(Descriptors.FieldDescriptor field) {
     return field.getContainingType().toProto().getOptions().getMapEntry() && field.getContainingType().getFields().get(1) == field;
   }
 
@@ -164,7 +164,7 @@ public class Utils {
     }
   }
 
-  static String javaTypeOfInternal(Descriptors.FieldDescriptor field) {
+  public static String javaTypeOfInternal(Descriptors.FieldDescriptor field) {
     String pkg;
     switch (field.getType()) {
       case BYTES:
@@ -222,7 +222,7 @@ public class Utils {
     return absoluteFileName(javaPkgFqn, messageType.getName());
   }
 
-  static String absoluteFileName(String javaPkgFqn, String simpleName) {
+  public static String absoluteFileName(String javaPkgFqn, String simpleName) {
     String dir = javaPkgFqn.replace('.', '/');
     if (dir.isEmpty()) {
       return simpleName + ".java";

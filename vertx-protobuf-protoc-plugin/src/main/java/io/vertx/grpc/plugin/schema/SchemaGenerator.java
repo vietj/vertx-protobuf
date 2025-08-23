@@ -1,169 +1,25 @@
-package io.vertx.grpc.plugin;
+package io.vertx.grpc.plugin.schema;
 
-import com.google.protobuf.Descriptors;
-import com.google.protobuf.compiler.PluginProtos;
+import io.vertx.grpc.plugin.GenWriter;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-class SchemaGenerator {
+public class SchemaGenerator {
 
   private final String javaPkgFqn;
-  private final List<Descriptors.Descriptor> fileDesc;
+  private final List<MessageTypeDeclaration> list;
+  private final List<FieldDeclaration> list2;
 
-  private List<MessageTypeDeclaration> list = new ArrayList<>();
-  private List<FieldDeclaration> list2 = new ArrayList<>();
-
-  public SchemaGenerator(String javaPkgFqn, List<Descriptors.Descriptor> fileDesc) {
+  public SchemaGenerator(String javaPkgFqn, List<MessageTypeDeclaration> list, List<FieldDeclaration> list2) {
     this.javaPkgFqn = javaPkgFqn;
-    this.fileDesc = fileDesc;
-
-
-
+    this.list = list;
+    this.list2 = list2;
   }
 
-  private void init() {
-    Map<Descriptors.EnumDescriptor, EnumTypeDeclaration> list3 = new LinkedHashMap<>();
-    fileDesc.forEach(messageType -> {
-      list.add(new MessageTypeDeclaration(Utils.schemaIdentifier(messageType), messageType.getName()));
-      messageType.getFields().forEach(field -> {
-        String identifier = Utils.schemaIdentifier(field);
-        String messageTypeRef = Utils.schemaIdentifier(messageType);
-        int number = field.getNumber();
-        String typeExpr;
-        switch (field.getType()) {
-          case FLOAT:
-            typeExpr = "ScalarType.FLOAT";
-            break;
-          case DOUBLE:
-            typeExpr = "ScalarType.DOUBLE";
-            break;
-          case BOOL:
-            typeExpr = "ScalarType.BOOL";
-            break;
-          case STRING:
-            typeExpr = "ScalarType.STRING";
-            break;
-          case ENUM:
-            typeExpr = Utils.javaTypeOfInternal(field) + ".TYPE";
-            break;
-          case BYTES:
-            typeExpr = "ScalarType.BYTES";
-            break;
-          case INT32:
-            typeExpr = "ScalarType.INT32";
-            break;
-          case INT64:
-            typeExpr = "ScalarType.INT64";
-            break;
-          case UINT32:
-            typeExpr = "ScalarType.UINT32";
-            break;
-          case UINT64:
-            typeExpr = "ScalarType.UINT64";
-            break;
-          case SINT32:
-            typeExpr = "ScalarType.SINT32";
-            break;
-          case SINT64:
-            typeExpr = "ScalarType.SINT64";
-            break;
-          case FIXED32:
-            typeExpr = "ScalarType.FIXED32";
-            break;
-          case FIXED64:
-            typeExpr = "ScalarType.FIXED64";
-            break;
-          case SFIXED32:
-            typeExpr = "ScalarType.SFIXED32";
-            break;
-          case SFIXED64:
-            typeExpr = "ScalarType.SFIXED64";
-            break;
-          case MESSAGE:
-            typeExpr = Utils.extractJavaPkgFqn(field.getMessageType().getFile()) + ".MessageLiteral." + Utils.literalIdentifier(field.getMessageType());
-            break;
-          default:
-            return;
-        }
-        list2.add(new FieldDeclaration(identifier, field.getName(), field.isMapField(), Utils.isMapKey(field), Utils.isMapValue(field), field.isRepeated(), field.isPacked(), field.getJsonName(), messageTypeRef, number, field.getContainingType().getName(), typeExpr));
-        if (field.getType() == Descriptors.FieldDescriptor.Type.ENUM) {
-          Descriptors.EnumDescriptor enumType = field.getEnumType();
-          if (!list3.containsKey(enumType)) {
-            EnumTypeDeclaration decl = new EnumTypeDeclaration(enumType.getName());
-            list3.put(enumType, decl);
-            enumType.getValues().forEach(value -> {
-              decl.numberToIdentifier.put(value.getNumber(), value.getName());
-            });
-          }
-        }
-      });
-    });
-  }
-
-  public static class EnumTypeDeclaration {
-
-    public final String name;
-    public final Map<Integer, String> numberToIdentifier;
-
-    public EnumTypeDeclaration(String name) {
-      this.name = name;
-      this.numberToIdentifier = new LinkedHashMap<>();
-    }
-  }
-
-  public static class MessageTypeDeclaration {
-
-    public final String identifier;
-    public final String name;
-
-    public MessageTypeDeclaration(String identifier, String name) {
-      this.identifier = identifier;
-      this.name = name;
-    }
-  }
-
-  public static class FieldDeclaration {
-
-    public final String identifier;
-    public final String name;
-    public final String jsonName;
-    public final boolean map;
-    public final boolean mapKey;
-    public final boolean mapValue;
-    public final boolean repeated;
-    public final boolean packed;
-    public final String messageTypeIdentifier;
-    public final String messageName;
-    public final int number;
-    public final String typeExpr;
-
-    public FieldDeclaration(String identifier, String name, boolean map, boolean mapKey, boolean mapValue, boolean repeated, boolean packed, String jsonName, String messageTypeIdentifier, int number, String messageName, String typeExpr) {
-      this.identifier = identifier;
-      this.name = name;
-      this.jsonName = jsonName;
-      this.messageTypeIdentifier = messageTypeIdentifier;
-      this.messageName = messageName;
-      this.map = map;
-      this.mapKey = mapKey;
-      this.mapValue = mapValue;
-      this.repeated = repeated;
-      this.packed = packed;
-      this.number = number;
-      this.typeExpr = typeExpr;
-    }
-  }
-
-  List<PluginProtos.CodeGeneratorResponse.File> generate() {
-    init();
-    return Arrays.asList(generateFieldLiterals(), generateMessageLiterals());
-  }
-
-  PluginProtos.CodeGeneratorResponse.File generateFieldLiterals() {
+  public String generateFieldLiterals() {
     GenWriter writer = new GenWriter();
 
     writer.println(
@@ -181,7 +37,7 @@ class SchemaGenerator {
       "public enum FieldLiteral implements Field {",
       "");
 
-    for (Iterator<FieldDeclaration> it  = list2.iterator();it.hasNext();) {
+    for (Iterator<FieldDeclaration> it = list2.iterator(); it.hasNext(); ) {
       FieldDeclaration decl = it.next();
       writer.print("  " + decl.messageName + "_" + decl.name + "(" +
         decl.number + ", " +
@@ -256,16 +112,10 @@ class SchemaGenerator {
     writer.println("  }");
     writer.println("}");
 
-    return PluginProtos.CodeGeneratorResponse.File
-      .newBuilder()
-      .setName(Utils.absoluteFileName(javaPkgFqn, "FieldLiteral"))
-      .setContent(writer.toString())
-      .build();
+    return writer.toString();
   }
 
-  PluginProtos.CodeGeneratorResponse.File generateMessageLiterals() {
-
-
+  public String generateMessageLiterals() {
     GenWriter writer = new GenWriter();
 
     writer.println(
@@ -283,9 +133,9 @@ class SchemaGenerator {
       "public enum MessageLiteral implements MessageType {",
       "");
 
-    for (Iterator<MessageTypeDeclaration> it  = list.iterator();it.hasNext();) {
+    for (Iterator<MessageTypeDeclaration> it = list.iterator(); it.hasNext(); ) {
       MessageTypeDeclaration decl = it.next();
-      writer.print("    " + decl.name + "(\"" + decl.name +  "\")");
+      writer.print("    " + decl.name + "(\"" + decl.name + "\")");
       if (it.hasNext()) {
         writer.println(",");
       } else {
@@ -318,10 +168,6 @@ class SchemaGenerator {
     writer.println("  }");
     writer.println("}");
 
-    return PluginProtos.CodeGeneratorResponse.File
-      .newBuilder()
-      .setName(Utils.absoluteFileName(javaPkgFqn, "MessageLiteral"))
-      .setContent(writer.toString())
-      .build();
+    return writer.toString();
   }
 }
