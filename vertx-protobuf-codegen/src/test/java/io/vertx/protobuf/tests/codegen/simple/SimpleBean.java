@@ -1,7 +1,7 @@
 package io.vertx.protobuf.tests.codegen.simple;
 
-import io.vertx.protobuf.codegen.annotations.ProtoField;
-import io.vertx.protobuf.codegen.annotations.ProtoMessage;
+import io.vertx.protobuf.annotations.ProtoField;
+import io.vertx.protobuf.annotations.ProtoMessage;
 
 @ProtoMessage
 public class SimpleBean {

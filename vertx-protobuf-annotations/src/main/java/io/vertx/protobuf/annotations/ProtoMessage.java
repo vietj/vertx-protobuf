@@ -1,4 +1,4 @@
-package io.vertx.protobuf.codegen.annotations;
+package io.vertx.protobuf.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Target;

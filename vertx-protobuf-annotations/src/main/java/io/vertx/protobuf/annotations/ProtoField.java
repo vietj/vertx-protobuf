@@ -1,4 +1,4 @@
-package io.vertx.protobuf.codegen.annotations;
+package io.vertx.protobuf.annotations;
 
 public @interface ProtoField {
 
