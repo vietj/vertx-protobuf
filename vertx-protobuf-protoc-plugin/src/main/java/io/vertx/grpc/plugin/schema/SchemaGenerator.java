@@ -1,7 +1,11 @@
 package io.vertx.grpc.plugin.schema;
 
+import com.google.protobuf.Descriptors;
 import io.vertx.grpc.plugin.GenWriter;
+import io.vertx.grpc.plugin.Utils;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -13,10 +17,89 @@ public class SchemaGenerator {
   private final List<MessageTypeDeclaration> list;
   private final List<FieldDeclaration> list2;
 
-  public SchemaGenerator(String javaPkgFqn, List<MessageTypeDeclaration> list, List<FieldDeclaration> list2) {
+  public SchemaGenerator(String javaPkgFqn) {
     this.javaPkgFqn = javaPkgFqn;
-    this.list = list;
-    this.list2 = list2;
+    this.list = new ArrayList<>();
+    this.list2 = new ArrayList<>();
+  }
+
+  public void init(Collection<Descriptors.Descriptor> fileDesc) {
+    Map<Descriptors.EnumDescriptor, EnumTypeDeclaration> list3 = new LinkedHashMap<>();
+    fileDesc.forEach(messageType -> {
+      list.add(new MessageTypeDeclaration(Utils.schemaIdentifier(messageType), messageType.getName()));
+      messageType.getFields().forEach(field -> {
+        String identifier = Utils.schemaIdentifier(field);
+        String messageTypeRef = Utils.schemaIdentifier(messageType);
+        int number = field.getNumber();
+        String typeExpr;
+        switch (field.getType()) {
+          case FLOAT:
+            typeExpr = "ScalarType.FLOAT";
+            break;
+          case DOUBLE:
+            typeExpr = "ScalarType.DOUBLE";
+            break;
+          case BOOL:
+            typeExpr = "ScalarType.BOOL";
+            break;
+          case STRING:
+            typeExpr = "ScalarType.STRING";
+            break;
+          case ENUM:
+            typeExpr = Utils.javaTypeOfInternal(field) + ".TYPE";
+            break;
+          case BYTES:
+            typeExpr = "ScalarType.BYTES";
+            break;
+          case INT32:
+            typeExpr = "ScalarType.INT32";
+            break;
+          case INT64:
+            typeExpr = "ScalarType.INT64";
+            break;
+          case UINT32:
+            typeExpr = "ScalarType.UINT32";
+            break;
+          case UINT64:
+            typeExpr = "ScalarType.UINT64";
+            break;
+          case SINT32:
+            typeExpr = "ScalarType.SINT32";
+            break;
+          case SINT64:
+            typeExpr = "ScalarType.SINT64";
+            break;
+          case FIXED32:
+            typeExpr = "ScalarType.FIXED32";
+            break;
+          case FIXED64:
+            typeExpr = "ScalarType.FIXED64";
+            break;
+          case SFIXED32:
+            typeExpr = "ScalarType.SFIXED32";
+            break;
+          case SFIXED64:
+            typeExpr = "ScalarType.SFIXED64";
+            break;
+          case MESSAGE:
+            typeExpr = Utils.extractJavaPkgFqn(field.getMessageType().getFile()) + ".MessageLiteral." + Utils.literalIdentifier(field.getMessageType());
+            break;
+          default:
+            return;
+        }
+        list2.add(new FieldDeclaration(identifier, field.getName(), field.isMapField(), Utils.isMapKey(field), Utils.isMapValue(field), field.isRepeated(), field.isPacked(), field.getJsonName(), messageTypeRef, number, field.getContainingType().getName(), typeExpr));
+        if (field.getType() == Descriptors.FieldDescriptor.Type.ENUM) {
+          Descriptors.EnumDescriptor enumType = field.getEnumType();
+          if (!list3.containsKey(enumType)) {
+            EnumTypeDeclaration decl = new EnumTypeDeclaration(enumType.getName());
+            list3.put(enumType, decl);
+            enumType.getValues().forEach(value -> {
+              decl.numberToIdentifier.put(value.getNumber(), value.getName());
+            });
+          }
+        }
+      });
+    });
   }
 
   public String generateFieldLiterals() {
