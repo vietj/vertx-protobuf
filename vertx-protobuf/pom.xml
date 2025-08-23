@@ -129,6 +129,7 @@
                 </artifactItem>
               </artifactItems>
               <includes>google/protobuf/*.proto</includes>
+              <excludes>google/protobuf/java_features.proto</excludes>
               <outputDirectory>${project.build.directory}/proto</outputDirectory>
             </configuration>
           </execution>

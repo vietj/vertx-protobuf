@@ -16,14 +16,23 @@ public class SchemaGenerator {
   private final String javaPkgFqn;
   private final List<MessageTypeDeclaration> list;
   private final List<FieldDeclaration> list2;
+  private final List<EnumTypeDeclaration> list3;
 
   public SchemaGenerator(String javaPkgFqn) {
     this.javaPkgFqn = javaPkgFqn;
     this.list = new ArrayList<>();
     this.list2 = new ArrayList<>();
+    this.list3 = new ArrayList<>();
   }
 
-  public void init(Collection<Descriptors.Descriptor> fileDesc) {
+  public void init(Collection<Descriptors.Descriptor> fileDesc, Collection<Descriptors.EnumDescriptor> enums) {
+    enums.forEach(ed -> {
+      EnumTypeDeclaration decl = new EnumTypeDeclaration(Utils.literalIdentifier(ed), ed.getName());
+      list3.add(decl);
+      ed.getValues().forEach(value -> {
+        decl.numberToIdentifier.put(value.getNumber(), value.getName());
+      });
+    });
     Map<Descriptors.EnumDescriptor, EnumTypeDeclaration> list3 = new LinkedHashMap<>();
     fileDesc.forEach(messageType -> {
       list.add(new MessageTypeDeclaration(Utils.schemaIdentifier(messageType), messageType.getName()));
@@ -46,7 +55,7 @@ public class SchemaGenerator {
             typeExpr = "ScalarType.STRING";
             break;
           case ENUM:
-            typeExpr = Utils.javaTypeOfInternal(field) + ".TYPE";
+            typeExpr = Utils.extractJavaPkgFqn(field.getEnumType().getFile()) + ".EnumLiteral." + Utils.literalIdentifier(field.getEnumType());
             break;
           case BYTES:
             typeExpr = "ScalarType.BYTES";
@@ -88,18 +97,9 @@ public class SchemaGenerator {
             return;
         }
         list2.add(new FieldDeclaration(identifier, field.getName(), field.isMapField(), Utils.isMapKey(field), Utils.isMapValue(field), field.isRepeated(), field.isPacked(), field.getJsonName(), messageTypeRef, number, field.getContainingType().getName(), typeExpr));
-        if (field.getType() == Descriptors.FieldDescriptor.Type.ENUM) {
-          Descriptors.EnumDescriptor enumType = field.getEnumType();
-          if (!list3.containsKey(enumType)) {
-            EnumTypeDeclaration decl = new EnumTypeDeclaration(enumType.getName());
-            list3.put(enumType, decl);
-            enumType.getValues().forEach(value -> {
-              decl.numberToIdentifier.put(value.getNumber(), value.getName());
-            });
-          }
-        }
       });
     });
+
   }
 
   public String generateFieldLiterals() {
@@ -248,6 +248,75 @@ public class SchemaGenerator {
       writer.println("    MessageLiteral." + decl.messageName + ".byJsonName.put(\"" + decl.jsonName + "\", FieldLiteral." + decl.messageName + "_" + decl.name + ");");
       writer.println("    MessageLiteral." + decl.messageName + ".byName.put(\"" + decl.name + "\", FieldLiteral." + decl.messageName + "_" + decl.name + ");");
     }
+    writer.println("  }");
+    writer.println("}");
+
+    return writer.toString();
+  }
+
+  public String generateEnumLiterals() {
+    GenWriter writer = new GenWriter();
+
+    writer.println(
+      "package " + javaPkgFqn + ";",
+      "",
+      "import io.vertx.protobuf.schema.Schema;",
+      "import io.vertx.protobuf.schema.DefaultSchema;",
+      "import io.vertx.protobuf.schema.MessageType;",
+      "import io.vertx.protobuf.schema.DefaultMessageType;",
+      "import io.vertx.protobuf.schema.ScalarType;",
+      "import io.vertx.protobuf.schema.EnumType;",
+      "import io.vertx.protobuf.schema.DefaultEnumType;",
+      "import io.vertx.protobuf.schema.Field;",
+      "import java.util.Map;",
+      "import java.util.HashMap;",
+      "import java.util.OptionalInt;",
+      "",
+      "public enum EnumLiteral implements EnumType {",
+      "");
+
+    writer.print("  ");
+    for (Iterator<EnumTypeDeclaration> it = list3.iterator(); it.hasNext(); ) {
+      EnumTypeDeclaration decl = it.next();
+      writer.print(decl.identifier + "()");
+      if (it.hasNext()) {
+        writer.println(",");
+        writer.print("  ");
+      }
+    }
+    writer.println(";");
+
+    writer.println("  private final Map<String, Integer> numberByName = new HashMap<>();");
+    writer.println("  private final Map<Integer, String> nameByNumber = new HashMap<>();");
+    writer.println("  EnumLiteral() {");
+    writer.println("  }");
+//    writer.println("  public Field field(int number) {");
+//    writer.println("    return byNumber.get(number);");
+//    writer.println("  }");
+//    writer.println("  public Field fieldByJsonName(String name) {");
+//    writer.println("    return byJsonName.get(name);");
+//    writer.println("  }");
+//    writer.println("  public Field fieldByName(String name) {");
+//    writer.println("    return byName.get(name);");
+//    writer.println("  }");
+    writer.println("  public OptionalInt numberOf(String name) {");
+    writer.println("    Integer number = numberByName.get(name);");
+    writer.println("    return number == null ? OptionalInt.empty() : OptionalInt.of(number);");
+    writer.println("  }");
+    writer.println("  public String nameOf(int number) {");
+    writer.println("    return nameByNumber.get(number);");
+    writer.println("  }");
+    writer.println("  static {");
+    for (EnumTypeDeclaration decl : list3) {
+      for (Map.Entry<Integer, String> entry : decl.numberToIdentifier.entrySet()) {
+        writer.println("    EnumLiteral." + decl.identifier + ".nameByNumber.put(" + entry.getKey() + ", \"" + entry.getValue() + "\");");
+        writer.println("    EnumLiteral." + decl.identifier + ".numberByName.put(\"" + entry.getValue() + "\", " + entry.getKey() + ");");
+      }
+    }
+//      writer.println("    MessageLiteral." + decl.messageName + ".byNumber.put(" + decl.number + ", FieldLiteral." + decl.messageName + "_" + decl.name + ");");
+//      writer.println("    MessageLiteral." + decl.messageName + ".byJsonName.put(\"" + decl.jsonName + "\", FieldLiteral." + decl.messageName + "_" + decl.name + ");");
+//      writer.println("    MessageLiteral." + decl.messageName + ".byName.put(\"" + decl.name + "\", FieldLiteral." + decl.messageName + "_" + decl.name + ");");
+//    }
     writer.println("  }");
     writer.println("}");
 

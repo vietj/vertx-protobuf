@@ -183,7 +183,7 @@ public class VertxGrpcGeneratorImpl extends Generator {
 //      files.add(new SchemaGenerator(javaPkgFqn, new ArrayList<>(messages.values())).generate());
 
       SchemaGenerator generator = new SchemaGenerator(javaPkgFqn);
-      generator.init(messages.values());
+      generator.init(messages.values(), enums);
       files.addAll(generate(javaPkgFqn, generator));
 
       files.add(new ProtoReaderGenerator(javaPkgFqn, new ArrayList<>(messages.values())).generate());
@@ -204,6 +204,12 @@ public class VertxGrpcGeneratorImpl extends Generator {
         .newBuilder()
         .setName(Utils.absoluteFileName(javaPkgFqn, "MessageLiteral"))
         .setContent(schemaGenerator.generateMessageLiterals())
-        .build());
+        .build(),
+      PluginProtos.CodeGeneratorResponse.File
+        .newBuilder()
+        .setName(Utils.absoluteFileName(javaPkgFqn, "EnumLiteral"))
+        .setContent(schemaGenerator.generateEnumLiterals())
+        .build()
+    );
   }
 }

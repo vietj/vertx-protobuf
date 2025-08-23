@@ -16,9 +16,3 @@ message SimpleMessage {
   map<string, string> map_string_string = 6;
   map<string, int32> map_string_int32 = 7;
 }
-
-enum Colors {
-  red = 0;
-  green = 1;
-  blue = 2;
-}

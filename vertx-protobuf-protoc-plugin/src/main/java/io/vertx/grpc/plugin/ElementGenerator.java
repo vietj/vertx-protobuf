@@ -289,20 +289,9 @@ class ElementGenerator {
 
       writer.println(
         "",
-        "  public static final io.vertx.protobuf.schema.EnumType TYPE = new io.vertx.protobuf.schema.DefaultEnumType()");
-      for (Iterator<Descriptors.EnumValueDescriptor> it = descriptor.getValues().iterator();it.hasNext();) {
-        Descriptors.EnumValueDescriptor v = it.next();
-        if (it.hasNext()) {
-          writer.println("    .addValue(" + v.getNumber() + ", \"" + v.getName() + "\")");
-        } else {
-          writer.println("    .addValue(" + v.getNumber() + ", \"" + v.getName() + "\");");
-        }
-      }
-      writer.println(
-        "",
         "",
         "  public static " + descriptor.getName() + " valueOf(int number) {",
-        "    String name = TYPE.nameOf(number);",
+        "    String name = " + Utils.extractJavaPkgFqn(descriptor.getFile()) + ".EnumLiteral." + Utils.literalIdentifier(descriptor) + ".nameOf(number);",
         "    if (name != null) {",
         "      return Enum.valueOf(name);",
         "    } else {",

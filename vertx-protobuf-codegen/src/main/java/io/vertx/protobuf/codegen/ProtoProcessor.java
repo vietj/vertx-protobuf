@@ -28,6 +28,7 @@ import javax.tools.JavaFileObject;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -171,7 +172,7 @@ public class ProtoProcessor extends AbstractProcessor {
     for (Descriptors.FileDescriptor p : protos) {
       String javaPkg = p.getOptions().getJavaPackage();
       SchemaGenerator schemaGenerator = new SchemaGenerator(javaPkg);
-      schemaGenerator.init(p.getMessageTypes());
+      schemaGenerator.init(p.getMessageTypes(), Collections.emptyList());
       try {
         Filer filer = processingEnv.getFiler();
         JavaFileObject messageLiteralsFile = filer.createSourceFile(javaPkg + ".MessageLiteral");

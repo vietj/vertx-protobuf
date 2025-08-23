@@ -1,4 +1,4 @@
-package test.proto;
+package io.vertx.protobuf.it;
 
 import io.vertx.protobuf.schema.Schema;
 import io.vertx.protobuf.schema.DefaultSchema;

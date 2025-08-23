@@ -71,6 +71,14 @@ public class Utils {
     return literalIdentifier(field.getContainingType()) + "_" + field.getName();
   }
 
+  public static String literalIdentifier(Descriptors.EnumDescriptor enumDesc) {
+    if (enumDesc.getContainingType() != null) {
+      return literalIdentifier(enumDesc.getContainingType()) + "_" + enumDesc.getName();
+    } else {
+      return enumDesc.getName();
+    }
+  }
+
   public static String schemaIdentifier(Descriptors.Descriptor type) {
     return type.getName().toUpperCase();
   }
