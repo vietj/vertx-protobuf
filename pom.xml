@@ -82,6 +82,7 @@
     <module>vertx-protobuf-protoc-plugin</module>
     <module>vertx-protobuf</module>
     <module>vertx-protobuf-codegen</module>
+    <module>vertx-protobuf-it</module>
   </modules>
 
   <build>
