@@ -6,9 +6,7 @@ public interface Field {
   int number();
   Type type();
   boolean isRepeated();
-  default boolean isMap() {
-    return false;
-  }
+  boolean isMap();
   boolean isMapKey();
   boolean isMapValue();
   boolean isPacked();

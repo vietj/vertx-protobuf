@@ -5,11 +5,3 @@ package io.vertx.tests.schema;
 option java_package = "io.vertx.tests.protobuf.schema";
 option java_outer_classname = "Test";
 option java_multiple_files = true;
-
-message EnclosingMessage {
-  message EnclosedMessage {
-  }
-  enum EnclosedEnum {
-    foo = 0;
-  }
-}

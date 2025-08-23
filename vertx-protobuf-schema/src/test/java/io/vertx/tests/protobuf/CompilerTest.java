@@ -6,8 +6,6 @@ import io.vertx.protobuf.schema.Field;
 import io.vertx.protobuf.schema.MessageType;
 import io.vertx.protobuf.schema.ScalarType;
 import io.vertx.protobuf.schema.SchemaCompiler;
-import io.vertx.protobuf.schema.Type;
-import io.vertx.protobuf.schema.TypeID;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -20,8 +18,6 @@ public class CompilerTest {
     MessageType struct = new SchemaCompiler().compile(Struct.getDescriptor());
 
     assertEquals("Struct", struct.name());
-    assertEquals("google.protobuf", struct.packageName());
-    assertEquals("com.google.protobuf", struct.javaPackageName());
 
     Field fieldsField = struct.field(1);
     assertEquals(1, fieldsField.number());
@@ -76,8 +72,6 @@ public class CompilerTest {
     assertSame(value, nullValueField.owner());
 
     EnumType nullValueEnum = (EnumType) nullValueField.type();
-    assertEquals("google.protobuf", nullValueEnum.packageName());
-    assertEquals("com.google.protobuf", nullValueEnum.javaPackageName());
     assertEquals("NullValue", nullValueEnum.name());
     assertEquals("NULL_VALUE", nullValueEnum.nameOf(0));
 

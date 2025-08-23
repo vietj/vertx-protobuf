@@ -11,47 +11,16 @@ import java.util.function.Consumer;
 public class DefaultMessageType implements MessageType {
 
   private final String name;
-  private final String packageName;
-  private final String javaPackageName;
   private final Map<Integer, DefaultField> fields = new TreeMap<>();
   private final Map<String, DefaultField> byName = new HashMap<>();
   private final Map<String, DefaultField> byJsonName = new HashMap<>();
-  private DefaultMessageType enclosingType;
 
   public DefaultMessageType(String name) {
     this.name = name;
-    this.packageName = null;
-    this.javaPackageName = null;
-  }
-
-  public DefaultMessageType(String name, String packageName, String javaPackageName) {
-    this.name = name;
-    this.packageName = packageName;
-    this.javaPackageName = javaPackageName;
-  }
-
-  @Override
-  public String packageName() {
-    return packageName;
-  }
-
-  @Override
-  public String javaPackageName() {
-    return javaPackageName;
   }
 
   public String name() {
     return name;
-  }
-
-  public DefaultMessageType enclosingType(DefaultMessageType enclosingType) {
-    this.enclosingType = enclosingType;
-    return this;
-  }
-
-  @Override
-  public MessageType enclosingType() {
-    return enclosingType;
   }
 
   @Override

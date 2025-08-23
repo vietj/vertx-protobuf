@@ -27,11 +27,8 @@ public class SchemaCompiler {
   public DefaultEnumType compile(Descriptors.EnumDescriptor enumDesc) {
     DefaultEnumType enumType = enumMap.get(enumDesc);
     if (enumType == null) {
-      enumType = new DefaultEnumType(enumDesc.getName(), enumDesc.getFile().getPackage(), enumDesc.getFile().getOptions().getJavaPackage());
+      enumType = new DefaultEnumType(enumDesc.getName());
       enumMap.put(enumDesc, enumType);
-      if (enumDesc.getContainingType() != null) {
-        enumType.enclosingElement(compile(enumDesc.getContainingType()));
-      }
       for (Descriptors.EnumValueDescriptor enumValueDesc : enumDesc.getValues()) {
         enumType.addValue(enumValueDesc.getNumber(), enumValueDesc.getName());
       }
@@ -47,10 +44,7 @@ public class SchemaCompiler {
   public DefaultMessageType compile(Descriptors.Descriptor typeDesc) {
     DefaultMessageType messageType = typeMap.get(typeDesc);
     if (messageType == null) {
-      messageType = new DefaultMessageType(
-        typeDesc.getName(),
-        typeDesc.getFile().getPackage(),
-        typeDesc.getFile().getOptions().getJavaPackage());
+      messageType = new DefaultMessageType(typeDesc.getName());
       typeMap.put(typeDesc, messageType);
       for (Descriptors.FieldDescriptor field : typeDesc.getFields()) {
         Type type;
@@ -88,9 +82,6 @@ public class SchemaCompiler {
           builder.number(field.getNumber());
           builder.packed(field.isPacked());
         });
-      }
-      if (typeDesc.getContainingType() != null) {
-        messageType.enclosingType(compile(typeDesc.getContainingType()));
       }
     }
     return messageType;
