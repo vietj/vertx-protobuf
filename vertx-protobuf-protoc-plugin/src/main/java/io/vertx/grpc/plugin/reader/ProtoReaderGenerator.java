@@ -253,7 +253,7 @@ public class ProtoReaderGenerator {
     for (Descriptors.Descriptor messageType : fileDesc) {
       out.println(
         "        case " + Utils.literalIdentifier(messageType) + ": {",
-        "          stack.push(new " + Utils.javaTypeOf(messageType) + "().init());",
+        "          stack.push(new " + Utils.javaTypeOf(messageType) + "());",
         "          break;",
         "        }");
     }
@@ -395,7 +395,7 @@ public class ProtoReaderGenerator {
           } else {
             if (field.repeated) {
               String initExpression = field.javaTypeInternal;
-              out.println("          " + initExpression + " v = " + "new " + initExpression + "().init()" + ";");
+              out.println("          " + initExpression + " v = " + "new " + initExpression + "()" + ";");
             } else {
               String initExpression = field.javaType;
               out.println("          " + field.containingJavaType + " container = (" + field.containingJavaType + ")stack.peek();");
@@ -407,7 +407,7 @@ public class ProtoReaderGenerator {
                 out.println("          v = container." + field.getterMethod + "();");
               }
               out.println("          if (v == null) {");
-              out.println("            v = " + "new " + initExpression + "().init()" + ";");
+              out.println("            v = " + "new " + initExpression + "()" + ";");
               out.println("          }");
             }
             out.println("          stack.push(v);");
@@ -450,7 +450,7 @@ public class ProtoReaderGenerator {
           if (field.mapValueType == Descriptors.FieldDescriptor.Type.MESSAGE) {
             out.println(
               "          if (value == null) {",
-              "            value = new " + field.mapValueJavaType + "().init();",
+              "            value = new " + field.mapValueJavaType + "();",
               "}");
           }
           out.println("          " + field.containingJavaType + " container = (" + field.containingJavaType + ")stack.peek();",

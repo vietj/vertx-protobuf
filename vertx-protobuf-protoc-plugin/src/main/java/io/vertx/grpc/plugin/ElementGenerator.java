@@ -117,14 +117,14 @@ class ElementGenerator {
       oneOfs.forEach(oneOf -> {
         writer.println("  private " + Utils.nameOf(oneOf) + "<?> " + oneOf.getName() + ";");
       });
-      writer.println("  public " + descriptor.getName() + " init() {\r\n");
+//      writer.println("  public " + descriptor.getName() + " init() {\r\n");
 //      fields.forEach(field -> {
 //        if (field.getType() == Descriptors.FieldDescriptor.Type.ENUM && !field.isRepeated()) {
 //          writer.println("    this." + field.getJsonName() + " = " + Utils.javaTypeOf(field) + ".valueOf(0);");
 //        }
 //      });
-      writer.println("    return this;");
-      writer.println("  }");
+//      writer.println("    return this;");
+//      writer.println("  }");
       fields.forEach(field -> {
         String javaType = Utils.javaTypeOf(field);
         if (javaType != null) {
