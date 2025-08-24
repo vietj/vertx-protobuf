@@ -13,6 +13,7 @@ open module io.vertx.tests {
   requires io.vertx.core;
   requires io.vertx.protobuf;
   requires io.vertx.protobuf.schema;
+  requires io.vertx.protobuf.lang;
   requires io.vertx.protobuf.extension;
   requires junit;
   requires com.google.protobuf;

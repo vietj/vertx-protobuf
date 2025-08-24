@@ -12,6 +12,7 @@ module io.vertx.protobuf {
 
   requires io.vertx.core;
   requires io.vertx.protobuf.schema;
+  requires io.vertx.protobuf.lang;
   requires com.google.protobuf;
   requires com.google.protobuf.util;
   requires io.netty.codec;

@@ -13,6 +13,7 @@ import org.junit.Test;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.Assert.*;
@@ -95,7 +96,7 @@ public class UnknownTest {
     ProtoReader reader = new ProtoReader();
     ProtobufReader.parse(MessageLiteral.Message, reader, Buffer.buffer(bytes));
     Message msg = (Message) reader.stack.pop();
-    assertNotNull(msg.unknownFields);
+    assertNotNull(msg.unknownFields());
     assertEquals(Map.of(
       MessageLiteral.Message.unknownField(2, WireType.LEN), Collections.singletonList(Buffer.buffer("Hello")),
       MessageLiteral.Message.unknownField(3, WireType.LEN), Collections.singletonList(Buffer.buffer("World")),
@@ -103,10 +104,18 @@ public class UnknownTest {
       MessageLiteral.Message.unknownField(5, WireType.I32), Collections.singletonList(17),
       MessageLiteral.Message.unknownField(6, WireType.VARINT), Collections.singletonList(18L)
     )
-      , msg.unknownFields);
+      , toMap(msg.unknownFields()));
     bytes = ProtobufWriter.encodeToByteArray(visitor -> ProtoWriter.emit(msg, visitor));
     UnknownProto.Message protoMsg = UnknownProto.Message.parseFrom(bytes);
     String stringUtf8 = protoMsg.getUnknownFields().getField(2).getLengthDelimitedList().get(0).toStringUtf8();
     assertEquals("Hello", stringUtf8);
+  }
+
+  private static <K, V> Map<K, V> toMap(Iterable<Map.Entry<K, V>> entries) {
+    Map<K, V> map = new HashMap<>();
+    entries.forEach(entry -> {
+      map.put(entry.getKey(), entry.getValue());
+    });
+    return map;
   }
 }
