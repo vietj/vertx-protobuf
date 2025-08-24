@@ -340,7 +340,7 @@ public class ProtoReaderGenerator {
       if (visitMethod.allowsUnkown) {
         out.println(
           "    } else if (field.isUnknown()) {",
-          "      " + javaPkgFqn + ".MessageBase base = (" + javaPkgFqn + ".MessageBase)stack.peek();");
+          "      io.vertx.protobuf.lang.MessageBase base = (io.vertx.protobuf.lang.MessageBase)stack.peek();");
         switch (visitMethod.type) {
           case BYTES:
             out.println("      base.unknownField(field).add(io.vertx.core.buffer.Buffer.buffer(value));");

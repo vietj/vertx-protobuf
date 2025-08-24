@@ -243,9 +243,9 @@ class ProtoWriterGenerator {
       }
 
       content.println(
-        "    java.util.Map<io.vertx.protobuf.schema.Field, java.util.List<Object>> unknownFields = value.unknownFields;",
+        "    java.lang.Iterable<java.util.Map.Entry<io.vertx.protobuf.schema.Field, java.util.List<Object>>> unknownFields = value.unknownFields();",
         "    if (unknownFields != null) {",
-        "      for (java.util.Map.Entry<io.vertx.protobuf.schema.Field, java.util.List<Object>> unknownField : unknownFields.entrySet()) {",
+        "      for (java.util.Map.Entry<io.vertx.protobuf.schema.Field, java.util.List<Object>> unknownField : unknownFields) {",
         "        for (Object o : unknownField.getValue()) {",
         "          io.vertx.protobuf.schema.Field field = unknownField.getKey();",
         "          switch (field.type().wireType()) {",

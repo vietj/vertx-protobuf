@@ -7,11 +7,11 @@ public class EnumTypeDeclaration {
 
   public final String identifier;
   public final String name;
-  public final Map<Integer, String> numberToIdentifier;
+  public final Map<String, Integer> identifierToNumber;
 
   public EnumTypeDeclaration(String identifier, String name) {
     this.identifier = identifier;
     this.name = name;
-    this.numberToIdentifier = new LinkedHashMap<>();
+    this.identifierToNumber = new LinkedHashMap<>();
   }
 }

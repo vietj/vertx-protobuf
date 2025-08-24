@@ -1,6 +1,1 @@
 Required.Proto3.JsonInput.EnumFieldWithAlias.JsonOutput # Failed to parse input or produce output.
-Required.Proto3.JsonInput.EnumFieldWithAlias.ProtobufOutput # Failed to parse input or produce output.
-Required.Proto3.JsonInput.EnumFieldWithAliasLowerCase.JsonOutput # Failed to parse input or produce output.
-Required.Proto3.JsonInput.EnumFieldWithAliasLowerCase.ProtobufOutput # Failed to parse input or produce output.
-Required.Proto3.JsonInput.EnumFieldWithAliasUseAlias.JsonOutput # Failed to parse input or produce output.
-Required.Proto3.JsonInput.EnumFieldWithAliasUseAlias.ProtobufOutput # Failed to parse input or produce output.

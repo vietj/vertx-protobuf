@@ -11,7 +11,7 @@ import io.vertx.protobuf.schema.Field;
 
 public enum MessageLiteral implements MessageType {
 
-    SimpleMessage("SimpleMessage");
+  SimpleMessage("SimpleMessage");
   final java.util.Map<Integer, FieldLiteral> byNumber;
   final java.util.Map<String, FieldLiteral> byJsonName;
   final java.util.Map<String, FieldLiteral> byName;

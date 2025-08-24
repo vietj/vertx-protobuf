@@ -55,11 +55,10 @@ public class ConformanceTest {
 
   }
 
-  @Ignore
   @Test
   public void testJsonInput() throws Exception {
 
-    String json = "{\"optionalNestedEnum\": 123}";
+    String json = "{\"optionalAliasedEnum\": \"ALIAS_BAZ\"}";
 
 /*
     json = "{\n" +

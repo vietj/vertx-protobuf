@@ -30,7 +30,7 @@ public class SchemaGenerator {
       EnumTypeDeclaration decl = new EnumTypeDeclaration(Utils.literalIdentifier(ed), ed.getName());
       list3.add(decl);
       ed.getValues().forEach(value -> {
-        decl.numberToIdentifier.put(value.getNumber(), value.getName());
+        decl.identifierToNumber.put(value.getName(), value.getNumber());
       });
     });
     fileDesc.forEach(messageType -> {
@@ -119,9 +119,10 @@ public class SchemaGenerator {
       "public enum FieldLiteral implements Field {",
       "");
 
+    writer.print("  ");
     for (Iterator<FieldDeclaration> it = list2.iterator(); it.hasNext(); ) {
       FieldDeclaration decl = it.next();
-      writer.print("  " + decl.identifier + "(" +
+      writer.print(decl.identifier + "(" +
         decl.number + ", " +
         decl.map + ", " +
         decl.mapKey + ", " +
@@ -134,10 +135,10 @@ public class SchemaGenerator {
       );
       if (it.hasNext()) {
         writer.println(",");
-      } else {
-        writer.println(";");
+        writer.print("  ");
       }
     }
+    writer.println(";");
 
     writer.println("  private MessageLiteral owner;");
     writer.println("  private io.vertx.protobuf.schema.Type type;");
@@ -215,15 +216,16 @@ public class SchemaGenerator {
       "public enum MessageLiteral implements MessageType {",
       "");
 
+    writer.print("  ");
     for (Iterator<MessageTypeDeclaration> it = list.iterator(); it.hasNext(); ) {
       MessageTypeDeclaration decl = it.next();
-      writer.print("    " + decl.identifier + "(\"" + decl.name + "\")");
+      writer.print(decl.identifier + "(\"" + decl.name + "\")");
       if (it.hasNext()) {
         writer.println(",");
-      } else {
-        writer.println(";");
+        writer.print("  ");
       }
     }
+    writer.println(";");
     writer.println("  final java.util.Map<Integer, FieldLiteral> byNumber;");
     writer.println("  final java.util.Map<String, FieldLiteral> byJsonName;");
     writer.println("  final java.util.Map<String, FieldLiteral> byName;");
@@ -307,9 +309,9 @@ public class SchemaGenerator {
     writer.println("  }");
     writer.println("  static {");
     for (EnumTypeDeclaration decl : list3) {
-      for (Map.Entry<Integer, String> entry : decl.numberToIdentifier.entrySet()) {
-        writer.println("    EnumLiteral." + decl.identifier + ".nameByNumber.put(" + entry.getKey() + ", \"" + entry.getValue() + "\");");
-        writer.println("    EnumLiteral." + decl.identifier + ".numberByName.put(\"" + entry.getValue() + "\", " + entry.getKey() + ");");
+      for (Map.Entry<String, Integer> entry : decl.identifierToNumber.entrySet()) {
+        writer.println("    EnumLiteral." + decl.identifier + ".nameByNumber.put(" + entry.getValue() + ", \"" + entry.getKey() + "\");");
+        writer.println("    EnumLiteral." + decl.identifier + ".numberByName.put(\"" + entry.getKey() + "\", " + entry.getValue() + ");");
       }
     }
 //      writer.println("    MessageLiteral." + decl.messageName + ".byNumber.put(" + decl.number + ", FieldLiteral." + decl.messageName + "_" + decl.name + ");");

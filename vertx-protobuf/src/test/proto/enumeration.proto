@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package io.vertx.tests.protobuf.enumeration;
+
+option java_package = "io.vertx.tests.protobuf.enumeration";
+option java_outer_classname = "EnumerationProto";
+
+enum EnumWithAliases {
+  option allow_alias = true;
+  ZERO = 0;
+  ONE = 1;
+  TWO = 2;
+  UNO = 1;
+  DOS = 2;
+}
