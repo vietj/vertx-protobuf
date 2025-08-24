@@ -19,47 +19,47 @@ public class Utils {
     return descriptor.getFields().stream().filter(field -> field.getRealContainingOneof() == null).collect(Collectors.toList());
   }
 
-  static boolean isStruct(Descriptors.FieldDescriptor desc) {
+  public static boolean isStruct(Descriptors.FieldDescriptor desc) {
     return desc.getType() == Descriptors.FieldDescriptor.Type.MESSAGE && desc.getMessageType().getFullName().equals("google.protobuf.Struct");
   }
 
-  static boolean isStruct(Descriptors.Descriptor desc) {
+  public static boolean isStruct(Descriptors.Descriptor desc) {
     return desc.getFullName().equals("google.protobuf.Struct");
   }
 
-  static boolean isDuration(Descriptors.Descriptor desc) {
+  public static boolean isDuration(Descriptors.Descriptor desc) {
     return desc.getFullName().equals("google.protobuf.Duration");
   }
 
-  static boolean isTimestamp(Descriptors.Descriptor desc) {
+  public static boolean isTimestamp(Descriptors.Descriptor desc) {
     return desc.getFullName().equals("google.protobuf.Timestamp");
   }
 
-  static boolean useJsonObject(Descriptors.FileDescriptor fd) {
+  public static boolean useJsonObject(Descriptors.FileDescriptor fd) {
     return fd.getOptions().getExtension(VertxProto.vertxJsonObject);
   }
 
-  static boolean useDuration(Descriptors.FileDescriptor fd) {
+  public static boolean useDuration(Descriptors.FileDescriptor fd) {
     return fd.getOptions().getExtension(VertxProto.vertxDuration);
   }
 
-  static boolean useTimestamp(Descriptors.FileDescriptor fd) {
+  public static boolean useTimestamp(Descriptors.FileDescriptor fd) {
     return fd.getOptions().getExtension(VertxProto.vertxTimestamp);
   }
 
-  static String setterOf(Descriptors.FieldDescriptor field) {
+  public static String setterOf(Descriptors.FieldDescriptor field) {
     return "set" + Character.toUpperCase(field.getJsonName().charAt(0)) + field.getJsonName().substring(1);
   }
 
-  static String getterOf(Descriptors.FieldDescriptor field) {
+  public static String getterOf(Descriptors.FieldDescriptor field) {
     return "get" + Character.toUpperCase(field.getJsonName().charAt(0)) + field.getJsonName().substring(1);
   }
 
-  static String setterOf(Descriptors.OneofDescriptor oneOf) {
+  public static String setterOf(Descriptors.OneofDescriptor oneOf) {
     return "set" + nameOf(oneOf);
   }
 
-  static String getterOf(Descriptors.OneofDescriptor oneOf) {
+  public static String getterOf(Descriptors.OneofDescriptor oneOf) {
     return "get" + nameOf(oneOf);
   }
 
@@ -136,25 +136,25 @@ public class Utils {
     return Character.toUpperCase(name.charAt(0)) + name.substring(1);
   }
 
-  static String oneOfTypeName(Descriptors.FieldDescriptor descriptor) {
+  public static String oneOfTypeName(Descriptors.FieldDescriptor descriptor) {
     String name = descriptor.getJsonName();
     return Character.toUpperCase(name.charAt(0)) + name.substring(1);
   }
 
-  static String javaTypeOf(Descriptors.OneofDescriptor mt) {
+  public static String javaTypeOf(Descriptors.OneofDescriptor mt) {
     return javaTypeOf(mt.getContainingType()) + "." + nameOf(mt);
   }
 
-  static String javaTypeOf(Descriptors.Descriptor mt) {
+  public static String javaTypeOf(Descriptors.Descriptor mt) {
     String pkg = extractJavaPkgFqn(mt.getFile());
     return pkg + "." + simpleNameOf(mt);
   }
 
-  static Descriptors.EnumValueDescriptor defaultEnumValue(Descriptors.EnumDescriptor desc) {
+  public static Descriptors.EnumValueDescriptor defaultEnumValue(Descriptors.EnumDescriptor desc) {
     return desc.getValues().stream().filter(vd -> vd.getIndex() == 0).findAny().get();
   }
 
-  static String javaTypeOf(Descriptors.FieldDescriptor field) {
+  public static String javaTypeOf(Descriptors.FieldDescriptor field) {
     if (field.isMapField()) {
       String keyType = javaTypeOf(field.getMessageType().getFields().get(0));
       String valueType = javaTypeOf(field.getMessageType().getFields().get(1));

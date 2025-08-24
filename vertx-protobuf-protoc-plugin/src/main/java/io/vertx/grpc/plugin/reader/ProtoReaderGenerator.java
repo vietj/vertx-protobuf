@@ -1,7 +1,9 @@
-package io.vertx.grpc.plugin;
+package io.vertx.grpc.plugin.reader;
 
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.compiler.PluginProtos;
+import io.vertx.grpc.plugin.GenWriter;
+import io.vertx.grpc.plugin.Utils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -10,7 +12,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-class ProtoReaderGenerator {
+public class ProtoReaderGenerator {
 
   private final String javaPkgFqn;
   private final List<Descriptors.Descriptor> fileDesc;
@@ -61,7 +63,7 @@ class ProtoReaderGenerator {
     public String oneOfJavaType;
   }
 
-  public PluginProtos.CodeGeneratorResponse.File generate() {
+  public String generate() {
 
     List<FieldDescriptor> collected = new ArrayList<>();
 
@@ -574,10 +576,6 @@ class ProtoReaderGenerator {
 
     out.println("}");
 
-    return PluginProtos.CodeGeneratorResponse.File
-      .newBuilder()
-      .setName(Utils.absoluteFileName(javaPkgFqn, "ProtoReader"))
-      .setContent(out.toString())
-      .build();
+    return out.toString();
   }
 }

@@ -26,15 +26,12 @@ import com.google.protobuf.WrappersProto;
 import com.google.protobuf.compiler.PluginProtos;
 import com.salesforce.jprotoc.Generator;
 import com.salesforce.jprotoc.GeneratorException;
-import io.vertx.grpc.plugin.schema.EnumTypeDeclaration;
-import io.vertx.grpc.plugin.schema.FieldDeclaration;
-import io.vertx.grpc.plugin.schema.MessageTypeDeclaration;
+import io.vertx.grpc.plugin.reader.ProtoReaderGenerator;
 import io.vertx.grpc.plugin.schema.SchemaGenerator;
 import io.vertx.protobuf.extension.VertxProto;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -186,11 +183,19 @@ public class VertxGrpcGeneratorImpl extends Generator {
       generator.init(messages.values(), enums);
       files.addAll(generate(javaPkgFqn, generator));
 
-      files.add(new ProtoReaderGenerator(javaPkgFqn, new ArrayList<>(messages.values())).generate());
+      files.add(generate(javaPkgFqn, new ProtoReaderGenerator(javaPkgFqn, new ArrayList<>(messages.values()))));
       files.add(new ProtoWriterGenerator(javaPkgFqn, new ArrayList<>(messages.values())).generate());
     });
 
     return files;
+  }
+
+  private PluginProtos.CodeGeneratorResponse.File generate(String javaPkgFqn, ProtoReaderGenerator readerGenerator) {
+    return PluginProtos.CodeGeneratorResponse.File
+      .newBuilder()
+      .setName(Utils.absoluteFileName(javaPkgFqn, "ProtoReader"))
+      .setContent(readerGenerator.generate())
+      .build();
   }
 
   private List<PluginProtos.CodeGeneratorResponse.File> generate(String javaPkgFqn, SchemaGenerator schemaGenerator) {
