@@ -9,7 +9,10 @@ import io.vertx.protobuf.schema.ScalarType;
 import io.vertx.protobuf.schema.TypeID;
 import io.vertx.protobuf.tests.codegen.simple.DataTypes;
 import io.vertx.protobuf.tests.codegen.simple.TestEnum;
+import junit.framework.AssertionFailedError;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestName;
 
 import javax.tools.Diagnostic;
 import javax.tools.DiagnosticListener;
@@ -23,20 +26,48 @@ import static org.junit.Assert.assertTrue;
 
 public class ProcessorTest {
 
-  @Test
-  public void testDataTypes() throws Exception {
+  @Rule
+  public TestName name = new TestName();
+
+  private File compile(Class<?>... types) {
+    String sprop = System.getProperty("maven.project.build.directory");
+    if (sprop == null) {
+      throw new AssertionFailedError("Was expecting maven.project.build.directory system property to be set");
+    }
+    File target = new File(sprop);
+    if (!target.exists() || !target.isDirectory()) {
+      throw new AssertionFailedError();
+    }
+    File sourceOutput;
+    for (int i = 0;;i++) {
+      sourceOutput = new File(target, "tests-" + name.getMethodName() + i);
+      if (!sourceOutput.exists()) {
+        if (!sourceOutput.mkdirs()) {
+          throw new AssertionFailedError();
+        }
+        break;
+      }
+    }
     Compiler compiler = new Compiler(new ProtoProcessor(), new DiagnosticListener<JavaFileObject>() {
       @Override
       public void report(Diagnostic<? extends JavaFileObject> diagnostic) {
-        System.out.println(diagnostic.getMessage(null));;
+        System.out.println(diagnostic.getMessage(null));
       }
     });
+    compiler.setSourceOutput(sourceOutput);
     try {
-      assertTrue(compiler.compile(DataTypes.class, TestEnum.class));
-    } finally {
-//      System.out.println(compiler.getSourceOutput());
+      assertTrue(compiler.compile(types));
+    } catch (Exception e) {
+      AssertionFailedError afe = new AssertionFailedError();
+      afe.initCause(e);
+      throw afe;
     }
-    File dir = compiler.getClassOutput();
+    return compiler.getClassOutput();
+  }
+
+  @Test
+  public void testDataTypes() throws Exception {
+    File dir = compile(DataTypes.class, TestEnum.class);
     assertTrue(new File(dir, DataTypes.class.getPackageName().replace('.', File.separatorChar) + File.separator + "MessageLiteral.class").exists());
     URL url = dir.toURI().toURL();
     ClassLoader loader = new URLClassLoader(new URL[] {url}, Thread.currentThread().getContextClassLoader());
