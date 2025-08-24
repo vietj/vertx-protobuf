@@ -2,6 +2,7 @@ package io.vertx.protobuf.codegen;
 
 import com.google.protobuf.DescriptorProtos;
 import com.google.protobuf.Descriptors;
+import io.vertx.grpc.plugin.reader.ProtoReaderGenerator;
 import io.vertx.grpc.plugin.schema.SchemaGenerator;
 import io.vertx.protobuf.annotations.ProtoEnum;
 import io.vertx.protobuf.annotations.ProtoField;
@@ -173,11 +174,13 @@ public class ProtoProcessor extends AbstractProcessor {
       String javaPkg = p.getOptions().getJavaPackage();
       SchemaGenerator schemaGenerator = new SchemaGenerator(javaPkg);
       schemaGenerator.init(p.getMessageTypes(), p.getEnumTypes());
+      ProtoReaderGenerator protoReaderGenerator = new ProtoReaderGenerator(javaPkg, true, p.getMessageTypes());
       try {
         Filer filer = processingEnv.getFiler();
         JavaFileObject messageLiteralFile = filer.createSourceFile(javaPkg + ".MessageLiteral");
         JavaFileObject fieldLiteralFile = filer.createSourceFile(javaPkg + ".FieldLiteral");
         JavaFileObject enumLiteralFile = filer.createSourceFile(javaPkg + ".EnumLiteral");
+        JavaFileObject protoReaderFile = filer.createSourceFile(javaPkg + ".ProtoReader");
         try (Writer writer = messageLiteralFile.openWriter()) {
           writer.write(schemaGenerator.generateMessageLiterals());
         }
@@ -186,6 +189,9 @@ public class ProtoProcessor extends AbstractProcessor {
         }
         try (Writer writer = enumLiteralFile.openWriter()) {
           writer.write(schemaGenerator.generateEnumLiterals());
+        }
+        try (Writer writer = protoReaderFile.openWriter()) {
+          writer.write(protoReaderGenerator.generate());
         }
       } catch (IOException e) {
         throw new RuntimeException(e);

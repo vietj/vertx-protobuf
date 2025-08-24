@@ -1,7 +1,7 @@
 package io.vertx.protobuf.it;
 
-import io.vertx.protobuf.annotations.ProtoField;
-import io.vertx.protobuf.annotations.ProtoMessage;
+import io.vertx.protobuf.lang.ProtoField;
+import io.vertx.protobuf.lang.ProtoMessage;
 
 @ProtoMessage
 public class SimpleMessage {

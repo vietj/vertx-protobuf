@@ -38,7 +38,12 @@
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
-      <artifactId>vertx-protobuf-annotations</artifactId>
+      <artifactId>vertx-protobuf-lang</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-protobuf</artifactId>
       <version>${project.version}</version>
     </dependency>
 

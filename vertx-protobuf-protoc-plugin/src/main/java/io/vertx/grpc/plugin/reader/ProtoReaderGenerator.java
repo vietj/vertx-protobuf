@@ -16,10 +16,12 @@ public class ProtoReaderGenerator {
 
   private final String javaPkgFqn;
   private final List<Descriptors.Descriptor> fileDesc;
+  private final boolean useEnumType;
 
-  public ProtoReaderGenerator(String javaPkgFqn, List<Descriptors.Descriptor> fileDesc) {
+  public ProtoReaderGenerator(String javaPkgFqn, boolean useEnumType, List<Descriptors.Descriptor> fileDesc) {
     this.javaPkgFqn = javaPkgFqn;
     this.fileDesc = fileDesc;
+    this.useEnumType = useEnumType;
   }
 
   public enum VisitorKind {
@@ -128,7 +130,16 @@ public class ProtoReaderGenerator {
         final Function<String, String> converter;
         switch (fd.getType()) {
           case ENUM:
-            converter = s -> Utils.javaTypeOfInternal(fd) + ".valueOf(" + s + ")";
+            if (useEnumType) {
+              String p = Utils.extractJavaPkgFqn(fd.getEnumType().getFile()) + ".EnumLiteral." + Utils.literalIdentifier(fd.getEnumType());
+              converter = s -> "java.util.Optional.ofNullable(" + p + ".nameOf(" + s + "))" +
+                ".stream()" +
+                ".map(" + Utils.javaTypeOfInternal(fd) + "::valueOf)" +
+                ".findFirst()" +
+                ".orElse(null)";
+            } else {
+              converter = s -> Utils.javaTypeOfInternal(fd) + ".valueOf(" + s + ")";
+            }
             break;
           case BYTES:
             converter = s -> "io.vertx.core.buffer.Buffer.buffer(" + s + ")";

@@ -1,7 +1,11 @@
 package io.vertx.protobuf.tests.codegen;
 
 import io.vertx.codegen.processor.Compiler;
+import io.vertx.core.json.JsonObject;
+import io.vertx.protobuf.ProtoVisitor;
+import io.vertx.protobuf.ProtobufReader;
 import io.vertx.protobuf.codegen.ProtoProcessor;
+import io.vertx.protobuf.json.ProtoJsonReader;
 import io.vertx.protobuf.schema.EnumType;
 import io.vertx.protobuf.schema.Field;
 import io.vertx.protobuf.schema.MessageType;
@@ -20,6 +24,9 @@ import javax.tools.JavaFileObject;
 import java.io.File;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -48,15 +55,24 @@ public class ProcessorTest {
         break;
       }
     }
-    Compiler compiler = new Compiler(new ProtoProcessor(), new DiagnosticListener<JavaFileObject>() {
-      @Override
-      public void report(Diagnostic<? extends JavaFileObject> diagnostic) {
-        System.out.println(diagnostic.getMessage(null));
+    List<Diagnostic<? extends JavaFileObject>> errors = new ArrayList<>();
+    Compiler compiler = new Compiler(new ProtoProcessor(), diagnostic -> {
+      if (diagnostic.getKind() == Diagnostic.Kind.ERROR) {
+        errors.add(diagnostic);
       }
     });
     compiler.setSourceOutput(sourceOutput);
     try {
-      assertTrue(compiler.compile(types));
+      if (!compiler.compile(types)) {
+        AssertionFailedError afe;
+        if (!errors.isEmpty()) {
+          Diagnostic<? extends JavaFileObject> error = errors.get(0);
+          afe = new AssertionFailedError(error.toString());
+        } else {
+          afe = new AssertionFailedError();
+        }
+        throw afe;
+      }
     } catch (Exception e) {
       AssertionFailedError afe = new AssertionFailedError();
       afe.initCause(e);
@@ -88,5 +104,15 @@ public class ProcessorTest {
     EnumType enumType = (EnumType) f4.type();
     assertEquals("DEFAULT", enumType.nameOf(0));
     assertEquals("ANOTHER", enumType.nameOf(1));
+    Class<? extends ProtoVisitor> readerClazz = (Class<? extends ProtoVisitor>) loader.loadClass(DataTypes.class.getPackageName() + ".ProtoReader");
+    ProtoVisitor protoReader = readerClazz.getDeclaredConstructor().newInstance();
+    String json = new JsonObject()
+      .put("stringField", "the-string")
+      .put("enumField", "ANOTHER")
+      .encode();
+    ProtoJsonReader.parse(json, ml, protoReader);
+    DataTypes o = (DataTypes) ((Deque) readerClazz.getField("stack").get(protoReader)).pop();
+    assertEquals("the-string", o.getStringField());
+    assertEquals(TestEnum.ANOTHER, o.getEnumField());
   }
 }
