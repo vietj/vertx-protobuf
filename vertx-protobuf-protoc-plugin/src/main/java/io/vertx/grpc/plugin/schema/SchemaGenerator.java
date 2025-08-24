@@ -33,12 +33,11 @@ public class SchemaGenerator {
         decl.numberToIdentifier.put(value.getNumber(), value.getName());
       });
     });
-    Map<Descriptors.EnumDescriptor, EnumTypeDeclaration> list3 = new LinkedHashMap<>();
     fileDesc.forEach(messageType -> {
-      list.add(new MessageTypeDeclaration(Utils.schemaIdentifier(messageType), messageType.getName()));
+      list.add(new MessageTypeDeclaration(Utils.literalIdentifier(messageType), messageType.getName()));
       messageType.getFields().forEach(field -> {
-        String identifier = Utils.schemaIdentifier(field);
-        String messageTypeRef = Utils.schemaIdentifier(messageType);
+        String identifier = Utils.literalIdentifier(field);
+        String messageTypeRef = Utils.literalIdentifier(messageType);
         int number = field.getNumber();
         String typeExpr;
         switch (field.getType()) {
@@ -122,7 +121,7 @@ public class SchemaGenerator {
 
     for (Iterator<FieldDeclaration> it = list2.iterator(); it.hasNext(); ) {
       FieldDeclaration decl = it.next();
-      writer.print("  " + decl.messageName + "_" + decl.name + "(" +
+      writer.print("  " + decl.identifier + "(" +
         decl.number + ", " +
         decl.map + ", " +
         decl.mapKey + ", " +
@@ -189,8 +188,8 @@ public class SchemaGenerator {
     writer.println("  }");
     writer.println("  static {");
     for (FieldDeclaration decl : list2) {
-      writer.println("    FieldLiteral." + decl.messageName + "_" + decl.name + ".owner = MessageLiteral." + decl.messageName + ";");
-      writer.println("    FieldLiteral." + decl.messageName + "_" + decl.name + ".type = " + decl.typeExpr + ";");
+      writer.println("    FieldLiteral." + decl.messageTypeIdentifier + "_" + decl.name + ".owner = MessageLiteral." + decl.messageTypeIdentifier + ";");
+      writer.println("    FieldLiteral." + decl.messageTypeIdentifier + "_" + decl.name + ".type = " + decl.typeExpr + ";");
     }
     writer.println("  }");
     writer.println("}");
@@ -218,7 +217,7 @@ public class SchemaGenerator {
 
     for (Iterator<MessageTypeDeclaration> it = list.iterator(); it.hasNext(); ) {
       MessageTypeDeclaration decl = it.next();
-      writer.print("    " + decl.name + "(\"" + decl.name + "\")");
+      writer.print("    " + decl.identifier + "(\"" + decl.name + "\")");
       if (it.hasNext()) {
         writer.println(",");
       } else {
@@ -244,9 +243,9 @@ public class SchemaGenerator {
     writer.println("  }");
     writer.println("  static {");
     for (FieldDeclaration decl : list2) {
-      writer.println("    MessageLiteral." + decl.messageName + ".byNumber.put(" + decl.number + ", FieldLiteral." + decl.messageName + "_" + decl.name + ");");
-      writer.println("    MessageLiteral." + decl.messageName + ".byJsonName.put(\"" + decl.jsonName + "\", FieldLiteral." + decl.messageName + "_" + decl.name + ");");
-      writer.println("    MessageLiteral." + decl.messageName + ".byName.put(\"" + decl.name + "\", FieldLiteral." + decl.messageName + "_" + decl.name + ");");
+      writer.println("    MessageLiteral." + decl.messageTypeIdentifier + ".byNumber.put(" + decl.number + ", FieldLiteral." + decl.identifier + ");");
+      writer.println("    MessageLiteral." + decl.messageTypeIdentifier + ".byJsonName.put(\"" + decl.jsonName + "\", FieldLiteral." + decl.identifier + ");");
+      writer.println("    MessageLiteral." + decl.messageTypeIdentifier + ".byName.put(\"" + decl.name + "\", FieldLiteral." + decl.identifier + ");");
     }
     writer.println("  }");
     writer.println("}");

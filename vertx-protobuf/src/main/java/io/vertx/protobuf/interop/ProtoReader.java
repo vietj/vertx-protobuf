@@ -259,7 +259,7 @@ public class ProtoReader implements ProtoVisitor {
   public void visitString(Field field, String s) {
     if (field instanceof FieldLiteral) {
       switch ((FieldLiteral)field) {
-        case FieldsEntry_key:
+        case Struct_FieldsEntry_key:
           // FieldsEntry
           ((Entry)stack.peek()).key = s;
           break;
@@ -343,7 +343,7 @@ public class ProtoReader implements ProtoVisitor {
       case Struct_fields:
         stack.push(new Entry());
         break;
-      case FieldsEntry_value:
+      case Struct_FieldsEntry_value:
       case ListValue_values:
         break;
       default:
@@ -373,7 +373,7 @@ public class ProtoReader implements ProtoVisitor {
         Entry entry = (Entry) stack.pop();
         ((JsonObject)stack.peek()).put(entry.key, entry.value);
         break;
-      case FieldsEntry_value:
+      case Struct_FieldsEntry_value:
         Object value = pop();
         ((Entry)stack.peek()).value = value;
         break;

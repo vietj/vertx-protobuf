@@ -17,11 +17,11 @@ class StructParser {
     while (parser.nextToken() == JsonToken.FIELD_NAME) {
       String key = parser.currentName();
       visitor.enter(FieldLiteral.Struct_fields);
-      visitor.visitString(FieldLiteral.FieldsEntry_key, key);
+      visitor.visitString(FieldLiteral.Struct_FieldsEntry_key, key);
       parser.nextToken();
-      visitor.enter(FieldLiteral.FieldsEntry_value);
+      visitor.enter(FieldLiteral.Struct_FieldsEntry_value);
       parseValue(parser, visitor);
-      visitor.leave(FieldLiteral.FieldsEntry_value);
+      visitor.leave(FieldLiteral.Struct_FieldsEntry_value);
       visitor.leave(FieldLiteral.Struct_fields);
     }
     visitor.leavePacked(FieldLiteral.Struct_fields);

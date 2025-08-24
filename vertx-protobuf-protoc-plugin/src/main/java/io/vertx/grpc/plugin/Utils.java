@@ -63,11 +63,7 @@ public class Utils {
     return "get" + nameOf(oneOf);
   }
 
-  public static String schemaIdentifier(Descriptors.FieldDescriptor field) {
-    return schemaIdentifier(field.getContainingType()) + "_" + field.getName().toUpperCase();
-  }
-
-  static String literalIdentifier(Descriptors.FieldDescriptor field) {
+  public static String literalIdentifier(Descriptors.FieldDescriptor field) {
     return literalIdentifier(field.getContainingType()) + "_" + field.getName();
   }
 
@@ -79,12 +75,12 @@ public class Utils {
     }
   }
 
-  public static String schemaIdentifier(Descriptors.Descriptor type) {
-    return type.getName().toUpperCase();
-  }
-
   public static String literalIdentifier(Descriptors.Descriptor type) {
-    return type.getName();
+    if (type.getContainingType() != null) {
+      return literalIdentifier(type.getContainingType()) + "_" + type.getName();
+    } else {
+      return type.getName();
+    }
   }
 
   public static boolean isMapKey(Descriptors.FieldDescriptor field) {

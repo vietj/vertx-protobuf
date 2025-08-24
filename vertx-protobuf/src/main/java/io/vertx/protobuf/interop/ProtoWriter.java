@@ -58,10 +58,10 @@ public class ProtoWriter {
     Map<String, Object> map = json.getMap();
     for (Map.Entry<String, Object> entry : map.entrySet()) {
       visitor.enter(FieldLiteral.Struct_fields); // fields
-      visitor.visitString(FieldLiteral.FieldsEntry_key, entry.getKey());
-      visitor.enter(FieldLiteral.FieldsEntry_value);
+      visitor.visitString(FieldLiteral.Struct_FieldsEntry_key, entry.getKey());
+      visitor.enter(FieldLiteral.Struct_FieldsEntry_value);
       visitValueInternal(entry.getValue(), visitor);
-      visitor.leave(FieldLiteral.FieldsEntry_value);
+      visitor.leave(FieldLiteral.Struct_FieldsEntry_value);
       visitor.leave(FieldLiteral.Struct_fields);
     }
   }
