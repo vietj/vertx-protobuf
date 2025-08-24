@@ -121,7 +121,7 @@ public class Utils {
     return Strings.nullToEmpty(proto.getPackage());
   }
 
-  static String nameOf(Descriptors.FieldDescriptor descriptor) {
+  public static String nameOf(Descriptors.FieldDescriptor descriptor) {
     String name = descriptor.getJsonName();
     switch (name) {
       case "package":

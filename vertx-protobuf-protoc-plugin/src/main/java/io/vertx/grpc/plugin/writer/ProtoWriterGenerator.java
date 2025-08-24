@@ -1,7 +1,8 @@
-package io.vertx.grpc.plugin;
+package io.vertx.grpc.plugin.writer;
 
 import com.google.protobuf.Descriptors;
-import com.google.protobuf.compiler.PluginProtos;
+import io.vertx.grpc.plugin.GenWriter;
+import io.vertx.grpc.plugin.Utils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -9,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
-class ProtoWriterGenerator {
+public class ProtoWriterGenerator {
 
   static class Bilto {
     final String visitMethod;
@@ -29,13 +30,15 @@ class ProtoWriterGenerator {
 
   private static final Map<Descriptors.FieldDescriptor.Type, Bilto> TYPE_TO = new HashMap<>();
 
+  private static final Bilto ENUM_TYPE_TO_1  = new Bilto("visitEnum", s -> s + ".ordinal()", Descriptors.FieldDescriptor.Type.ENUM);
+  private static final Bilto ENUM_TYPE_TO_2  = new Bilto("visitEnum", s -> s + ".number()", Descriptors.FieldDescriptor.Type.ENUM);
+
   static {
     TYPE_TO.put(Descriptors.FieldDescriptor.Type.BYTES, new Bilto("visitBytes", s -> s + ".getBytes()", Descriptors.FieldDescriptor.Type.BYTES));
     TYPE_TO.put(Descriptors.FieldDescriptor.Type.FLOAT, new Bilto("visitFloat", Descriptors.FieldDescriptor.Type.FLOAT));
     TYPE_TO.put(Descriptors.FieldDescriptor.Type.DOUBLE, new Bilto("visitDouble", Descriptors.FieldDescriptor.Type.DOUBLE));
     TYPE_TO.put(Descriptors.FieldDescriptor.Type.STRING, new Bilto("visitString", Descriptors.FieldDescriptor.Type.STRING));
     TYPE_TO.put(Descriptors.FieldDescriptor.Type.BOOL, new Bilto("visitBool", Descriptors.FieldDescriptor.Type.BOOL));
-    TYPE_TO.put(Descriptors.FieldDescriptor.Type.ENUM, new Bilto("visitEnum", s -> s + ".number()", Descriptors.FieldDescriptor.Type.ENUM));
     TYPE_TO.put(Descriptors.FieldDescriptor.Type.INT32, new Bilto("visitInt32", Descriptors.FieldDescriptor.Type.INT32));
     TYPE_TO.put(Descriptors.FieldDescriptor.Type.UINT32, new Bilto("visitUInt32", Descriptors.FieldDescriptor.Type.UINT32));
     TYPE_TO.put(Descriptors.FieldDescriptor.Type.INT64, new Bilto("visitInt64", Descriptors.FieldDescriptor.Type.INT64));
@@ -48,12 +51,26 @@ class ProtoWriterGenerator {
     TYPE_TO.put(Descriptors.FieldDescriptor.Type.SFIXED64, new Bilto("visitSFixed64", Descriptors.FieldDescriptor.Type.SFIXED64));
   }
 
+  private Bilto typeToOf(Descriptors.FieldDescriptor fd) {
+    if (fd.getType() == Descriptors.FieldDescriptor.Type.ENUM) {
+      if (useEnumType) {
+        return ENUM_TYPE_TO_1;
+      } else {
+        return ENUM_TYPE_TO_2;
+      }
+    } else {
+      return TYPE_TO.get(fd.getType());
+    }
+  }
+
   private final String javaPkgFqn;
   private final List<Descriptors.Descriptor> fileDesc;
+  private final boolean useEnumType;
 
-  public ProtoWriterGenerator(String javaPkgFqn, List<Descriptors.Descriptor> fileDesc) {
+  public ProtoWriterGenerator(String javaPkgFqn, boolean useEnumType, List<Descriptors.Descriptor> fileDesc) {
     this.javaPkgFqn = javaPkgFqn;
     this.fileDesc = fileDesc;
+    this.useEnumType = useEnumType;
   }
 
   static class Property {
@@ -88,7 +105,7 @@ class ProtoWriterGenerator {
     final List<FieldProperty> fields = new ArrayList<>();
   }
 
-  PluginProtos.CodeGeneratorResponse.File generate() {
+  public String generate() {
 
     List<Descriptors.Descriptor> all = new ArrayList<>(fileDesc);
 
@@ -123,7 +140,7 @@ class ProtoWriterGenerator {
       for (Descriptors.FieldDescriptor fd : d.getFields()) {
         FieldProperty field = new FieldProperty();
         field.identifier = Utils.literalIdentifier(fd);
-        field.typeTo = TYPE_TO.get(fd.getType());
+        field.typeTo = typeToOf(fd);
         field.javaType = Utils.javaTypeOf(fd);
         field.javaTypeInternal = Utils.javaTypeOfInternal(fd);
         field.getterMethod = Utils.getterOf(fd);
@@ -148,10 +165,10 @@ class ProtoWriterGenerator {
         if (fd.isMapField()) {
           field.map = true;
           field.keyJavaType = Utils.javaTypeOf(fd.getMessageType().getFields().get(0));
-          field.keyTypeTo = TYPE_TO.get(fd.getMessageType().getFields().get(0).getType());
+          field.keyTypeTo = typeToOf(fd.getMessageType().getFields().get(0));
           field.keyIdentifier = Utils.literalIdentifier(fd.getMessageType().getFields().get(0));
           field.valueJavaType = Utils.javaTypeOf(fd.getMessageType().getFields().get(1));
-          field.valueTypeTo = TYPE_TO.get(fd.getMessageType().getFields().get(1).getType());
+          field.valueTypeTo = typeToOf(fd.getMessageType().getFields().get(1));
           field.valueIdentifier = Utils.literalIdentifier(fd.getMessageType().getFields().get(1));
         } else {
           field.map = false;
@@ -272,11 +289,7 @@ class ProtoWriterGenerator {
     }
 
     content.println("}");
-    return PluginProtos.CodeGeneratorResponse.File
-      .newBuilder()
-      .setName(Utils.absoluteFileName(javaPkgFqn, "ProtoWriter"))
-      .setContent(content.toString())
-      .build();
+    return content.toString();
   }
 
   private void gen(GenWriter content, FieldProperty field) {

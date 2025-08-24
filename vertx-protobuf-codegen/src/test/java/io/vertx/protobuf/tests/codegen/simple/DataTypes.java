@@ -1,10 +1,11 @@
 package io.vertx.protobuf.tests.codegen.simple;
 
+import io.vertx.protobuf.lang.MessageBase;
 import io.vertx.protobuf.lang.ProtoField;
 import io.vertx.protobuf.lang.ProtoMessage;
 
 @ProtoMessage
-public class DataTypes {
+public class DataTypes extends MessageBase {
 
   private String stringField;
   private TestEnum enumField;
