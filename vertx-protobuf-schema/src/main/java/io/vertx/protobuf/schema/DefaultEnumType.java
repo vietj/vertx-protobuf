@@ -19,11 +19,6 @@ public class DefaultEnumType implements EnumType {
   }
 
   @Override
-  public String name() {
-    return name;
-  }
-
-  @Override
   public TypeID id() {
     return TypeID.ENUM;
   }

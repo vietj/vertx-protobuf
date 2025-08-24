@@ -13,8 +13,6 @@ public interface EnumType extends Type {
     return WireType.VARINT;
   }
 
-  String name();
-
   OptionalInt numberOf(String name);
 
   String nameOf(int number);

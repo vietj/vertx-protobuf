@@ -48,11 +48,6 @@ class UnknownField implements Field, Type {
   }
 
   @Override
-  public String name() {
-    return null;
-  }
-
-  @Override
   public String jsonName() {
     return null;
   }
