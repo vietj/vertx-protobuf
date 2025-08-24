@@ -172,16 +172,20 @@ public class ProtoProcessor extends AbstractProcessor {
     for (Descriptors.FileDescriptor p : protos) {
       String javaPkg = p.getOptions().getJavaPackage();
       SchemaGenerator schemaGenerator = new SchemaGenerator(javaPkg);
-      schemaGenerator.init(p.getMessageTypes(), Collections.emptyList());
+      schemaGenerator.init(p.getMessageTypes(), p.getEnumTypes());
       try {
         Filer filer = processingEnv.getFiler();
-        JavaFileObject messageLiteralsFile = filer.createSourceFile(javaPkg + ".MessageLiteral");
-        JavaFileObject fieldLiteralsFile = filer.createSourceFile(javaPkg + ".FieldLiteral");
-        try (Writer writer = messageLiteralsFile.openWriter()) {
+        JavaFileObject messageLiteralFile = filer.createSourceFile(javaPkg + ".MessageLiteral");
+        JavaFileObject fieldLiteralFile = filer.createSourceFile(javaPkg + ".FieldLiteral");
+        JavaFileObject enumLiteralFile = filer.createSourceFile(javaPkg + ".EnumLiteral");
+        try (Writer writer = messageLiteralFile.openWriter()) {
           writer.write(schemaGenerator.generateMessageLiterals());
         }
-        try (Writer writer = fieldLiteralsFile.openWriter()) {
+        try (Writer writer = fieldLiteralFile.openWriter()) {
           writer.write(schemaGenerator.generateFieldLiterals());
+        }
+        try (Writer writer = enumLiteralFile.openWriter()) {
+          writer.write(schemaGenerator.generateEnumLiterals());
         }
       } catch (IOException e) {
         throw new RuntimeException(e);

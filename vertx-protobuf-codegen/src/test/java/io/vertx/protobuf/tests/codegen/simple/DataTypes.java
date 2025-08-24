@@ -23,8 +23,8 @@ public class DataTypes {
     throw new UnsupportedOperationException();
   }
 
-//  @ProtoField(number = 4, name = "enum_field")
-//  public TestEnum getEnumField() {
-//    throw new UnsupportedOperationException();
-//  }
+  @ProtoField(number = 4, name = "enum_field")
+  public TestEnum getEnumField() {
+    throw new UnsupportedOperationException();
+  }
 }

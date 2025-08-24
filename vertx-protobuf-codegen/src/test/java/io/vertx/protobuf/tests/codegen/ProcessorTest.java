@@ -2,9 +2,11 @@ package io.vertx.protobuf.tests.codegen;
 
 import io.vertx.codegen.processor.Compiler;
 import io.vertx.protobuf.codegen.ProtoProcessor;
+import io.vertx.protobuf.schema.EnumType;
 import io.vertx.protobuf.schema.Field;
 import io.vertx.protobuf.schema.MessageType;
 import io.vertx.protobuf.schema.ScalarType;
+import io.vertx.protobuf.schema.TypeID;
 import io.vertx.protobuf.tests.codegen.simple.DataTypes;
 import io.vertx.protobuf.tests.codegen.simple.TestEnum;
 import org.junit.Test;
@@ -32,7 +34,7 @@ public class ProcessorTest {
     try {
       assertTrue(compiler.compile(DataTypes.class, TestEnum.class));
     } finally {
-      System.out.println(compiler.getSourceOutput());
+//      System.out.println(compiler.getSourceOutput());
     }
     File dir = compiler.getClassOutput();
     assertTrue(new File(dir, DataTypes.class.getPackageName().replace('.', File.separatorChar) + File.separator + "MessageLiteral.class").exists());
@@ -46,5 +48,14 @@ public class ProcessorTest {
     Field f2 = ml.field(2);
     assertEquals("longField", f2.jsonName());
     assertEquals(ScalarType.INT64, f2.type());
+    Field f3 = ml.field(3);
+    assertEquals("booleanField", f3.jsonName());
+    assertEquals(ScalarType.BOOL, f3.type());
+    Field f4 = ml.field(4);
+    assertEquals("enumField", f4.jsonName());
+    assertEquals(TypeID.ENUM, f4.type().id());
+    EnumType enumType = (EnumType) f4.type();
+    assertEquals("DEFAULT", enumType.nameOf(0));
+    assertEquals("ANOTHER", enumType.nameOf(1));
   }
 }
