@@ -1,6 +1,6 @@
 package io.vertx.protobuf.tests.codegen.simple;
 
-import io.vertx.protobuf.annotations.ProtoEnum;
+import io.vertx.protobuf.lang.ProtoEnum;
 
 @ProtoEnum
 public enum TestEnum {

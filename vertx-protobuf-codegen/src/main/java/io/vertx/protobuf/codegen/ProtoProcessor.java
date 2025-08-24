@@ -4,9 +4,9 @@ import com.google.protobuf.DescriptorProtos;
 import com.google.protobuf.Descriptors;
 import io.vertx.grpc.plugin.reader.ProtoReaderGenerator;
 import io.vertx.grpc.plugin.schema.SchemaGenerator;
-import io.vertx.protobuf.annotations.ProtoEnum;
-import io.vertx.protobuf.annotations.ProtoField;
-import io.vertx.protobuf.annotations.ProtoMessage;
+import io.vertx.protobuf.lang.ProtoEnum;
+import io.vertx.protobuf.lang.ProtoField;
+import io.vertx.protobuf.lang.ProtoMessage;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Filer;

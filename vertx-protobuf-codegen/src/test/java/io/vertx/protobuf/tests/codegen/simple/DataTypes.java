@@ -1,9 +1,7 @@
 package io.vertx.protobuf.tests.codegen.simple;
 
-import io.vertx.protobuf.annotations.ProtoField;
-import io.vertx.protobuf.annotations.ProtoMessage;
-
-import java.util.concurrent.TimeUnit;
+import io.vertx.protobuf.lang.ProtoField;
+import io.vertx.protobuf.lang.ProtoMessage;
 
 @ProtoMessage
 public class DataTypes {
