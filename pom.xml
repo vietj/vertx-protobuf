@@ -77,8 +77,8 @@
   </dependencyManagement>
 
   <modules>
-    <module>vertx-protobuf-annotations</module>
     <module>vertx-protobuf-schema</module>
+    <module>vertx-protobuf-lang</module>
     <module>vertx-protobuf-extension</module>
     <module>vertx-protobuf-protoc-plugin</module>
     <module>vertx-protobuf</module>

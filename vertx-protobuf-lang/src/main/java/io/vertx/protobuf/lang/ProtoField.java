@@ -1,4 +1,4 @@
-package io.vertx.protobuf.annotations;
+package io.vertx.protobuf.lang;
 
 import io.vertx.protobuf.schema.TypeID;
 
