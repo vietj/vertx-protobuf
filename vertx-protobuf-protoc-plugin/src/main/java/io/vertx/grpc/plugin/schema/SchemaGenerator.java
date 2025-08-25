@@ -34,7 +34,7 @@ public class SchemaGenerator {
       });
     });
     fileDesc.forEach(messageType -> {
-      list.add(new MessageTypeDeclaration(Utils.literalIdentifier(messageType), messageType.getName()));
+      list.add(new MessageTypeDeclaration(Utils.literalIdentifier(messageType), messageType.getName(), Utils.javaTypeOf(messageType)));
       messageType.getFields().forEach(field -> {
         String identifier = Utils.literalIdentifier(field);
         String messageTypeRef = Utils.literalIdentifier(messageType);
@@ -213,7 +213,7 @@ public class SchemaGenerator {
       "import io.vertx.protobuf.schema.DefaultEnumType;",
       "import io.vertx.protobuf.schema.Field;",
       "",
-      "public enum MessageLiteral implements MessageType {",
+      "public enum MessageLiteral implements MessageType, java.util.function.Function<Object, io.vertx.protobuf.ProtoStream> {",
       "");
 
     writer.print("  ");
@@ -226,6 +226,7 @@ public class SchemaGenerator {
       }
     }
     writer.println(";");
+    writer.println("  private static final java.util.List<java.util.function.Function<?, io.vertx.protobuf.ProtoStream>> streamFactories = new java.util.ArrayList<>();");
     writer.println("  final java.util.Map<Integer, FieldLiteral> byNumber;");
     writer.println("  final java.util.Map<String, FieldLiteral> byJsonName;");
     writer.println("  final java.util.Map<String, FieldLiteral> byName;");
@@ -243,11 +244,19 @@ public class SchemaGenerator {
     writer.println("  public Field fieldByName(String name) {");
     writer.println("    return byName.get(name);");
     writer.println("  }");
+    writer.println("  public io.vertx.protobuf.ProtoStream apply(Object o) {");
+    writer.println("    java.util.function.Function<Object, io.vertx.protobuf.ProtoStream> fn = (java.util.function.Function<Object, io.vertx.protobuf.ProtoStream>)streamFactories.get(ordinal());");
+    writer.println("    return fn.apply(o);");
+    writer.println("  }");
     writer.println("  static {");
     for (FieldDeclaration decl : list2) {
       writer.println("    MessageLiteral." + decl.messageTypeIdentifier + ".byNumber.put(" + decl.number + ", FieldLiteral." + decl.identifier + ");");
       writer.println("    MessageLiteral." + decl.messageTypeIdentifier + ".byJsonName.put(\"" + decl.jsonName + "\", FieldLiteral." + decl.identifier + ");");
       writer.println("    MessageLiteral." + decl.messageTypeIdentifier + ".byName.put(\"" + decl.name + "\", FieldLiteral." + decl.identifier + ");");
+    }
+    for (MessageTypeDeclaration decl : list) {
+      writer.println("    java.util.function.Function<" + decl.className + ", io.vertx.protobuf.ProtoStream> fn_" + decl.name + " = " + javaPkgFqn + ".ProtoWriter::streamOf;");
+      writer.print("      streamFactories.add(fn_" + decl.name + ");");
     }
     writer.println("  }");
     writer.println("}");

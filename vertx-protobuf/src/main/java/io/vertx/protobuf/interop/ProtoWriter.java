@@ -2,6 +2,7 @@ package io.vertx.protobuf.interop;
 
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.protobuf.ProtoStream;
 import io.vertx.protobuf.ProtoVisitor;
 import io.vertx.protobuf.well_known_types.FieldLiteral;
 import io.vertx.protobuf.well_known_types.MessageLiteral;
@@ -17,6 +18,12 @@ public class ProtoWriter {
     visitor.init(MessageLiteral.Duration);
     visit(duration, visitor);
     visitor.destroy();
+  }
+
+  public static ProtoStream protoStream(Duration duration) {
+    return visitor -> {
+      emit(duration, visitor);
+    };
   }
 
   public static void visit(Duration duration, ProtoVisitor visitor) {

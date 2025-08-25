@@ -21,7 +21,7 @@ public class DataTypes extends MessageBase {
 
   @ProtoField(number = 2, name = "long_field")
   public Long getLongField() {
-    throw new UnsupportedOperationException();
+    return 0L;
   }
 
   public void setLongField(Long s) {
@@ -30,7 +30,7 @@ public class DataTypes extends MessageBase {
 
   @ProtoField(number = 3, name = "boolean_field")
   public Boolean getBooleanField() {
-    throw new UnsupportedOperationException();
+    return Boolean.FALSE;
   }
 
   public void setBooleanField(Boolean b) {

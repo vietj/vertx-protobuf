@@ -126,6 +126,12 @@ public class ProtoWriterGenerator {
         "    visit(value, visitor);",
         "    visitor.destroy();",
         "  }");
+      content.println(
+        "  public static io.vertx.protobuf.ProtoStream streamOf(" + Utils.javaTypeOf(d) + " value) {",
+        "    return visitor -> {",
+        "    emit(value, visitor);",
+        "    };",
+        "  }");
     }
 
     for (Descriptors.Descriptor d : all) {

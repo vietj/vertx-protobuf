@@ -126,9 +126,7 @@ public class DataObjectTest {
   public void testWriteImports() throws Exception {
     Container container = new Container();
     container.setSimpleMessage(new SimpleMessage().setStringField("the-string"));
-    Buffer result = ProtobufWriter.encode(visitor -> {
-      io.vertx.tests.importing.ProtoWriter.emit(container, visitor);
-    });
+    Buffer result = ProtobufWriter.encode(io.vertx.tests.importing.ProtoWriter.streamOf(container));
     ImportingProto.Container res = ImportingProto.Container.parseFrom(result.getBytes());
     assertEquals("the-string", res.getSimpleMessage().getStringField());
   }

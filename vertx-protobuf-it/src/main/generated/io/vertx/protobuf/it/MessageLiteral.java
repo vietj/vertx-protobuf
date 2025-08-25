@@ -9,9 +9,10 @@ import io.vertx.protobuf.schema.EnumType;
 import io.vertx.protobuf.schema.DefaultEnumType;
 import io.vertx.protobuf.schema.Field;
 
-public enum MessageLiteral implements MessageType {
+public enum MessageLiteral implements MessageType, java.util.function.Function<Object, io.vertx.protobuf.ProtoStream> {
 
   SimpleMessage("SimpleMessage");
+  private static final java.util.List<java.util.function.Function<?, io.vertx.protobuf.ProtoStream>> streamFactories = new java.util.ArrayList<>();
   final java.util.Map<Integer, FieldLiteral> byNumber;
   final java.util.Map<String, FieldLiteral> byJsonName;
   final java.util.Map<String, FieldLiteral> byName;
@@ -29,9 +30,14 @@ public enum MessageLiteral implements MessageType {
   public Field fieldByName(String name) {
     return byName.get(name);
   }
+  public io.vertx.protobuf.ProtoStream apply(Object o) {
+    java.util.function.Function<Object, io.vertx.protobuf.ProtoStream> fn = (java.util.function.Function<Object, io.vertx.protobuf.ProtoStream>)streamFactories.get(ordinal());
+    return fn.apply(o);
+  }
   static {
     MessageLiteral.SimpleMessage.byNumber.put(1, FieldLiteral.SimpleMessage_string_field);
     MessageLiteral.SimpleMessage.byJsonName.put("stringField", FieldLiteral.SimpleMessage_string_field);
     MessageLiteral.SimpleMessage.byName.put("string_field", FieldLiteral.SimpleMessage_string_field);
-  }
+    java.util.function.Function<io.vertx.protobuf.it.SimpleMessage, io.vertx.protobuf.ProtoStream> fn_SimpleMessage = io.vertx.protobuf.it.ProtoWriter::streamOf;
+      streamFactories.add(fn_SimpleMessage);  }
 }

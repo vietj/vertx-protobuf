@@ -2,10 +2,12 @@ package io.vertx.protobuf.tests.codegen;
 
 import io.vertx.codegen.processor.Compiler;
 import io.vertx.core.json.JsonObject;
+import io.vertx.protobuf.ProtoStream;
 import io.vertx.protobuf.ProtoVisitor;
 import io.vertx.protobuf.ProtobufReader;
 import io.vertx.protobuf.codegen.ProtoProcessor;
 import io.vertx.protobuf.json.ProtoJsonReader;
+import io.vertx.protobuf.json.ProtoJsonWriter;
 import io.vertx.protobuf.schema.EnumType;
 import io.vertx.protobuf.schema.Field;
 import io.vertx.protobuf.schema.MessageType;
@@ -27,6 +29,7 @@ import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
+import java.util.function.Function;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -106,13 +109,15 @@ public class ProcessorTest {
     assertEquals("ANOTHER", enumType.nameOf(1));
     Class<? extends ProtoVisitor> readerClazz = (Class<? extends ProtoVisitor>) loader.loadClass(DataTypes.class.getPackageName() + ".ProtoReader");
     ProtoVisitor protoReader = readerClazz.getDeclaredConstructor().newInstance();
-    String json = new JsonObject()
+    JsonObject json = new JsonObject()
       .put("stringField", "the-string")
-      .put("enumField", "ANOTHER")
-      .encode();
-    ProtoJsonReader.parse(json, ml, protoReader);
+      .put("enumField", "ANOTHER");
+    ProtoJsonReader.parse(json.encode(), ml, protoReader);
     DataTypes o = (DataTypes) ((Deque) readerClazz.getField("stack").get(protoReader)).pop();
     assertEquals("the-string", o.getStringField());
     assertEquals(TestEnum.ANOTHER, o.getEnumField());
+    ProtoStream protoStream = ((Function<Object, ProtoStream>) ml).apply(o);
+    JsonObject res = ProtoJsonWriter.encode(protoStream);
+    assertEquals(json, res);
   }
 }

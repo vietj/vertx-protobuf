@@ -9,6 +9,11 @@ public class ProtoWriter {
     visit(value, visitor);
     visitor.destroy();
   }
+  public static io.vertx.protobuf.ProtoStream streamOf(io.vertx.protobuf.it.SimpleMessage value) {
+    return visitor -> {
+    emit(value, visitor);
+    };
+  }
   public static void visit(io.vertx.protobuf.it.SimpleMessage value, ProtoVisitor visitor) {
     if (!value.getStringField().isEmpty()) {
       java.lang.String v = value.getStringField();
