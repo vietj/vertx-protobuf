@@ -126,19 +126,20 @@ class ElementGenerator {
 //      writer.println("    return this;");
 //      writer.println("  }");
       fields.forEach(field -> {
-        String javaType = Utils.javaTypeOf(field);
-        if (javaType != null) {
+        String boxedJavaType = Utils.javaTypeOf(field);
+        if (boxedJavaType != null) {
+          String unboxedJavaType = Utils.javaTypeOf(field, false);
           String getter = Utils.getterOf(field);
           String setter = Utils.setterOf(field);
-          writer.println("  public " + javaType + " " + getter + "() {");
+          writer.println("  public " + unboxedJavaType + " " + getter + "() {");
           if (field.getType() != Descriptors.FieldDescriptor.Type.MESSAGE && !field.isRepeated()) {
-            writer.println("    " + javaType + " val = this." + Utils.nameOf(field) + ";");
+            writer.println("    " + boxedJavaType + " val = this." + Utils.nameOf(field) + ";");
             writer.println("    return val != null ? val : " + defaultValueOf(field) + ";");
           } else {
             writer.println("    return " + field.getJsonName() + ";");
           }
           writer.println("  };");
-          writer.println("  public " + descriptor.getName() + " " + setter + "(" + javaType + " " + Utils.nameOf(field) + ") {");
+          writer.println("  public " + descriptor.getName() + " " + setter + "(" + unboxedJavaType + " " + Utils.nameOf(field) + ") {");
           writer.println("    this." + Utils.nameOf(field) + " = " + Utils.nameOf(field) + ";");
           writer.println("    return this;");
           writer.println("  };");

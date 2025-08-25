@@ -19,6 +19,10 @@ public class ProtoWriter {
       java.lang.String v = value.getStringField();
       visitor.visitString(FieldLiteral.SimpleMessage_string_field, v);
     }
+    if (value.getLongField() != 0L) {
+      java.lang.Long v = value.getLongField();
+      visitor.visitInt64(FieldLiteral.SimpleMessage_long_field, v);
+    }
     java.lang.Iterable<java.util.Map.Entry<io.vertx.protobuf.schema.Field, java.util.List<Object>>> unknownFields = value.unknownFields();
     if (unknownFields != null) {
       for (java.util.Map.Entry<io.vertx.protobuf.schema.Field, java.util.List<Object>> unknownField : unknownFields) {

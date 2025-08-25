@@ -232,6 +232,10 @@ public class ProtoProcessor extends AbstractProcessor {
 
   private DescriptorProtos.FieldDescriptorProto.Type protoTypeOf(TypeMirror type) {
     switch (type.getKind()) {
+      case BOOLEAN:
+        return DescriptorProtos.FieldDescriptorProto.Type.TYPE_BOOL;
+      case LONG:
+        return DescriptorProtos.FieldDescriptorProto.Type.TYPE_INT64;
       case DECLARED:
         DeclaredType declaredType = (DeclaredType) type;
         Element typeElt = declaredType.asElement();
@@ -239,10 +243,6 @@ public class ProtoProcessor extends AbstractProcessor {
           case CLASS:
             if (typeUtils.isSameType(javaLangString, type)) {
               return DescriptorProtos.FieldDescriptorProto.Type.TYPE_STRING;
-            } else if (typeUtils.isSameType(javaLangLong, type)) {
-              return DescriptorProtos.FieldDescriptorProto.Type.TYPE_INT64;
-            } else if (typeUtils.isSameType(javaLangBoolean, type)) {
-              return DescriptorProtos.FieldDescriptorProto.Type.TYPE_BOOL;
             }
             break;
           case ENUM:

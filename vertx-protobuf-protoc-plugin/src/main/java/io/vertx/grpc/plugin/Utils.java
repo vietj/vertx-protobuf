@@ -155,44 +155,57 @@ public class Utils {
   }
 
   public static String javaTypeOf(Descriptors.FieldDescriptor field) {
+    return javaTypeOf(field, true);
+  }
+
+  public static String javaTypeOf(Descriptors.FieldDescriptor field, boolean boxed) {
     if (field.isMapField()) {
-      String keyType = javaTypeOf(field.getMessageType().getFields().get(0));
-      String valueType = javaTypeOf(field.getMessageType().getFields().get(1));
+      String keyType = javaTypeOf(field.getMessageType().getFields().get(0), true);
+      String valueType = javaTypeOf(field.getMessageType().getFields().get(1), true);
       return "java.util.Map<" + keyType + ", " + valueType + ">";
     } else {
-      String javaType = javaTypeOfInternal(field);
-      if (javaType != null && field.isRepeated()) {
-        javaType = "java.util.List<" + javaType + ">";
+      if (field.isRepeated()) {
+        String componentType = javaTypeOfInternal(field, true);
+        if (componentType != null) {
+          return "java.util.List<" + componentType + ">";
+        } else {
+          return null;
+        }
+      } else {
+        return javaTypeOfInternal(field, boxed);
       }
-      return javaType;
     }
   }
 
   public static String javaTypeOfInternal(Descriptors.FieldDescriptor field) {
+    return javaTypeOfInternal(field, true);
+  }
+
+  public static String javaTypeOfInternal(Descriptors.FieldDescriptor field, boolean boxed) {
     String pkg;
     switch (field.getType()) {
       case BYTES:
         return "io.vertx.core.buffer.Buffer";
       case BOOL:
-        return "java.lang.Boolean";
+        return boxed ? "java.lang.Boolean" : "boolean";
       case STRING:
         return "java.lang.String";
       case FLOAT:
-        return "java.lang.Float";
+        return boxed ? "java.lang.Float" : "float";
       case DOUBLE:
-        return "java.lang.Double";
+        return boxed ? "java.lang.Double" : "double";
       case INT32:
       case UINT32:
       case SINT32:
       case FIXED32:
       case SFIXED32:
-        return "java.lang.Integer";
+        return boxed ? "java.lang.Integer" : "int";
       case INT64:
       case UINT64:
       case SINT64:
       case FIXED64:
       case SFIXED64:
-        return "java.lang.Long";
+        return boxed ? "java.lang.Long" : "long";
       case ENUM:
         pkg = extractJavaPkgFqn(field.getEnumType().getFile());
         return pkg + "." + simpleNameOf(field.getEnumType());

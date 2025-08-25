@@ -11,7 +11,8 @@ import io.vertx.protobuf.schema.Field;
 
 public enum FieldLiteral implements Field {
 
-  SimpleMessage_string_field(1, false, false, false, false, false, "string_field", "stringField");
+  SimpleMessage_string_field(1, false, false, false, false, false, "string_field", "stringField"),
+  SimpleMessage_long_field(2, false, false, false, false, false, "long_field", "longField");
   private MessageLiteral owner;
   private io.vertx.protobuf.schema.Type type;
   private final int number;
@@ -62,5 +63,7 @@ public enum FieldLiteral implements Field {
   static {
     FieldLiteral.SimpleMessage_string_field.owner = MessageLiteral.SimpleMessage;
     FieldLiteral.SimpleMessage_string_field.type = ScalarType.STRING;
+    FieldLiteral.SimpleMessage_long_field.owner = MessageLiteral.SimpleMessage;
+    FieldLiteral.SimpleMessage_long_field.type = ScalarType.INT64;
   }
 }

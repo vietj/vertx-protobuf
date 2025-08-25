@@ -38,6 +38,9 @@ public enum MessageLiteral implements MessageType, java.util.function.Function<O
     MessageLiteral.SimpleMessage.byNumber.put(1, FieldLiteral.SimpleMessage_string_field);
     MessageLiteral.SimpleMessage.byJsonName.put("stringField", FieldLiteral.SimpleMessage_string_field);
     MessageLiteral.SimpleMessage.byName.put("string_field", FieldLiteral.SimpleMessage_string_field);
+    MessageLiteral.SimpleMessage.byNumber.put(2, FieldLiteral.SimpleMessage_long_field);
+    MessageLiteral.SimpleMessage.byJsonName.put("longField", FieldLiteral.SimpleMessage_long_field);
+    MessageLiteral.SimpleMessage.byName.put("long_field", FieldLiteral.SimpleMessage_long_field);
     java.util.function.Function<io.vertx.protobuf.it.SimpleMessage, io.vertx.protobuf.ProtoStream> fn_SimpleMessage = io.vertx.protobuf.it.ProtoWriter::streamOf;
       streamFactories.add(fn_SimpleMessage);  }
 }

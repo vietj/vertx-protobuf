@@ -20,20 +20,20 @@ public class DataTypes extends MessageBase {
   }
 
   @ProtoField(number = 2, name = "long_field")
-  public Long getLongField() {
+  public long getLongField() {
     return 0L;
   }
 
-  public void setLongField(Long s) {
+  public void setLongField(long s) {
     throw new UnsupportedOperationException();
   }
 
   @ProtoField(number = 3, name = "boolean_field")
-  public Boolean getBooleanField() {
-    return Boolean.FALSE;
+  public boolean getBooleanField() {
+    return false;
   }
 
-  public void setBooleanField(Boolean b) {
+  public void setBooleanField(boolean b) {
     throw new UnsupportedOperationException();
   }
 

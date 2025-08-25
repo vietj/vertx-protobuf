@@ -236,6 +236,10 @@ public class ProtoReader implements ProtoVisitor {
     if (field instanceof FieldLiteral) {
       FieldLiteral fieldLiteral = (FieldLiteral)field;
       switch (fieldLiteral) {
+        case SimpleMessage_long_field: {
+          ((io.vertx.protobuf.it.SimpleMessage)stack.peek()).setLongField(value);
+          break;
+        }
         default:
           throw new IllegalArgumentException("Invalid field " + field);
       }
