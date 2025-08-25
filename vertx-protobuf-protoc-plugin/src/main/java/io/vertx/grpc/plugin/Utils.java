@@ -225,6 +225,27 @@ public class Utils {
     }
   }
 
+  public static boolean isPrimitive(Descriptors.FieldDescriptor field) {
+    switch (field.getType()) {
+      case BOOL:
+      case INT32:
+      case SINT32:
+      case UINT32:
+      case INT64:
+      case SINT64:
+      case UINT64:
+      case FIXED32:
+      case SFIXED32:
+      case FIXED64:
+      case SFIXED64:
+      case FLOAT:
+      case DOUBLE:
+        return true;
+      default:
+        return false;
+    }
+  }
+
   private static String simpleNameOf(Descriptors.Descriptor type) {
     Descriptors.Descriptor containing = type.getContainingType();
     return containing == null ? type.getName() : (simpleNameOf(containing) + "." + type.getName());

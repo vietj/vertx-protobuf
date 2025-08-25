@@ -171,6 +171,7 @@ public class ProtoProcessor extends AbstractProcessor {
                 throw new RuntimeException("Handle that with a proper processor failure");
               } else {
                 String name1 = ref.getName();
+                f.setProto3Optional(true);
                 f.setTypeName(name1);
               }
             } else {
@@ -199,7 +200,7 @@ public class ProtoProcessor extends AbstractProcessor {
       SchemaGenerator schemaGenerator = new SchemaGenerator(javaPkg);
       schemaGenerator.init(p.getMessageTypes(), p.getEnumTypes());
       ProtoReaderGenerator protoReaderGenerator = new ProtoReaderGenerator(javaPkg, true, p.getMessageTypes());
-      ProtoWriterGenerator protoWriterGenerator = new ProtoWriterGenerator(javaPkg, true, p.getMessageTypes());
+      ProtoWriterGenerator protoWriterGenerator = new ProtoWriterGenerator(javaPkg, true, false, p.getMessageTypes());
       try {
         Filer filer = processingEnv.getFiler();
         JavaFileObject messageLiteralFile = filer.createSourceFile(javaPkg + ".MessageLiteral");

@@ -138,7 +138,9 @@ public class ProcessorTest {
   @Test
   public void testEmbedded() throws Exception {
     ClassLoader loader = compile(Embedding.class, Embedded.class);
+    Class<? extends ProtoVisitor> readerClazz = (Class<? extends ProtoVisitor>) loader.loadClass(Embedded.class.getPackageName() + ".ProtoReader");
     Class<?> clazz = loader.loadClass(Embedded.class.getPackageName() + ".MessageLiteral");
+    ProtoVisitor protoReader = readerClazz.getDeclaredConstructor().newInstance();
     MessageType ml = (MessageType) clazz.getField("Embedding").get(null);
     Embedded embedded = new Embedded();
     embedded.setStringField("embedded-string");
@@ -147,7 +149,12 @@ public class ProcessorTest {
     embedding.setEmbeddedField(embedded);
     ProtoStream protoStream = ((Function<Object, ProtoStream>) ml).apply(embedding);
     JsonObject res = ProtoJsonWriter.encode(protoStream);
-    System.out.println(res);
-
+    JsonObject expected = new JsonObject().put("stringField", "embedding-string").put("embeddedField", new JsonObject().put("stringField", "embedded-string"));
+    assertEquals(expected, res);
+    ProtoJsonReader.parse(res.encode(), ml, protoReader);
+    embedding = (Embedding) ((Deque) readerClazz.getField("stack").get(protoReader)).pop();
+    assertEquals("embedding-string", embedding.getStringField());
+    embedded = embedding.getEmbeddedField();
+    assertEquals("embedded-string", embedded.getStringField());
   }
 }

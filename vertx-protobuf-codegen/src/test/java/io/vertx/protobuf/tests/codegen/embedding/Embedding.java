@@ -19,7 +19,7 @@ public class Embedding extends MessageBase {
     this.stringField = s;
   }
 
-//  @ProtoField(number = 2, name = "embedded_field")
+  @ProtoField(number = 2, name = "embedded_field")
   public Embedded getEmbeddedField() {
     return embeddedField;
   }

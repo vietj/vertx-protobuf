@@ -66,11 +66,13 @@ public class ProtoWriterGenerator {
   private final String javaPkgFqn;
   private final List<Descriptors.Descriptor> fileDesc;
   private final boolean useEnumType;
+  private final boolean trackPresenceWithField;
 
-  public ProtoWriterGenerator(String javaPkgFqn, boolean useEnumType, List<Descriptors.Descriptor> fileDesc) {
+  public ProtoWriterGenerator(String javaPkgFqn, boolean useEnumType, boolean trackPresence, List<Descriptors.Descriptor> fileDesc) {
     this.javaPkgFqn = javaPkgFqn;
     this.fileDesc = fileDesc;
     this.useEnumType = useEnumType;
+    this.trackPresenceWithField = trackPresence;
   }
 
   static class Property {
@@ -181,7 +183,7 @@ public class ProtoWriterGenerator {
           if (fd.isRepeated()) {
             field.defaultValueChecker = s -> "!" + s + "." + field.getterMethod + "().isEmpty()";
           } else {
-            if (fd.hasPresence()) {
+            if (fd.hasPresence() && trackPresenceWithField) {
               field.defaultValueChecker = s -> s + "." + field.fieldName + " != null";
             } else {
               switch (fd.getType()) {
