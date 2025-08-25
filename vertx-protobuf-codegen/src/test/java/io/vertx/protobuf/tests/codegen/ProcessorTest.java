@@ -48,15 +48,23 @@ public class ProcessorTest {
     if (!target.exists() || !target.isDirectory()) {
       throw new AssertionFailedError();
     }
-    File sourceOutput;
-    for (int i = 0;;i++) {
-      sourceOutput = new File(target, "tests-" + name.getMethodName() + i);
-      if (!sourceOutput.exists()) {
-        if (!sourceOutput.mkdirs()) {
-          throw new AssertionFailedError();
+    File sourceOutput = new File(target, "tests-" + name.getMethodName() );
+    if (sourceOutput.exists()) {
+      File dst;
+      int idx = 0;
+      while (true) {
+        dst = new File(target, "tests-" + name.getMethodName() + "-" + idx);
+        if (!dst.exists()) {
+          break;
         }
-        break;
+        idx++;
       }
+      if (!sourceOutput.renameTo(dst)) {
+        throw new AssertionFailedError();
+      }
+    }
+    if (!sourceOutput.mkdirs()) {
+      throw new AssertionFailedError();
     }
     List<Diagnostic<? extends JavaFileObject>> errors = new ArrayList<>();
     Compiler compiler = new Compiler(new ProtoProcessor(), diagnostic -> {
