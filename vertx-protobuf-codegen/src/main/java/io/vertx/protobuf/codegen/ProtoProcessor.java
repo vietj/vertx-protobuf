@@ -83,7 +83,6 @@ public class ProtoProcessor extends AbstractProcessor {
       return true;
     }
 
-
     // Process enums
     rootElements
       .stream()
@@ -107,16 +106,24 @@ public class ProtoProcessor extends AbstractProcessor {
         fileDesc.addEnumType(enumDesc);
       });
 
-    rootElements
+    List<TypeElement> blah = rootElements
       .stream()
       .filter(elt -> elt.getAnnotation(ProtoMessage.class) != null)
-      .map(TypeElement.class::cast)
+      .map(TypeElement.class::cast).collect(Collectors.toList());
+
+    Map<String, DescriptorProtos.DescriptorProto.Builder> descriptorMap = new HashMap<>();
+    blah.forEach(msgElt -> {
+      DescriptorProtos.DescriptorProto.Builder b = DescriptorProtos.DescriptorProto.newBuilder();
+      b.setName(msgElt.getSimpleName().toString());
+      descriptorMap.put(msgElt.getQualifiedName().toString(), b);
+    });
+
+    blah
       .forEach(msgElt -> {
-        DescriptorProtos.DescriptorProto.Builder b = DescriptorProtos.DescriptorProto.newBuilder();
-        b.setName(msgElt.getSimpleName().toString());
+        DescriptorProtos.DescriptorProto.Builder b = descriptorMap.get(msgElt.getQualifiedName().toString());
 
         String pkg = pkgOf(msgElt);
-        DescriptorProtos.FileDescriptorProto.Builder bbb = blah(pkg);
+        DescriptorProtos.FileDescriptorProto.Builder bbbb = blah(pkg);
 
         List<ExecutableElement> list = msgElt
           .getEnclosedElements()
@@ -142,8 +149,8 @@ public class ProtoProcessor extends AbstractProcessor {
             String p = pkgOf(element);
             String name = element.getSimpleName().toString();
             if (p.equals(pkg)) {
-              Optional<DescriptorProtos.EnumDescriptorProto.Builder> found = bbb.getEnumTypeBuilderList().stream()
-                .filter(blah -> blah.getName().equals(name))
+              Optional<DescriptorProtos.EnumDescriptorProto.Builder> found = bbbb.getEnumTypeBuilderList().stream()
+                .filter(ee -> ee.getName().equals(name))
                 .findFirst();
               if (found.isPresent()) {
                 DescriptorProtos.EnumDescriptorProto.Builder b2 = found.get();
@@ -154,18 +161,34 @@ public class ProtoProcessor extends AbstractProcessor {
              } else {
               throw new UnsupportedOperationException("Not yet implemented");
             }
+          } else if (type == DescriptorProtos.FieldDescriptorProto.Type.TYPE_MESSAGE) {
+            DeclaredType dt = (DeclaredType) typeMirror;
+            TypeElement element = (TypeElement) dt.asElement();
+            String p = pkgOf(element);
+            if (p.equals(pkg)) {
+              DescriptorProtos.DescriptorProto.Builder ref = descriptorMap.get(element.getQualifiedName().toString());
+              if (ref == null) {
+                throw new RuntimeException("Handle that with a proper processor failure");
+              } else {
+                String name1 = ref.getName();
+                f.setTypeName(name1);
+              }
+            } else {
+              throw new UnsupportedOperationException("Not yet implemented");
+            }
           }
           b.addField(f);
         }
-
-        DescriptorProtos.DescriptorProto p = b.build();
-        bbb.addMessageType(p);
+        DescriptorProtos.FileDescriptorProto.Builder bbb = blah(pkg);
+        bbb.addMessageType(b.build());
       });
 
     List<Descriptors.FileDescriptor> protos = new ArrayList<>();
     for (DescriptorProtos.FileDescriptorProto.Builder b : protoMap.values()) {
       try {
-        protos.add(Descriptors.FileDescriptor.buildFrom(b.build(), new Descriptors.FileDescriptor[0]));
+        DescriptorProtos.FileDescriptorProto build = b.build();
+        Descriptors.FileDescriptor f = Descriptors.FileDescriptor.buildFrom(build, new Descriptors.FileDescriptor[0]);
+        protos.add(f);
       } catch (Descriptors.DescriptorValidationException e) {
         throw new RuntimeException(e);
       }
@@ -243,6 +266,11 @@ public class ProtoProcessor extends AbstractProcessor {
           case CLASS:
             if (typeUtils.isSameType(javaLangString, type)) {
               return DescriptorProtos.FieldDescriptorProto.Type.TYPE_STRING;
+            } else {
+              ProtoMessage protoMessage = typeElt.getAnnotation(ProtoMessage.class);
+              if (protoMessage != null) {
+                return DescriptorProtos.FieldDescriptorProto.Type.TYPE_MESSAGE;
+              }
             }
             break;
           case ENUM:

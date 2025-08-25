@@ -4,7 +4,6 @@ import io.vertx.codegen.processor.Compiler;
 import io.vertx.core.json.JsonObject;
 import io.vertx.protobuf.ProtoStream;
 import io.vertx.protobuf.ProtoVisitor;
-import io.vertx.protobuf.ProtobufReader;
 import io.vertx.protobuf.codegen.ProtoProcessor;
 import io.vertx.protobuf.json.ProtoJsonReader;
 import io.vertx.protobuf.json.ProtoJsonWriter;
@@ -13,17 +12,19 @@ import io.vertx.protobuf.schema.Field;
 import io.vertx.protobuf.schema.MessageType;
 import io.vertx.protobuf.schema.ScalarType;
 import io.vertx.protobuf.schema.TypeID;
-import io.vertx.protobuf.tests.codegen.simple.DataTypes;
-import io.vertx.protobuf.tests.codegen.simple.TestEnum;
+import io.vertx.protobuf.tests.codegen.datatypes.DataTypes;
+import io.vertx.protobuf.tests.codegen.datatypes.TestEnum;
+import io.vertx.protobuf.tests.codegen.embedding.Embedded;
+import io.vertx.protobuf.tests.codegen.embedding.Embedding;
 import junit.framework.AssertionFailedError;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
 
 import javax.tools.Diagnostic;
-import javax.tools.DiagnosticListener;
 import javax.tools.JavaFileObject;
 import java.io.File;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
@@ -39,7 +40,7 @@ public class ProcessorTest {
   @Rule
   public TestName name = new TestName();
 
-  private File compile(Class<?>... types) {
+  private URLClassLoader compile(Class<?>... types) {
     String sprop = System.getProperty("maven.project.build.directory");
     if (sprop == null) {
       throw new AssertionFailedError("Was expecting maven.project.build.directory system property to be set");
@@ -89,15 +90,20 @@ public class ProcessorTest {
       afe.initCause(e);
       throw afe;
     }
-    return compiler.getClassOutput();
+    URL url = null;
+    try {
+      url = compiler.getClassOutput().toURI().toURL();
+    } catch (MalformedURLException e) {
+      AssertionFailedError afe = new AssertionFailedError();
+      afe.initCause(e);
+      throw afe;
+    }
+    return new URLClassLoader(new URL[] {url}, Thread.currentThread().getContextClassLoader());
   }
 
   @Test
   public void testDataTypes() throws Exception {
-    File dir = compile(DataTypes.class, TestEnum.class);
-    assertTrue(new File(dir, DataTypes.class.getPackageName().replace('.', File.separatorChar) + File.separator + "MessageLiteral.class").exists());
-    URL url = dir.toURI().toURL();
-    ClassLoader loader = new URLClassLoader(new URL[] {url}, Thread.currentThread().getContextClassLoader());
+    ClassLoader loader = compile(DataTypes.class, TestEnum.class);
     Class<?> clazz = loader.loadClass(DataTypes.class.getPackageName() + ".MessageLiteral");
     MessageType ml = (MessageType) clazz.getField("DataTypes").get(null);
     Field f1 = ml.field(1);
@@ -127,5 +133,21 @@ public class ProcessorTest {
     ProtoStream protoStream = ((Function<Object, ProtoStream>) ml).apply(o);
     JsonObject res = ProtoJsonWriter.encode(protoStream);
     assertEquals(json, res);
+  }
+
+  @Test
+  public void testEmbedded() throws Exception {
+    ClassLoader loader = compile(Embedding.class, Embedded.class);
+    Class<?> clazz = loader.loadClass(Embedded.class.getPackageName() + ".MessageLiteral");
+    MessageType ml = (MessageType) clazz.getField("Embedding").get(null);
+    Embedded embedded = new Embedded();
+    embedded.setStringField("embedded-string");
+    Embedding embedding = new Embedding();
+    embedding.setStringField("embedding-string");
+    embedding.setEmbeddedField(embedded);
+    ProtoStream protoStream = ((Function<Object, ProtoStream>) ml).apply(embedding);
+    JsonObject res = ProtoJsonWriter.encode(protoStream);
+    System.out.println(res);
+
   }
 }

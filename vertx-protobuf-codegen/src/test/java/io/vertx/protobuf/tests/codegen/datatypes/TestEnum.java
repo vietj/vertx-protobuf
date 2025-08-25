@@ -1,4 +1,4 @@
-package io.vertx.protobuf.tests.codegen.simple;
+package io.vertx.protobuf.tests.codegen.datatypes;
 
 import io.vertx.protobuf.lang.ProtoEnum;
 
